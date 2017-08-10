@@ -1,4 +1,4 @@
-package dropbox;
+package com.nat.cloudman.dropbox;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -7,7 +7,10 @@ import java.util.Date;
 import java.util.HashMap;
 
 import com.dropbox.core.v2.files.FolderMetadata;
+import com.nat.cloudman.model.User;
+import com.nat.cloudman.service.UserService;
 import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -40,11 +43,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //access from any domain
-@CrossOrigin(origins = "*")
+@CrossOrigin
 @RestController
 public class DropboxController {
 
     private DbxClientV2 client;
+
+    @Autowired
+    private UserService userService;
 
     public DbxClientV2 getClient() {
         if (client == null) {
@@ -58,7 +64,7 @@ public class DropboxController {
             }
 
             // Create Dropbox client
-            DbxRequestConfig config = new DbxRequestConfig("dropbox/CloudMan/app");
+            DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/dropbox/CloudMan/app");
             client = new DbxClientV2(config, authInfo.getAccessToken());
             return client;
         } else {
@@ -78,6 +84,58 @@ public class DropboxController {
         System.out.println("got path: " + path);
         return new DropboxManager(getFilesList(path));
     }
+
+
+    @RequestMapping(value = "/signup", method = RequestMethod.POST)
+    @ResponseBody
+    public String signUp(
+            @RequestParam("email") String email,
+            @RequestParam("firstname") String firstName,
+            @RequestParam("lastname") String lastName,
+            @RequestParam("password") String password
+
+    ) {
+        System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
+        String result = "";
+        User userExists = userService.findUserByEmail(email);
+        if (userExists != null) {
+            result = "User already exists";
+        } else {
+            User user = new User();
+            user.setEmail(email);
+            user.setName(firstName);
+            user.setLastName(lastName);
+            user.setPassword(password);
+            userService.saveUser(user);
+            result = "User was saved";
+        }
+        System.out.println("return: " + result);
+        return result;
+    }
+
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @ResponseBody
+    public String login(
+            @RequestParam("email") String email,
+            @RequestParam("password") String password
+
+    ) {
+        System.out.println("params. email: " + email + ", password: " + password);
+
+        User userExists = userService.findUserByEmail(email);
+        String result = "";
+
+        if (userExists == null) {
+            result = "User doesn't exist";
+        } else {
+            result = (userExists.getPassword().equals(password)) ? "login success" : "wrong password";
+
+        }
+        System.out.println("return: " + result);
+        return result;
+    }
+
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @ResponseBody
