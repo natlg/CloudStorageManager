@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Cloud Manager</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="js/pagescript.js"></script>
+    <script src="js/files.js"></script>
+    <script src="https://use.fontawesome.com/27792a6b84.js"></script>
+
+    <style>
+
+        /*<!--for height  working on child elements -->*/
+
+        html, body, .nav-container {
+            height: 100%;
+        }
+
+        /* Remove the navbar's default margin-bottom and rounded borders */
+        .navbar {
+            margin-bottom: 0;
+            border-radius: 0;
+            background-color: #E8E8E8;
+
+        }
+
+        .icons-container {
+            background-color: #F8F8F8;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .file-table-container {
+            padding-right: 20px;
+            width: 100%;
+        }
+
+        .table {
+            width: 100%;
+        }
+
+        /* Set gray background color and 100% height */
+        .sidenav {
+            padding-top: 20px;
+            background-color: #f1f1f1;
+            height: 100%;
+        }
+
+        .pathLink {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .icon {
+            width: 25px;
+            height: 25px;
+            margin: 5px 5px 5px 5px;
+
+        }
+
+        .icon-link {
+            align-self: left;
+            alignment: left;
+
+        }
+
+        /* On small screens, set height to 'auto' for sidenav and grid */
+        @media screen and (max-width: 767px) {
+            .sidenav {
+                height: auto;
+                padding: 15px;
+            }
+
+            .row.content {
+                height: auto;
+            }
+        }
+
+        #popoverContent a:nth-child(n) {
+            border: none;
+        }
+
+        .borderless a {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar ">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="indexpage.html">File Man</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a id="login" href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                <li><a id="logout" href="#"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid text-center nav-container">
+    <div class="row content nav-container">
+        <div class="col-sm-2 sidenav ">
+            <p>
+                <!-- Trigger the modal with a button -->
+                <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">+</button>
+            </p>
+            <p><a href="#" id="Dropbox">Dropbox</a></p>
+            <p><a href="#" id="Drive">Google Drive</a></p>
+            <p><a href="#" id="Dropbox2">Dropbox2 </a></p>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Add Cloud Drive</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select a Cloud Drive </p>
+                        <select class="bootstrap-select">
+                            <option value="1" selected="selected">Dropbox</option>
+                            <option value="2">Google Drive</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Add</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="icons-container">
+
+            <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/" method="post">
+                <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"
+                       onChange="clickUpload();"/>
+                <input type="text" name="dropboxPath" style="display:none;"/>
+            </form>
+
+            <label for="uploadFilesInput" data-toggle="tooltip" title="Upload Files">
+                <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
+            </label>
+
+            <a href="#" data-toggle="tooltip" title="Create Folder" class="icon-link">
+                <img class="icon" src="img/icon-folder-add.png" alt="add folder">
+            </a>
+        </div>
+
+        <div class="col-sm-8 text-left">
+            <div class="container file-table-container">
+
+                <div id="pathContainer"></div>
+
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Modified</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="filesTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="col-sm-2 sidenav">
+            <div class="well">
+                <p>ADS</p>
+            </div>
+            <div class="well">
+                <p>ADS</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
