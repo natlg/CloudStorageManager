@@ -4,6 +4,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 
 import com.dropbox.core.v2.files.FolderMetadata;
@@ -11,6 +12,9 @@ import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.UserService;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -39,11 +43,13 @@ import com.dropbox.core.v2.files.UploadSessionLookupErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //access from any domain
-@CrossOrigin
+//@CrossOrigin(origins = "*")
 @RestController
 public class DropboxController {
 
@@ -79,12 +85,35 @@ public class DropboxController {
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 
-    @RequestMapping(value = "/dropbox")
-    public DropboxManager listFiles(@RequestParam(value = "path", defaultValue = "") String path) {
+    //@CrossOrigin(origins = "*")
+    @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
+    public DropboxManager listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
         System.out.println("got path: " + path);
+
+        System.out.println("headers: ");
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+            System.out.println(key + ": " + value);
+        }
+
+        showAuth("dropbox");
+        addCorsHeader(response);
         return new DropboxManager(getFilesList(path));
     }
 
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    public DropboxManager logout(HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("logout ");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        showAuth("logout");
+        addCorsHeader(response);
+        return null;
+    }
 
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     @ResponseBody
@@ -92,7 +121,8 @@ public class DropboxController {
             @RequestParam("email") String email,
             @RequestParam("firstname") String firstName,
             @RequestParam("lastname") String lastName,
-            @RequestParam("password") String password
+            @RequestParam("password") String password,
+            HttpServletRequest request, HttpServletResponse response
 
     ) {
         System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
@@ -110,29 +140,33 @@ public class DropboxController {
             result = "User was saved";
         }
         System.out.println("return: " + result);
+        System.out.println("from request: " + request.getParameter("email") + " " +
+                request.getParameter("password"));
+
+        addCorsHeader(response);
+        showAuth("signup");
         return result;
     }
 
-
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @RequestMapping(value = "/loginform", method = RequestMethod.POST)
     @ResponseBody
     public String login(
             @RequestParam("email") String email,
-            @RequestParam("password") String password
+            @RequestParam("password") String password,
+            HttpServletRequest request, HttpServletResponse response
 
     ) {
         System.out.println("params. email: " + email + ", password: " + password);
-
         User userExists = userService.findUserByEmail(email);
         String result = "";
-
         if (userExists == null) {
             result = "User doesn't exist";
         } else {
             result = (userExists.getPassword().equals(password)) ? "login success" : "wrong password";
-
         }
-        System.out.println("return: " + result);
+        System.out.println("return for login: " + result);
+        showAuth("login");
+        addCorsHeader(response);
         return result;
     }
 
@@ -141,7 +175,8 @@ public class DropboxController {
     @ResponseBody
     public String handleFileUpload(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam("dropboxPath") String dropboxPath
+            @RequestParam("dropboxPath") String dropboxPath,
+            HttpServletRequest request, HttpServletResponse response
     ) {
         System.out.println("dropboxPath: " + dropboxPath);
         for (MultipartFile file : files) {
@@ -151,7 +186,6 @@ public class DropboxController {
                     System.out.println("file getContentType: " + file.getContentType());
                     System.out.println("file getName: " + file.getName());
                     System.out.println("file getSize: " + file.getSize());
-
                     File convertedFile = multipartToFile(file, "E:\\pics\\uploaded\\");
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
                     uploadFile(convertedFile, dropboxPath + "/" + convertedFile.getName());
@@ -162,6 +196,7 @@ public class DropboxController {
                 System.out.println("file is empty ");
             }
         }
+        addCorsHeader(response);
         return null;
     }
 
@@ -237,7 +272,6 @@ public class DropboxController {
             System.exit(1);
             return;
         }
-
         long uploaded = 0L;
         DbxException thrown = null;
 
@@ -487,6 +521,32 @@ public class DropboxController {
             System.exit(1);
             return;
         }
+    }
+
+    private void showAuth(String path) {
+        System.out.println("auth in path: " + path);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            System.out.println("name from auth: " + auth.getName() + " " + auth.isAuthenticated());
+            User user = userService.findUserByEmail(auth.getName());
+            if (user != null) {
+                System.out.println("User name: " + user.getName());
+                System.out.println("User email: " + user.getEmail());
+                System.out.println("User id: " + user.getId());
+            } else {
+                System.out.println("User is null ");
+            }
+        } else {
+            System.out.println("Auth is null");
+        }
+
+    }
+
+    private void addCorsHeader(HttpServletResponse response) {
+
+        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type,X-XSRF-TOKEN");
+        response.addHeader("Access-Control-Max-Age", "1");
     }
 
 }
