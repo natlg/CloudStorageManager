@@ -1,4 +1,4 @@
-package com.nat.cloudman.dropbox;
+package com.nat.cloudman.cloud;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -14,7 +14,6 @@ import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -51,7 +50,7 @@ import java.util.logging.Logger;
 //access from any domain
 //@CrossOrigin(origins = "*")
 @RestController
-public class DropboxController {
+public class CloudController {
 
     private DbxClientV2 client;
 
@@ -70,7 +69,7 @@ public class DropboxController {
             }
 
             // Create Dropbox client
-            DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/dropbox/CloudMan/app");
+            DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/cloud/CloudMan/app");
             client = new DbxClientV2(config, authInfo.getAccessToken());
             return client;
         } else {
@@ -87,7 +86,7 @@ public class DropboxController {
 
     //@CrossOrigin(origins = "*")
     @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
-    public DropboxManager listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
+    public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
         System.out.println("got path: " + path);
 
         System.out.println("headers: ");
@@ -100,74 +99,7 @@ public class DropboxController {
 
         showAuth("dropbox");
         addCorsHeader(response);
-        return new DropboxManager(getFilesList(path));
-    }
-
-    @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    public DropboxManager logout(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("logout ");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            new SecurityContextLogoutHandler().logout(request, response, auth);
-        }
-        showAuth("logout");
-        addCorsHeader(response);
-        return null;
-    }
-
-    @RequestMapping(value = "/signup", method = RequestMethod.POST)
-    @ResponseBody
-    public String signUp(
-            @RequestParam("email") String email,
-            @RequestParam("firstname") String firstName,
-            @RequestParam("lastname") String lastName,
-            @RequestParam("password") String password,
-            HttpServletRequest request, HttpServletResponse response
-
-    ) {
-        System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
-        String result = "";
-        User userExists = userService.findUserByEmail(email);
-        if (userExists != null) {
-            result = "User already exists";
-        } else {
-            User user = new User();
-            user.setEmail(email);
-            user.setName(firstName);
-            user.setLastName(lastName);
-            user.setPassword(password);
-            userService.saveUser(user);
-            result = "User was saved";
-        }
-        System.out.println("return: " + result);
-        System.out.println("from request: " + request.getParameter("email") + " " +
-                request.getParameter("password"));
-
-        addCorsHeader(response);
-        showAuth("signup");
-        return result;
-    }
-
-    @RequestMapping(value = "/loginform", method = RequestMethod.POST)
-    @ResponseBody
-    public String login(
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            HttpServletRequest request, HttpServletResponse response
-
-    ) {
-        System.out.println("params. email: " + email + ", password: " + password);
-        User userExists = userService.findUserByEmail(email);
-        String result = "";
-        if (userExists == null) {
-            result = "User doesn't exist";
-        } else {
-            result = (userExists.getPassword().equals(password)) ? "login success" : "wrong password";
-        }
-        System.out.println("return for login: " + result);
-        showAuth("login");
-        addCorsHeader(response);
-        return result;
+        return new FilesContainer(getFilesList(path));
     }
 
 

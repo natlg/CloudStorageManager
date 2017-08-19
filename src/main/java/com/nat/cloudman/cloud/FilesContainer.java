@@ -1,13 +1,13 @@
-package com.nat.cloudman.dropbox;
+package com.nat.cloudman.cloud;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DropboxManager {
+public class FilesContainer {
 
     private  ArrayList<HashMap<String, String>> files;
 
-    public DropboxManager(ArrayList<HashMap<String, String>> files) {
+    public FilesContainer(ArrayList<HashMap<String, String>> files) {
         this.files = files;
     }
 
