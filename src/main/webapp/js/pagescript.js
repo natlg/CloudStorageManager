@@ -196,9 +196,13 @@ function submitSignupForm() {
         if (this.readyState === 4 && this.status === 200) {
             console.log("XMLHttpRequest answer is ready");
             console.log("responseText: " + xhttp.responseText);
+            location.href = "login.html";
         }
         else {
-            console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            if (this.readyState === 4 && this.status === 401) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+                $("#signup-alert").show();
+            }
         }
     };
 
@@ -213,6 +217,26 @@ function submitSignupForm() {
     xhttp.send(params);
 }
 
+function isAuthorized() {
+    var isAuthorized = sessionStorage.isAuthorized;
+    //if not set yet
+    if (typeof isAuthorized == "undefined") {
+        setAuthorized(false);
+        return false;
+    }
+    else {
+        return isAuthorized;
+    }
+}
+
+function setAuthorized(auth) {
+    if (typeof(Storage) !== "undefined") {
+        sessionStorage.isAuthorized = auth;
+    } else {
+        console.log("No Web Storage support");
+    }
+}
+
 
 function submitLoginForm() {
     console.log("Submit login form");
@@ -222,9 +246,16 @@ function submitLoginForm() {
         if (this.readyState === 4 && this.status === 200) {
             console.log("XMLHttpRequest answer is ready");
             console.log("responseText: " + xhttp.responseText);
+            location.href = "indexpage.html";
+            setAuthorized(true);
+            console.log("XMLHttpRequest isLogged: " + isAuthorized());
         }
         else {
-            console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            if (this.readyState === 4 && this.status === 401) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+                $('#login-alert').show();
+            }
+
         }
     };
 
@@ -239,43 +270,45 @@ function submitLoginForm() {
 
 $(document).ready(function () {
     filesProvider = new FilesProvider();
-
     console.log("document ready");
-    <!--redirect to login page-->
-    document.getElementById("login").onclick = function () {
+    var url = document.URL;
+    if (isAuthorized() == 'true') {
+        $('.header').load("templates/homeheader.html");
+    }
+    else if (url.indexOf("login") >= 0) {
+        $('.header').load("templates/loginheader.html");
+    }
+    else {
+        $('.header').load("templates/mainheader.html");
+    }
+
+    $(document).on('click', '#login', function () {
         location.href = "login.html";
-    };
+    });
 
-
-    document.getElementById("logout").onclick = function () {
-        // location.href = "indexpage.html";
-
-
+    $(document).on('click', '#logout', function () {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
                 console.log("XMLHttpRequest answer is ready");
                 console.log("responseText: " + xhttp.responseText);
+                location.href = "indexpage.html";
+                setAuthorized(false);
             }
             else {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
             }
         };
-
-
         xhttp.open("POST", "http://localhost:8080/logout/", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         console.log("send logout");
         xhttp.send();
+    });
 
-    };
-
-    // null on login page
-    if (document.getElementById("Dropbox")) {
-        document.getElementById("Dropbox").onclick = function () {
-            currentCloud = "Dropbox";
-            listFolder("");
-        };
-    }
-
+    $(document).on('click', '#Dropbox', function () {
+        currentCloud = "Dropbox";
+        listFolder("");
+    });
 });
+
+
