@@ -74,7 +74,7 @@ public class CloudController {
                 System.out.println("have cloud getAccountName: " + cl.getAccountName());
                 System.out.println("have cloud getCloudService: " + cl.getCloudService());
             }
-            return new CloudContainer(clouds);
+            return new CloudContainer(clouds, user.getEmail(), user.getName(), user.getLastName());
         }
         return null;
     }

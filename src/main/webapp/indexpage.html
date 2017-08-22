@@ -14,6 +14,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="js/pagescript.js"></script>
     <script src="js/files.js"></script>
+    <script src="js/userscript.js"></script>
+    <script src="js/filesTableScript.js"></script>
+    <script src="js/cloudsScropt.js"></script>
     <script src="https://use.fontawesome.com/27792a6b84.js"></script>
 
     <style>
@@ -148,7 +151,7 @@
         </div>
 
 
-        <div class="icons-container">
+        <div id="table-icons-container" class="icons-container" style="display:none;">
 
             <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/" method="post">
                 <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"

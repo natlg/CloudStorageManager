@@ -1,221 +1,7 @@
 var filesProvider;
 var currentCloud;
 
-function allowDrop(ev) {
-    ev.preventDefault();
-}
 
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
-}
-
-function drop(ev) {
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    ev.target.appendChild(document.getElementById(data));
-}
-
-function dblclickFile(event) {
-    console.log("dblclickFile");
-    console.log("data id: " + event.data.id);
-    var folderPath = $("#" + event.data.id).find("#fileName").text();
-    console.log("textContent: " + folderPath);
-    // listFolder("/new folder");
-    console.log("current parent: " + filesProvider.fullPath);
-    var pathToShow = filesProvider.fullPath + "/" + folderPath;
-    console.log("pathToShow: " + pathToShow);
-    listFolder(pathToShow);
-}
-
-function pathClick() {
-    console.log("pathClick");
-    var clickedPath = $(this).text();
-    console.log("text: " + clickedPath);
-    console.log("class: " + $(this).attr('class'));
-    if ($($(this)).attr('class').toString().indexOf("mainFolder") !== -1) {
-        console.log("mainFolder ");
-        listFolder("");
-        return;
-    }
-
-    var path = "/";
-
-    // prevAll works vice versa
-    var prevLinkArray = Array.prototype.reverse.call($($(this).prevAll(".pathFolder")));
-    console.log("path length: " + prevLinkArray.length);
-    // first element is name of the Cloud
-    if (prevLinkArray.length > 0) {
-        for (var i = 0; i < prevLinkArray.length; i++) {
-            console.log("prev: " + $(prevLinkArray[i]).text());
-            path += $(prevLinkArray[i]).text() + "/";
-        }
-    }
-    path += clickedPath;
-    console.log("all path: " + path);
-    listFolder(path);
-}
-
-// gets id of clicked file
-function clickDetails(event) {
-    console.log("clickDetails");
-    console.log("data id: " + event.data.id);
-}
-
-//bind popover to dynamic elements
-function bindPopover() {
-    var content = `<div id="popoverContent" class="borderless">
-        <a href="#" class="list-group-item">Copy</a>
-        <a href="#" class="list-group-item">Move</a>
-        <a href="#" class="list-group-item">Rename</a>
-        <a href="#" class="list-group-item">Delete</a>
-        <a href="#" class="list-group-item">Download</a>
-        </div>`;
-
-    $('body').popover({
-        selector: '[rel=popover]',
-        trigger: 'focus',
-        content: content,
-        placement: "left",
-        html: true
-    });
-}
-
-function getText(text) {
-    if (text) {
-        return text;
-    }
-    else
-        return "";
-}
-
-function listFolder(path) {
-    if (filesProvider) {
-        console.log("current parent: " + filesProvider.fullPath);
-    }
-    else {
-        console.log("filesProvider doesn't exist");
-        filesProvider = new FilesProvider();
-    }
-    filesProvider.getFilesList(path, handleFile);
-}
-
-// callback function after getting answer from server
-function handleFile(files) {
-    var table = $("#filesTableBody");
-
-    //remove rows after previous click
-    table.empty();
-    console.log("handleFile, files Length: " + files.length);
-    for (var i = 0; i < files.length; i++) {
-        var row =
-            `<tr id=${files[i].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
-                    ondragstart="drag(event)">
-                        <td> <a id="fileName" href="#">${files[i].name}</a></td>
-                        <td>${files[i].type}</td>
-                        <td>${getText(files[i].size)}</td>
-                        <td>${getText(files[i].modified)}</td>
-                    <td>
-                    <a  href="#" class="hoverAble" data-toggle="popover" rel="popover" data-placement="left"
-                    data-popover-content="#popoverContent"
-                    data-trigger="focus">
-                ...</a>
-                    </td>
-                    </tr>`;
-
-        table.append($(row));
-
-        var r = $('#' + files[i].id);
-        r.on("dblclick", {id: files[i].id}, dblclickFile);
-        r.find("a").on("click", {id: files[i].id}, dblclickFile);
-
-        var link = r.find('a');
-
-        bindPopover();
-        link.on("click", {id: files[i].id}, clickDetails);
-    }
-
-    var pathContainer = $("#pathContainer");
-    emptyPath();
-
-    if (filesProvider.pathList && filesProvider.pathList !== undefined && filesProvider.pathList.length > 0) {
-        for (var e = 0; e < filesProvider.pathList.length; e++) {
-            var fileLink = $(`<i class="fa fa-angle-right"></i>
-            <a href="#" class="pathLink pathFolder">${filesProvider.pathList[e]}</a>`);
-            pathContainer.append(fileLink);
-            fileLink.on("click", pathClick);
-        }
-    }
-}
-
-function emptyPath() {
-    var pathContainer = $("#pathContainer");
-    pathContainer.empty();
-    var mainFileLink = $(`<a class="pathLink mainFolder" href="#" >${currentCloud}</a>`);
-    pathContainer.append(mainFileLink);
-    mainFileLink.on("click", pathClick);
-}
-
-function clickUpload() {
-    console.log("upload");
-    var input = document.getElementById("uploadFilesInput");
-
-    var files = input.files;
-    var formData = new FormData();
-
-// Loop through each of the selected files.
-    for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-
-        // Add the file to the request.
-        formData.append('files', file, file.name);
-        console.log("append file: " + file.name);
-    }
-    formData.append("dropboxPath", filesProvider.fullPath);
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://localhost:8080/upload/', true);
-    //xhr.open('POST', 'http://localhost:8080/app/upload/', true);
-
-    // Set up a handler for when the request finishes.
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            // File(s) uploaded.
-            console.log("UPLOADED! ");
-        } else {
-            alert('An error occurred!');
-        }
-    };
-    // Send the Data.
-    xhr.send(formData);
-}
-
-function submitSignupForm() {
-    console.log("Submit sign up form");
-    var form = document.getElementById("signupform");
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log("XMLHttpRequest answer is ready");
-            console.log("responseText: " + xhttp.responseText);
-            location.href = "login.html";
-        }
-        else {
-            if (this.readyState === 4 && this.status === 401) {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-                $("#signup-alert").show();
-            }
-        }
-    };
-
-    var params = "email=" + form.elements["email"].value +
-        "&firstname=" + form.elements["firstname"].value +
-        "&lastname=" + form.elements["lastname"].value +
-        "&password=" + form.elements["password"].value;
-    xhttp.open("POST", "http://localhost:8080/signup", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    console.log("send params:");
-    console.log(params);
-    xhttp.send(params);
-}
 
 function isAuthorized() {
     var isAuthorized = sessionStorage.isAuthorized;
@@ -225,6 +11,7 @@ function isAuthorized() {
         return false;
     }
     else {
+        console.log("isAuthorized: " + isAuthorized);
         return isAuthorized;
     }
 }
@@ -237,102 +24,8 @@ function setAuthorized(auth) {
     }
 }
 
-function getClouds() {
 
-    console.log("getClouds");
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log("XMLHttpRequest answer is ready");
-            console.log("responseText: " + xhttp.responseText);
-            setAuthorized(true);
-
-            var response = JSON.parse(xhttp.responseText).clouds;
-            var arrayLength = response.length;
-            var cloudArray = [];
-            console.log("arrayLength: " + arrayLength);
-            for (var i = 0; i < arrayLength; i++) {
-                var cloud = {
-                    id: response[i].id,
-                    accountName: response[i].accountName,
-                    cloudService: response[i].cloudService
-                };
-                cloudArray.push(cloud);
-                console.log("push: " + i);
-            }
-
-            var container = $("#cloud_container");
-            container.empty();
-            var addBtn = `  <p>
-                <!-- Trigger the modal with a button -->
-                <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">+</button>
-            </p>`;
-            container.append($(addBtn));
-
-            for (var i = 0; i < cloudArray.length; i++) {
-                var cloud = ` <p><a href="#" id="${cloudArray[i].id}" onclick="cloudClick(event)" class="${cloudArray[i].cloudService}">${cloudArray[i].accountName}</a></p>`;
-                container.append($(cloud));
-            }
-
-        }
-        else {
-            if (this.readyState === 4 && this.status === 401) {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-                setAuthorized(false);
-            }
-
-        }
-    };
-    xhttp.open("POST", "http://localhost:8080/getclouds", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttp.send();
-}
-
-function cloudClick(event) {
-    console.log("cloud click");
-    console.log("id click: " + event.target.id);
-
-    currentCloud = "Dropbox";
-    listFolder("");
-
-}
-
-function submitLoginForm() {
-    console.log("Submit login form");
-    var form = document.getElementById("loginform");
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log("XMLHttpRequest answer is ready");
-            console.log("responseText: " + xhttp.responseText);
-            location.href = "indexpage.html";
-            setAuthorized(true);
-            console.log("XMLHttpRequest isLogged: " + isAuthorized());
-        }
-        else {
-            if (this.readyState === 4 && this.status === 401) {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-                $('#login-alert').show();
-            }
-
-        }
-    };
-
-    var params = "email=" + form.elements["email"].value +
-        "&password=" + form.elements["password"].value;
-    xhttp.open("POST", "http://localhost:8080/loginform", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    console.log("send params:");
-    console.log(params);
-    xhttp.send(params);
-}
-
-$(document).ready(function () {
-    filesProvider = new FilesProvider();
-    console.log("document ready");
-
-    getClouds();
+function setHeader() {
 
     var url = document.URL;
     if (isAuthorized() == 'true') {
@@ -344,61 +37,28 @@ $(document).ready(function () {
     else {
         $('.header').load("templates/mainheader.html");
     }
+}
+
+$(document).ready(function () {
+    filesProvider = new FilesProvider();
+    console.log("document ready");
+
+    getClouds();
+    setHeader();
 
     $(document).on('click', '#login', function () {
         location.href = "login.html";
     });
 
-    $(document).on('click', '#logout', function () {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                console.log("XMLHttpRequest answer is ready");
-                console.log("responseText: " + xhttp.responseText);
-                location.href = "indexpage.html";
-                setAuthorized(false);
-            }
-            else {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-            }
-        };
-        xhttp.open("POST", "http://localhost:8080/logout/", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        console.log("send logout");
-        xhttp.send();
-    });
+    $(document).on('click', '#logout', logoutClick);
 
     $(document).on('click', '#Dropbox', function () {
         currentCloud = "Dropbox";
         listFolder("");
     });
 
-    $(document).on('click', '#add_cloud', function () {
-        console.log("add_cloud click");
-        var cloud = $("#cloud_select :selected").text();
-        var cloudName = $("#cloud_name").val();
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                console.log("XMLHttpRequest answer is ready");
-                console.log("responseText: " + xhttp.responseText);
-                getClouds();
-            }
-            else {
-                if (this.readyState === 4 && this.status === 401) {
-                    console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-                }
-            }
-        };
+    $(document).on('click', '#add_cloud', addCloud);
 
-        var params = "cloud=" + cloud +
-            "&cloudName=" + cloudName;
-        xhttp.open("POST", "http://localhost:8080/addcloud", true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        console.log("send params:");
-        console.log(params);
-        xhttp.send(params);
-    });
 });
 
 
