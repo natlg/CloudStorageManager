@@ -1,4 +1,4 @@
-package com.nat.cloudman.cloud;
+package com.nat.cloudman.response;
 
 import com.nat.cloudman.model.Cloud;
 

@@ -293,6 +293,9 @@ function cloudClick(event) {
     console.log("cloud click");
     console.log("id click: " + event.target.id);
 
+    currentCloud = "Dropbox";
+    listFolder("");
+
 }
 
 function submitLoginForm() {

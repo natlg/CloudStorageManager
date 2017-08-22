@@ -1,64 +1,32 @@
 package com.nat.cloudman.cloud;
 
-import java.io.*;
-import java.text.DateFormat;
-import java.util.*;
-
-import com.dropbox.core.v2.files.FolderMetadata;
-import com.nat.cloudman.model.Cloud;
-import com.nat.cloudman.model.User;
-import com.nat.cloudman.service.CloudService;
-import com.nat.cloudman.service.UserService;
-import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.web.bind.annotation.*;
-
-
-import com.dropbox.core.DbxAppInfo;
-import com.dropbox.core.DbxAuthFinish;
-import com.dropbox.core.DbxAuthInfo;
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.DbxWebAuth;
+import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.FileMetadata;
-import com.dropbox.core.v2.files.ListFolderResult;
-import com.dropbox.core.v2.files.Metadata;
+import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
-import com.dropbox.core.v2.files.WriteMode;
-
-
-import com.dropbox.core.NetworkIOException;
-import com.dropbox.core.RetryException;
-import com.dropbox.core.v2.files.CommitInfo;
-import com.dropbox.core.v2.files.UploadErrorException;
-import com.dropbox.core.v2.files.UploadSessionCursor;
-import com.dropbox.core.v2.files.UploadSessionFinishErrorException;
-import com.dropbox.core.v2.files.UploadSessionLookupErrorException;
+import org.json.JSONException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//access from any domain
-//@CrossOrigin(origins = "*")
-@RestController
-public class CloudController {
+@Component
+public class DropboxUtils {
 
     private DbxClientV2 client;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CloudService cloudService;
+    // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will
+    // result in fewer network requests, which will be faster. But if an error occurs, the entire
+    // chunk will be lost and have to be re-uploaded. Use a multiple of 4MiB for your chunk size.
+    private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
+    private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 
     public DbxClientV2 getClient() {
         if (client == null) {
@@ -80,94 +48,70 @@ public class CloudController {
         }
     }
 
+    public ArrayList<HashMap<String, String>> getFilesList(String folderPath) {
 
-    // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will
-    // result in fewer network requests, which will be faster. But if an error occurs, the entire
-    // chunk will be lost and have to be re-uploaded. Use a multiple of 4MiB for your chunk size.
-    private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
-    private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
-
-    //@CrossOrigin(origins = "*")
-    @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
-    public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got path: " + path);
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("user name: " + auth.getName());
-
-        addCorsHeader(response);
-        return new FilesContainer(getFilesList(path));
-    }
-
-
-    @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
-    public FilesContainer addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
-                                   @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                                   HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName);
-        Cloud cloud = new Cloud();
-        cloud.setCloudService(cloudDrive);
-        cloud.setAccountName(cloudName);
-        cloudService.saveCloud(cloud);
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            System.out.println("user name: " + auth.getName());
-            User user = userService.findUserByEmail(auth.getName());
-            user.addCloud(cloud);
-            userService.saveUser(user);
+        // Get current account info
+        FullAccount account = null;
+        try {
+            account = getClient().users().getCurrentAccount();
+        } catch (DbxException e) {
+            e.printStackTrace();
         }
-        return null;
-    }
+        System.out.println("account.getName: " + account.getName().getDisplayName());
 
-    @RequestMapping(value = "/getclouds", method = RequestMethod.POST)
-    public CloudContainer getClouds(
-            HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("getclouds");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("user name: " + auth.getName());
-        User user = userService.findUserByEmail(auth.getName());
-        if (user != null) {
-
-            Set<Cloud> clouds = user.getClouds();
-            for (Cloud cl : clouds) {
-                System.out.println("have cloud getAccountName: " + cl.getAccountName());
-                System.out.println("have cloud getCloudService: " + cl.getCloudService());
-
-            }
-            return new CloudContainer(clouds);
+        // Get files and folder metadata from Dropbox root directory
+        ListFolderResult result = null;
+        try {
+            result = getClient().files().listFolder(folderPath);
+        } catch (DbxException e) {
+            e.printStackTrace();
         }
-        return null;
-    }
 
+        ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
+        while (true) {
+            try {
+                for (Metadata metadata : result.getEntries()) {
+                    HashMap<String, String> file = new HashMap<String, String>();
+                    file.put("displayPath", metadata.getPathDisplay());
+                    if (metadata instanceof FolderMetadata) {
+                        System.out.println(" FolderMetadata ");
+                        metadata = (FolderMetadata) metadata;
+                        file.put("type", "folder");
+                        String id = ((FolderMetadata) metadata).getId();
+                        if (id.startsWith("id:")) {
+                            id = id.substring(3, id.length());
+                        }
+                        System.out.println(" path: " + ((FolderMetadata) metadata).getPathLower());
+                        file.put("id", id);
+                        file.put("pathLower", ((FolderMetadata) metadata).getPathLower());
+                    } else if (metadata instanceof FileMetadata) {
+                        System.out.println(" FileMetadata ");
+                        metadata = (FileMetadata) metadata;
+                        file.put("type", "file");
+                        String id = ((FileMetadata) metadata).getId();
+                        if (id.startsWith("id:")) {
+                            id = id.substring(3, id.length());
+                        }
+                        System.out.println(" path: " + ((FileMetadata) metadata).getPathLower());
+                        file.put("id", id);
+                        file.put("modified", DateFormat.getDateInstance().format(((FileMetadata) metadata).getClientModified()));
+                        file.put("size", Long.toString(((FileMetadata) metadata).getSize()));
+                        file.put("pathLower", ((FileMetadata) metadata).getPathLower());
 
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    @ResponseBody
-    public String handleFileUpload(
-            @RequestParam("files") MultipartFile[] files,
-            @RequestParam("dropboxPath") String dropboxPath,
-            HttpServletRequest request, HttpServletResponse response
-    ) {
-        System.out.println("dropboxPath: " + dropboxPath);
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                try {
-                    System.out.println("file getOriginalFilename: " + file.getOriginalFilename());
-                    System.out.println("file getContentType: " + file.getContentType());
-                    System.out.println("file getName: " + file.getName());
-                    System.out.println("file getSize: " + file.getSize());
-                    File convertedFile = multipartToFile(file, "E:\\pics\\uploaded\\");
-                    System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    uploadFile(convertedFile, dropboxPath + "/" + convertedFile.getName());
-                } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    }
+                    files.add(file);
                 }
-            } else {
-                System.out.println("file is empty ");
+
+            } catch (JSONException jse) {
+                System.out.println("JSONException: " + jse.getMessage());
+            }
+            if (!result.getHasMore()) {
+                break;
             }
         }
-        addCorsHeader(response);
-        return null;
+        System.out.println("size: " + files.size());
+        System.out.println("file: " + files.get(0).get("displayPath"));
+        return files;
     }
 
     public File multipartToFile(MultipartFile multipart, String pathToSave) throws IllegalStateException, IOException {
@@ -179,7 +123,6 @@ public class CloudController {
         System.out.println("converted, length " + convertedFile.length());
         return convertedFile;
     }
-
 
     public void uploadFile(File localFile, String dropboxPath) throws Exception {
         System.err.println("uploadFile");
@@ -364,73 +307,6 @@ public class CloudController {
         }
     }
 
-
-    public ArrayList<HashMap<String, String>> getFilesList(String folderPath) {
-
-        // Get current account info
-        FullAccount account = null;
-        try {
-            account = getClient().users().getCurrentAccount();
-        } catch (DbxException e) {
-            e.printStackTrace();
-        }
-        System.out.println("account.getName: " + account.getName().getDisplayName());
-
-        // Get files and folder metadata from Dropbox root directory
-        ListFolderResult result = null;
-        try {
-            result = getClient().files().listFolder(folderPath);
-        } catch (DbxException e) {
-            e.printStackTrace();
-        }
-
-        ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
-        while (true) {
-            try {
-                for (Metadata metadata : result.getEntries()) {
-                    HashMap<String, String> file = new HashMap<String, String>();
-                    file.put("displayPath", metadata.getPathDisplay());
-                    if (metadata instanceof FolderMetadata) {
-                        System.out.println(" FolderMetadata ");
-                        metadata = (FolderMetadata) metadata;
-                        file.put("type", "folder");
-                        String id = ((FolderMetadata) metadata).getId();
-                        if (id.startsWith("id:")) {
-                            id = id.substring(3, id.length());
-                        }
-                        System.out.println(" path: " + ((FolderMetadata) metadata).getPathLower());
-                        file.put("id", id);
-                        file.put("pathLower", ((FolderMetadata) metadata).getPathLower());
-                    } else if (metadata instanceof FileMetadata) {
-                        System.out.println(" FileMetadata ");
-                        metadata = (FileMetadata) metadata;
-                        file.put("type", "file");
-                        String id = ((FileMetadata) metadata).getId();
-                        if (id.startsWith("id:")) {
-                            id = id.substring(3, id.length());
-                        }
-                        System.out.println(" path: " + ((FileMetadata) metadata).getPathLower());
-                        file.put("id", id);
-                        file.put("modified", DateFormat.getDateInstance().format(((FileMetadata) metadata).getClientModified()));
-                        file.put("size", Long.toString(((FileMetadata) metadata).getSize()));
-                        file.put("pathLower", ((FileMetadata) metadata).getPathLower());
-
-                    }
-                    files.add(file);
-                }
-
-            } catch (JSONException jse) {
-                System.out.println("JSONException: " + jse.getMessage());
-            }
-            if (!result.getHasMore()) {
-                break;
-            }
-        }
-        System.out.println("size: " + files.size());
-        System.out.println("file: " + files.get(0).get("displayPath"));
-        return files;
-    }
-
     public void authorise() throws IOException {
         Logger.getLogger("").setLevel(Level.WARNING);
         String argAppInfoFile = "E:\\Dropbox\\Projects\\CloudMan\\src\\main\\resources\\drKS.txt";
@@ -492,31 +368,4 @@ public class CloudController {
             return;
         }
     }
-
-    private void showAuth(String path) {
-        System.out.println("auth in path: " + path);
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            System.out.println("name from auth: " + auth.getName() + " " + auth.isAuthenticated());
-            User user = userService.findUserByEmail(auth.getName());
-            if (user != null) {
-                System.out.println("User name: " + user.getName());
-                System.out.println("User email: " + user.getEmail());
-                System.out.println("User id: " + user.getId());
-            } else {
-                System.out.println("User is null ");
-            }
-        } else {
-            System.out.println("Auth is null");
-        }
-
-    }
-
-    private void addCorsHeader(HttpServletResponse response) {
-
-        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-        response.addHeader("Access-Control-Allow-Headers", "Content-Type,X-XSRF-TOKEN");
-        response.addHeader("Access-Control-Max-Age", "1");
-    }
-
 }

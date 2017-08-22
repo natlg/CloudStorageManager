@@ -1,5 +1,6 @@
-package com.nat.cloudman.cloud;
+package com.nat.cloudman.controllers;
 
+import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
