@@ -2,18 +2,18 @@ package com.nat.cloudman.cloud;
 
 import java.io.*;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.*;
 
 import com.dropbox.core.v2.files.FolderMetadata;
+import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
+import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -57,6 +57,9 @@ public class CloudController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CloudService cloudService;
+
     public DbxClientV2 getClient() {
         if (client == null) {
             DbxAuthInfo authInfo;
@@ -89,17 +92,52 @@ public class CloudController {
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
         System.out.println("got path: " + path);
 
-        System.out.println("headers: ");
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String key = (String) headerNames.nextElement();
-            String value = request.getHeader(key);
-            System.out.println(key + ": " + value);
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("user name: " + auth.getName());
 
-        showAuth("dropbox");
         addCorsHeader(response);
         return new FilesContainer(getFilesList(path));
+    }
+
+
+    @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
+    public FilesContainer addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
+                                   @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                                   HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName);
+        Cloud cloud = new Cloud();
+        cloud.setCloudService(cloudDrive);
+        cloud.setAccountName(cloudName);
+        cloudService.saveCloud(cloud);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            System.out.println("user name: " + auth.getName());
+            User user = userService.findUserByEmail(auth.getName());
+            user.addCloud(cloud);
+            userService.saveUser(user);
+        }
+        return null;
+    }
+
+    @RequestMapping(value = "/getclouds", method = RequestMethod.POST)
+    public CloudContainer getClouds(
+            HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("getclouds");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("user name: " + auth.getName());
+        User user = userService.findUserByEmail(auth.getName());
+        if (user != null) {
+
+            Set<Cloud> clouds = user.getClouds();
+            for (Cloud cl : clouds) {
+                System.out.println("have cloud getAccountName: " + cl.getAccountName());
+                System.out.println("have cloud getCloudService: " + cl.getCloudService());
+
+            }
+            return new CloudContainer(clouds);
+        }
+        return null;
     }
 
 

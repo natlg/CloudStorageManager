@@ -38,6 +38,11 @@
             padding-left: 20px;
         }
 
+        .place-left {
+            text-align: left;
+            padding-left: 20px;
+        }
+
         .file-table-container {
             padding-right: 20px;
             width: 100%;
@@ -64,6 +69,10 @@
             height: 25px;
             margin: 5px 5px 5px 5px;
 
+        }
+
+        .control-group {
+            margin-top: 20px;
         }
 
         .icon-link {
@@ -100,36 +109,39 @@
 
 <div class="container-fluid text-center nav-container">
     <div class="row content nav-container">
-        <div class="col-sm-2 sidenav ">
-            <p>
-                <!-- Trigger the modal with a button -->
-                <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">+</button>
-            </p>
-            <p><a href="#" id="Dropbox">Dropbox</a></p>
-            <p><a href="#" id="Drive">Google Drive</a></p>
-            <p><a href="#" id="Dropbox2">Dropbox2 </a></p>
+        <div id="cloud_container" class="col-sm-2 sidenav ">
         </div>
 
-        <!-- Modal -->
+        <!--Modal-->
         <div class="modal fade" id="myModal" role="dialog">
             <div class="modal-dialog">
 
                 <!-- Modal content-->
+
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Add Cloud Drive</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>Select a Cloud Drive </p>
-                        <select class="bootstrap-select">
-                            <option value="1" selected="selected">Dropbox</option>
-                            <option value="2">Google Drive</option>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Add</button>
-                    </div>
+                    <form id="add_cloud_form" class="form-horizontal" role="form">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Add Cloud Drive</h4>
+                        </div>
+                        <div class="modal-body place-left">
+                            <p>Select a Cloud Drive </p>
+                            <select id="cloud_select" name="cloud_select" class="bootstrap-select">
+                                <option value="1" selected="selected">Dropbox</option>
+                                <option value="2">Google Drive</option>
+                            </select>
+                            <div class="control-group">
+                                <p>Cloud Name </p>
+                                <input id="cloud_name" type="text" class="form-control" name="cloud_name"
+                                       placeholder="Cloud Name">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="add_cloud" type="button" class="btn btn-default" data-dismiss="modal">
+                                Authorize
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
             </div>
@@ -184,6 +196,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 </body>
 </html>
