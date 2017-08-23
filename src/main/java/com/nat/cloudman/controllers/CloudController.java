@@ -3,6 +3,9 @@ package com.nat.cloudman.controllers;
 import java.io.*;
 import java.util.*;
 
+import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.users.FullAccount;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -41,21 +44,31 @@ public class CloudController {
     private CloudService cloudService;
 
     @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
-    public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path, HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got path: " + path);
+    public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
+                                    @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                                    HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("got path: " + path + ", cloudName: " + cloudName);
 
         userManager.showAuth("dropbox");
-        return new FilesContainer(utils.getFilesList(path));
+        return new FilesContainer(utils.getFilesList(cloudName, path));
+    }
+
+    @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
+    public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("getauthorizeurl ");
+        return utils.getAuthorizeUrl();
     }
 
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
-    public FilesContainer addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
-                                   @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                                   HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName);
+    public String addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
+                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                           @RequestParam(value = "token", defaultValue = "") String token,
+                           HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", token: " + token);
         Cloud cloud = new Cloud();
         cloud.setCloudService(cloudDrive);
         cloud.setAccountName(cloudName);
+        cloud.setToken(token);
         cloudService.saveCloud(cloud);
         User user = userManager.getUser();
         user.addCloud(cloud);
@@ -84,9 +97,10 @@ public class CloudController {
     public String handleFileUpload(
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("dropboxPath") String dropboxPath,
+            @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
             HttpServletRequest request, HttpServletResponse response
     ) {
-        System.out.println("dropboxPath: " + dropboxPath);
+        System.out.println("dropboxPath: " + dropboxPath + ", cloudName: " + cloudName);
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 try {
@@ -96,7 +110,7 @@ public class CloudController {
                     System.out.println("file getSize: " + file.getSize());
                     File convertedFile = utils.multipartToFile(file, "E:\\pics\\uploaded\\");
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    utils.uploadFile(convertedFile, dropboxPath + "/" + convertedFile.getName());
+                    utils.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
                 } catch (Exception e) {
                     System.out.println("Exception: " + e.getMessage());
                 }

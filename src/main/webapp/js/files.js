@@ -4,9 +4,9 @@ class FilesProvider {
         this.fullPath = "";
     }
 
-    getFilesList(path, handleData) {
+    getFilesList(cloudName, path, handleData) {
 
-        console.log("getFilesList from path: " + path);
+        console.log("getFilesList from path: " + path + ", cloudName: " + cloudName);
         var xhttp = new XMLHttpRequest();
         var self = this;
         xhttp.onreadystatechange = function () {
@@ -33,14 +33,14 @@ class FilesProvider {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState + "...");
             }
         };
-        var params = "path=" + path;
+        var params = "path=" + path + "&cloudName=" + cloudName;
         xhttp.open("POST", "http://localhost:8080/dropbox", true);
         //for get
         //xhttp.open("GET", "http://localhost:8080/dropbox", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         //xhttp.setRequestHeader("Content-type", "application/json");
-        console.log("send params:");
-        console.log(params);
+        console.log("send params: " + params);
+        console.log("cloudName: " + cloudName);
         xhttp.send(params);
     }
 

@@ -15,9 +15,11 @@ public class Cloud {
 
 
     @Column(name = "account_name")
+    @NotEmpty(message = "*Please provide account name")
     private String accountName;
 
     @Column(name = "access_token")
+    @NotEmpty(message = "*Please provide access token")
     private String token;
 
 
@@ -25,7 +27,7 @@ public class Cloud {
     private String accountEmail;
 
     @Column(name = "cloud_service")
-    @NotEmpty(message = "*Please provide your Cloud Service")
+    @NotEmpty(message = "*Please provide Cloud Service")
     private String cloudService;
 
     public long getId() {

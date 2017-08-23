@@ -21,7 +21,7 @@ function dblclickFile(event) {
     console.log("current parent: " + filesProvider.fullPath);
     var pathToShow = filesProvider.fullPath + "/" + folderPath;
     console.log("pathToShow: " + pathToShow);
-    listFolder(pathToShow);
+    listFolder(currentCloud, pathToShow);
 }
 
 function pathClick() {
@@ -31,7 +31,7 @@ function pathClick() {
     console.log("class: " + $(this).attr('class'));
     if ($($(this)).attr('class').toString().indexOf("mainFolder") !== -1) {
         console.log("mainFolder ");
-        listFolder("");
+        listFolder(currentCloud, "");
         return;
     }
 
@@ -49,7 +49,7 @@ function pathClick() {
     }
     path += clickedPath;
     console.log("all path: " + path);
-    listFolder(path);
+    listFolder(currentCloud, path);
 }
 
 // gets id of clicked file
@@ -85,7 +85,7 @@ function getText(text) {
         return "";
 }
 
-function listFolder(path) {
+function listFolder(cloudName, path) {
     if (filesProvider) {
         console.log("current parent: " + filesProvider.fullPath);
     }
@@ -93,7 +93,7 @@ function listFolder(path) {
         console.log("filesProvider doesn't exist");
         filesProvider = new FilesProvider();
     }
-    filesProvider.getFilesList(path, handleFile);
+    filesProvider.getFilesList(cloudName, path, handleFile);
 }
 
 // callback function after getting answer from server
@@ -168,6 +168,8 @@ function clickUpload() {
         console.log("append file: " + file.name);
     }
     formData.append("dropboxPath", filesProvider.fullPath);
+    formData.append("cloudName", currentCloud);
+
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://localhost:8080/upload/', true);
     //xhr.open('POST', 'http://localhost:8080/app/upload/', true);

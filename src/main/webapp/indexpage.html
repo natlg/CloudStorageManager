@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Cloud Manager</title>
+    <title>Cloud Manager 2</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -127,7 +127,7 @@
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                             <h4 class="modal-title">Add Cloud Drive</h4>
                         </div>
-                        <div class="modal-body place-left">
+                        <div id="modal-container" class="modal-body place-left">
                             <p>Select a Cloud Drive </p>
                             <select id="cloud_select" name="cloud_select" class="bootstrap-select">
                                 <option value="1" selected="selected">Dropbox</option>
@@ -139,7 +139,7 @@
                                        placeholder="Cloud Name">
                             </div>
                         </div>
-                        <div class="modal-footer">
+                        <div id="addBtnContainer" class="modal-footer">
                             <button id="add_cloud" type="button" class="btn btn-default" data-dismiss="modal">
                                 Authorize
                             </button>

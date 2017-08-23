@@ -6,6 +6,8 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
 import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +22,14 @@ import java.util.logging.Logger;
 @Component
 public class DropboxUtils {
 
-    private DbxClientV2 client;
+    @Autowired
+    private UserManager userManager;
+
+    @Value("${app-key}")
+    private String APP_KEY;
+
+    @Value("${app-secret}")
+    private String APP_SECRET;
 
     // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will
     // result in fewer network requests, which will be faster. But if an error occurs, the entire
@@ -28,41 +37,36 @@ public class DropboxUtils {
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 
-    public DbxClientV2 getClient() {
-        if (client == null) {
-            DbxAuthInfo authInfo;
-            try {
-                authInfo = DbxAuthInfo.Reader.readFromFile("E:\\Dropbox\\Projects\\CloudMan\\src\\main\\resources\\out.txt");
-            } catch (JsonReader.FileLoadException ex) {
-                System.err.println("Error loading <auth-file>: " + ex.getMessage());
-                System.exit(1);
-                return null;
-            }
-
-            // Create Dropbox client
-            DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/cloud/CloudMan/app");
-            client = new DbxClientV2(config, authInfo.getAccessToken());
-            return client;
-        } else {
-            return client;
-        }
+    public DbxClientV2 getClient(String token) {
+        DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/cloud/CloudMan/app");
+        DbxClientV2 client = new DbxClientV2(config, token);
+        return client;
     }
 
-    public ArrayList<HashMap<String, String>> getFilesList(String folderPath) {
-
-        // Get current account info
+    public void showUserInformation(String token) {
         FullAccount account = null;
+        System.out.println("showUserInformation, token: " + token);
+        DbxClientV2 client = getClient(token);
+        if (client == null) {
+            System.out.println("client == null");
+        }
         try {
-            account = getClient().users().getCurrentAccount();
+
+            account = client.users().getCurrentAccount();
         } catch (DbxException e) {
             e.printStackTrace();
         }
-        System.out.println("account.getName: " + account.getName().getDisplayName());
+        System.out.println("dropbox account.getName: " + account.getName().getDisplayName());
+    }
 
-        // Get files and folder metadata from Dropbox root directory
+    public ArrayList<HashMap<String, String>> getFilesList(String accountName, String folderPath) {
+        String token = userManager.getCloud(accountName).getToken();
+        System.out.println("token: " + token);
+        DbxClientV2 client = getClient(token);
+        //Get files and folder metadata from Dropbox root directory
         ListFolderResult result = null;
         try {
-            result = getClient().files().listFolder(folderPath);
+            result = client.files().listFolder(folderPath);
         } catch (DbxException e) {
             e.printStackTrace();
         }
@@ -124,15 +128,17 @@ public class DropboxUtils {
         return convertedFile;
     }
 
-    public void uploadFile(File localFile, String dropboxPath) throws Exception {
+    public void uploadFile(String accountName, File localFile, String dropboxPath) throws Exception {
         System.err.println("uploadFile");
         System.err.println("dropboxPath: " + dropboxPath);
         System.err.println("localFile getName: " + localFile.getName());
         System.err.println("localFile getPath: " + localFile.getPath());
+        DbxClientV2 client = getClient(userManager.getCloud(accountName).getToken());
         if (localFile.length() <= (2 * CHUNKED_UPLOAD_CHUNK_SIZE)) {
-            uploadSmallFile(getClient(), localFile, dropboxPath);
+            uploadSmallFile(client, localFile, dropboxPath);
         } else {
-            chunkedUploadFile(getClient(), localFile, dropboxPath);
+
+            chunkedUploadFile(client, localFile, dropboxPath);
         }
     }
 
@@ -305,6 +311,23 @@ public class DropboxUtils {
             System.err.println("Error uploading to Dropbox: interrupted during backoff.");
             System.exit(1);
         }
+    }
+
+    public String getAuthorizeUrl() {
+
+        DbxAppInfo appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
+        // Read app info file (contains app key and app secret)
+
+        // Run through Dropbox API authorization process
+        DbxRequestConfig requestConfig = new DbxRequestConfig("examples-authorize");
+        DbxWebAuth webAuth = new DbxWebAuth(requestConfig, appInfo);
+        DbxWebAuth.Request webAuthRequest = DbxWebAuth.newRequestBuilder()
+                .withNoRedirect()
+                .build();
+
+        String authorizeUrl = webAuth.authorize(webAuthRequest);
+        System.out.println("authorizeUrl: " + authorizeUrl);
+        return authorizeUrl;
     }
 
     public void authorise() throws IOException {

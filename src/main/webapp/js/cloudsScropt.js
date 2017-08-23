@@ -61,10 +61,72 @@ function getClouds() {
     xhttp.send();
 }
 
+
 function addCloud() {
     console.log("add_cloud click");
-    var cloud = $("#cloud_select :selected").text();
+    var cloudDrive = $("#cloud_select :selected").text();
+    saveToSessionStorage("added_cloud_drive", cloudDrive);
+
     var cloudName = $("#cloud_name").val();
+    saveToSessionStorage("added_cloud_name", cloudName);
+
+    openInNewTab("https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=http://localhost:8080/indexpage.html?redirect=dropbox");
+}
+
+function openInNewTab(url) {
+    console.log("url: " + url);
+    var win = window.open(url, '_blank');
+    win.focus();
+}
+
+function getAuthorizeUrl() {
+    console.log("getAuthorizeUrl");
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log("XMLHttpRequest answer is ready");
+            console.log("responseText: " + xhttp.responseText);
+            handleAuthorizeUrl(xhttp.responseText);
+        }
+        else {
+            if (this.readyState === 4 && this.status === 401) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            }
+        }
+    };
+    xhttp.open("POST", "http://localhost:8080/getauthorizeurl", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send();
+}
+
+function handleAuthorizeUrl(authorizeUrl) {
+
+    console.log("authorizeUrl: " + authorizeUrl);
+    if (authorizeUrl) {
+        openInNewTab(authorizeUrl);
+    }
+    var modalContainer = $("#modal-container");
+    var addBtnContainer = $("#addBtnContainer");
+    modalContainer.empty();
+    addBtnContainer.empty();
+    var codeElement = ` <div class="control-group">
+                                <p>Code: </p>
+                                <input id="cloud_code" type="text" class="form-control" name="cloud_code"
+                                       placeholder="Cloud Code">
+                            </div>`;
+    modalContainer.append($(codeElement));
+
+    var btnElement = ` <button id="add" type="button" class="btn btn-default" data-dismiss="modal">
+                                Add Cloud
+                            </button>`;
+    addBtnContainer.append($(btnElement));
+    $(document).on('click', '#add', function () {
+        var code = $("#cloud_code").text();
+        sendAddCloudRequest(cloud, cloudName, code);
+    });
+}
+
+function sendAddCloudRequest(cloud, cloudName, code) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
@@ -80,7 +142,7 @@ function addCloud() {
     };
 
     var params = "cloud=" + cloud +
-        "&cloudName=" + cloudName;
+        "&cloudName=" + cloudName + "&token=" + code;
     xhttp.open("POST", "http://localhost:8080/addcloud", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send params:");
@@ -93,6 +155,9 @@ function cloudClick(event) {
     console.log("cloud click");
     console.log("id click: " + event.target.id);
 
-    currentCloud = "Dropbox";
-    listFolder("");
+    var clickedCloud = event.target.textContent;
+    console.log("text click: " + clickedCloud);
+
+    currentCloud = clickedCloud;
+    listFolder(clickedCloud, "");
 }

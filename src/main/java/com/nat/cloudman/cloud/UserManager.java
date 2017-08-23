@@ -1,11 +1,15 @@
 package com.nat.cloudman.cloud;
 
+import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class UserManager {
@@ -21,6 +25,16 @@ public class UserManager {
             return user;
         }
         System.out.println("auth is null");
+        return null;
+    }
+
+    public Cloud getCloud(String cloudName) {
+        Set<Cloud> clouds = getUser().getClouds();
+        for (Cloud cloud : clouds) {
+            if (cloud.getAccountName().equals(cloudName)) {
+                return cloud;
+            }
+        }
         return null;
     }
 
