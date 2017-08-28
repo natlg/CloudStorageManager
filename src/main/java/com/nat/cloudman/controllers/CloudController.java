@@ -59,26 +59,12 @@ public class CloudController {
     }
 
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
-    public String addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
-                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                           @RequestParam(value = "token", defaultValue = "") String token,
-                           HttpServletRequest request, HttpServletResponse response) {
+    public void addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
+                         @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                         @RequestParam(value = "token", defaultValue = "") String token,
+                         HttpServletRequest request, HttpServletResponse response) {
         System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", token: " + token);
-
-        switch (cloudDrive) {
-            case "OneDrive":
-                token = oneDriveUtils.getRefreshToken(token);
-                break;
-        }
-        Cloud cloud = new Cloud();
-        cloud.setCloudService(cloudDrive);
-        cloud.setAccountName(cloudName);
-        cloud.setToken(token);
-        cloudService.saveCloud(cloud);
-        User user = userManager.getUser();
-        user.addCloud(cloud);
-        userService.saveUser(user);
-        return null;
+        cloudService.addCloudToCurrentUser(cloudDrive, cloudName, token);
     }
 
     @RequestMapping(value = "/getclouds", method = RequestMethod.POST)

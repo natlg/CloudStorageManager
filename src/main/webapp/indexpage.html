@@ -150,52 +150,46 @@
             </div>
         </div>
 
+        <div id="files_table" style="display:none;">
 
-        <div id="table-icons-container" class="icons-container" style="display:none;">
+            <div id="table-icons-container" class="icons-container" style="display:none;">
 
-            <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/" method="post">
-                <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"
-                       onChange="clickUpload();"/>
-                <input type="text" name="dropboxPath" style="display:none;"/>
-            </form>
+                <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/"
+                      method="post">
+                    <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"
+                           onChange="clickUpload();"/>
+                    <input type="text" name="dropboxPath" style="display:none;"/>
+                </form>
 
-            <label for="uploadFilesInput" data-toggle="tooltip" title="Upload Files">
-                <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
-            </label>
+                <label for="uploadFilesInput" data-toggle="tooltip" title="Upload Files">
+                    <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
+                </label>
 
-            <a href="#" data-toggle="tooltip" title="Create Folder" class="icon-link">
-                <img class="icon" src="img/icon-folder-add.png" alt="add folder">
-            </a>
-        </div>
-
-        <div class="col-sm-8 text-left">
-            <div class="container file-table-container">
-
-                <div id="pathContainer"></div>
-
-                <table class="table table-hover">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Size</th>
-                        <th>Modified</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody id="filesTableBody">
-                    </tbody>
-                </table>
+                <a href="#" data-toggle="tooltip" title="Create Folder" class="icon-link">
+                    <img class="icon" src="img/icon-folder-add.png" alt="add folder">
+                </a>
             </div>
 
-        </div>
+            <div class="col-sm-10 text-left">
+                <div class="container file-table-container">
 
-        <div class="col-sm-2 sidenav">
-            <div class="well">
-                <p>ADS</p>
-            </div>
-            <div class="well">
-                <p>ADS</p>
+                    <div id="pathContainer"></div>
+
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Modified</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="filesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
     </div>

@@ -99,6 +99,7 @@ function listFolder(cloudName, path) {
 // callback function after getting answer from server
 function handleFile(files) {
     var table = $("#filesTableBody");
+    $("#files_table").show();
 
     //remove rows after previous click
     table.empty();

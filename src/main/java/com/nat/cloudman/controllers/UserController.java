@@ -1,5 +1,6 @@
 package com.nat.cloudman.controllers;
 
+import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.UserService;
@@ -39,43 +40,19 @@ public class UserController {
 
     ) {
         System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
-        String result = "";
-        User userExists = userService.findUserByEmail(email);
-        if (userExists != null) {
-            result = "User already exists";
-        } else {
-            User user = new User();
-            user.setEmail(email);
-            user.setName(firstName);
-            user.setLastName(lastName);
-            user.setPassword(password);
-            userService.saveUser(user);
-            result = "User was saved";
-        }
-        System.out.println("return: " + result);
-        System.out.println("from request: " + request.getParameter("email") + " " +
-                request.getParameter("password"));
+        String result = userService.createAndSaveUser(email, firstName, lastName, password);
         return result;
     }
 
     @RequestMapping(value = "/loginform", method = RequestMethod.POST)
     @ResponseBody
-    public String login(
+    public void login(
             @RequestParam("email") String email,
             @RequestParam("password") String password,
             HttpServletRequest request, HttpServletResponse response
 
     ) {
-        System.out.println("params. email: " + email + ", password: " + password);
-        User userExists = userService.findUserByEmail(email);
-        String result = "";
-        if (userExists == null) {
-            result = "User doesn't exist";
-        } else {
-            result = (userExists.getPassword().equals(password)) ? "login success" : "wrong password";
-        }
-        System.out.println("return for login: " + result);
-        return result;
+        System.out.println("loginform params: email: " + email + ", password: " + password);
     }
 
 }
