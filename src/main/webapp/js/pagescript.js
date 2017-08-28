@@ -2,7 +2,6 @@ var filesProvider;
 var currentCloud;
 
 
-
 function isAuthorized() {
     var isAuthorized = getFromSessionStorage("isAuthorized");
     //if not set yet
@@ -57,7 +56,10 @@ function getDropboxRedirectParams(url) {
     if (queryString) {
 
         // params are after #
-        queryString = queryString.split('#')[1];
+        if (url.indexOf("redirect=dropbox") >= 0) {
+            queryString = queryString.split('#')[1];
+        }
+
         // split our query string into its component parts
         var arr = queryString.split('&');
         for (var i = 0; i < arr.length; i++) {
@@ -101,27 +103,35 @@ function getDropboxRedirectParams(url) {
 }
 
 $(document).ready(function () {
-    filesProvider = new FilesProvider();
     console.log("document ready");
-
-    //check if redirected from dropbox auth
-    var url = document.URL;
-    if (url.indexOf("redirect=dropbox") >= 0) {
-
-        var params = getDropboxRedirectParams(url);
-        console.log("access_token: " + params.access_token);
-        console.log("token_type: " + params.token_type);
-        console.log("uid: " + params.uid);
-        console.log("account_id: " + params.account_id);
-        var cloud = getFromSessionStorage("added_cloud_drive");
-        var cloudName = getFromSessionStorage("added_cloud_name");
-        var token = params.access_token;
-
-        sendAddCloudRequest(cloud, cloudName, token);
-
-    }
+    filesProvider = new FilesProvider();
     getClouds();
     setHeader();
+    var url = document.URL;
+    var cloud = getFromSessionStorage("added_cloud_drive");
+
+    // send request to add cloud if it's auth redirection
+    if (isAuthorized() == 'true' && cloud !== undefined && cloud != null && cloud.length >= 0) {
+        if (cloud.indexOf("OneDrive") >= 0) {
+            var params = getDropboxRedirectParams(url);
+            var code = params.code;
+            console.log("code: " + code);
+            var cloud = getFromSessionStorage("added_cloud_drive");
+            var cloudName = getFromSessionStorage("added_cloud_name");
+            sendAddCloudRequest(cloud, cloudName, code);
+        }
+        else if (cloud.indexOf("Dropbox") >= 0) {
+            var params = getDropboxRedirectParams(url);
+            console.log("access_token: " + params.access_token);
+            console.log("token_type: " + params.token_type);
+            console.log("uid: " + params.uid);
+            console.log("account_id: " + params.account_id);
+            var cloud = getFromSessionStorage("added_cloud_drive");
+            var cloudName = getFromSessionStorage("added_cloud_name");
+            var token = params.access_token;
+            sendAddCloudRequest(cloud, cloudName, token);
+        }
+    }
 
     $(document).on('click', '#login', function () {
         location.href = "login.html";

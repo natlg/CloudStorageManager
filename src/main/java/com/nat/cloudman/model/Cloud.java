@@ -18,7 +18,7 @@ public class Cloud {
     @NotEmpty(message = "*Please provide account name")
     private String accountName;
 
-    @Column(name = "access_token")
+    @Column(name = "access_token", length = 600)
     @NotEmpty(message = "*Please provide access token")
     private String token;
 

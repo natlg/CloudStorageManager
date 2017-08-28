@@ -25,10 +25,10 @@ public class DropboxUtils {
     @Autowired
     private UserManager userManager;
 
-    @Value("${app-key}")
+    @Value("${dropbox.app.key}")
     private String APP_KEY;
 
-    @Value("${app-secret}")
+    @Value("${dropbox.app.secret}")
     private String APP_SECRET;
 
     // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will

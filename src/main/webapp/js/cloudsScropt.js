@@ -52,6 +52,7 @@ function getClouds() {
             if (this.readyState === 4 && this.status === 401) {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
                 setAuthorized(false);
+                saveToSessionStorage("added_cloud_drive", "");
             }
 
         }
@@ -70,7 +71,20 @@ function addCloud() {
     var cloudName = $("#cloud_name").val();
     saveToSessionStorage("added_cloud_name", cloudName);
 
-    openInNewTab("https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=http://localhost:8080/indexpage.html?redirect=dropbox");
+    switch (cloudDrive) {
+        case 'Dropbox':
+            location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=http://localhost:8080/indexpage.html?redirect=dropbox";
+
+            break;
+        case 'OneDrive':
+            location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
+                "client_id=70a0893e-f51c-4f4b-abc0-827f347e4f43" +
+                "&response_type=code" +
+                "&redirect_uri=http://localhost:8080/indexpage.html" +
+                "&response_mode=query" +
+                "&scope=Files.ReadWrite.All";
+            break;
+    }
 }
 
 function openInNewTab(url) {

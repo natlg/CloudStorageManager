@@ -46,6 +46,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests().antMatchers("/dropbox").authenticated();
         http.authorizeRequests().antMatchers("/upload").authenticated();
+        http.authorizeRequests().antMatchers("/addcloud").authenticated();
+        http.authorizeRequests().antMatchers("/getclouds").authenticated();
 
         http.csrf().disable();
 

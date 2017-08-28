@@ -3,9 +3,7 @@ package com.nat.cloudman.controllers;
 import java.io.*;
 import java.util.*;
 
-import com.dropbox.core.DbxException;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.users.FullAccount;
+import com.nat.cloudman.cloud.OneDriveUtils;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -15,8 +13,6 @@ import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,7 +30,7 @@ public class CloudController {
     @Autowired
     private UserService userService;
     @Autowired
-    private DropboxUtils utils;
+    private DropboxUtils dropboxUtils;
 
     @Autowired
     private UserManager userManager;
@@ -43,6 +39,9 @@ public class CloudController {
     @Autowired
     private CloudService cloudService;
 
+    @Autowired
+    OneDriveUtils oneDriveUtils;
+
     @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
@@ -50,13 +49,13 @@ public class CloudController {
         System.out.println("got path: " + path + ", cloudName: " + cloudName);
 
         userManager.showAuth("dropbox");
-        return new FilesContainer(utils.getFilesList(cloudName, path));
+        return new FilesContainer(dropboxUtils.getFilesList(cloudName, path));
     }
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
         System.out.println("getauthorizeurl ");
-        return utils.getAuthorizeUrl();
+        return dropboxUtils.getAuthorizeUrl();
     }
 
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
@@ -65,6 +64,12 @@ public class CloudController {
                            @RequestParam(value = "token", defaultValue = "") String token,
                            HttpServletRequest request, HttpServletResponse response) {
         System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", token: " + token);
+
+        switch (cloudDrive) {
+            case "OneDrive":
+                token = oneDriveUtils.getRefreshToken(token);
+                break;
+        }
         Cloud cloud = new Cloud();
         cloud.setCloudService(cloudDrive);
         cloud.setAccountName(cloudName);
@@ -108,9 +113,9 @@ public class CloudController {
                     System.out.println("file getContentType: " + file.getContentType());
                     System.out.println("file getName: " + file.getName());
                     System.out.println("file getSize: " + file.getSize());
-                    File convertedFile = utils.multipartToFile(file, "E:\\pics\\uploaded\\");
+                    File convertedFile = dropboxUtils.multipartToFile(file, "E:\\pics\\uploaded\\");
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    utils.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
+                    dropboxUtils.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
                 } catch (Exception e) {
                     System.out.println("Exception: " + e.getMessage());
                 }
