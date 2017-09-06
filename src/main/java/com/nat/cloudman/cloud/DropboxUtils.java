@@ -60,7 +60,7 @@ public class DropboxUtils {
     }
 
     public ArrayList<HashMap<String, String>> getFilesList(String accountName, String folderPath) {
-        String token = userManager.getCloud(accountName).getToken();
+        String token = userManager.getCloud(accountName).getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
         //Get files and folder metadata from Dropbox root directory
@@ -133,7 +133,7 @@ public class DropboxUtils {
         System.err.println("dropboxPath: " + dropboxPath);
         System.err.println("localFile getName: " + localFile.getName());
         System.err.println("localFile getPath: " + localFile.getPath());
-        DbxClientV2 client = getClient(userManager.getCloud(accountName).getToken());
+        DbxClientV2 client = getClient(userManager.getCloud(accountName).getAccessToken());
         if (localFile.length() <= (2 * CHUNKED_UPLOAD_CHUNK_SIZE)) {
             uploadSmallFile(client, localFile, dropboxPath);
         } else {

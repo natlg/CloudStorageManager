@@ -35,6 +35,14 @@ function getFromSessionStorage(key) {
     }
 }
 
+function removeFromSessionStorage(key) {
+    if (typeof(Storage) !== "undefined") {
+        sessionStorage.removeItem(key);
+    } else {
+        console.log("No Web Storage support");
+    }
+}
+
 function setHeader() {
     var url = document.URL;
     if (isAuthorized() == 'true') {
@@ -131,6 +139,7 @@ $(document).ready(function () {
             var token = params.access_token;
             sendAddCloudRequest(cloud, cloudName, token);
         }
+        removeFromSessionStorage("added_cloud_drive");
     }
 
     $(document).on('click', '#login', function () {

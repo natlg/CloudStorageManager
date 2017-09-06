@@ -22,7 +22,7 @@ class FilesProvider {
                 var fileArray = [];
                 console.log("arrayLength: " + arrayLength);
                 for (var i = 0; i < arrayLength; i++) {
-                    fileArray.push(new FileMetadata(self.getNameFromPath(response[i].pathLower), response[i].type, response[i].modified, response[i].size, response[i].id, response.pathLower));
+                    fileArray.push(new FileMetadata(self.getNameFromPath(response[i].pathLower), response[i].type, response[i].modified, response[i].size, response[i].id, response[i].pathLower));
                     console.log("push: " + i);
                 }
 
@@ -80,7 +80,7 @@ class FileMetadata {
         this.pathLower = pathLower;
         this.size = size;
         console.log("created metadata, pathLower: " + pathLower + ", type: " + type
-            + ", modified: " + modified, +", size: " + size + ", id: " + id);
+            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name);
     }
 }
 

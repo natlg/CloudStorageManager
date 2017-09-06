@@ -15,9 +15,8 @@ function drop(ev) {
 function dblclickFile(event) {
     console.log("dblclickFile");
     console.log("data id: " + event.data.id);
-    var folderPath = $("#" + event.data.id).find("#fileName").text();
+    var folderPath = $(document.getElementById(event.data.id)).find(".fileName").text();
     console.log("textContent: " + folderPath);
-    // listFolder("/new folder");
     console.log("current parent: " + filesProvider.fullPath);
     var pathToShow = filesProvider.fullPath + "/" + folderPath;
     console.log("pathToShow: " + pathToShow);
@@ -98,6 +97,7 @@ function listFolder(cloudName, path) {
 
 // callback function after getting answer from server
 function handleFile(files) {
+    console.log("handleFile len: " + files.length);
     var table = $("#filesTableBody");
     $("#files_table").show();
 
@@ -105,10 +105,11 @@ function handleFile(files) {
     table.empty();
     console.log("handleFile, files Length: " + files.length);
     for (var i = 0; i < files.length; i++) {
+        console.log("add: " + files[i].name);
         var row =
             `<tr id=${files[i].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)">
-                        <td> <a id="fileName" href="#">${files[i].name}</a></td>
+                        <td> <a class="fileName" href="#">${files[i].name}</a></td>
                         <td>${files[i].type}</td>
                         <td>${getText(files[i].size)}</td>
                         <td>${getText(files[i].modified)}</td>
@@ -122,7 +123,8 @@ function handleFile(files) {
 
         table.append($(row));
 
-        var r = $('#' + files[i].id);
+        console.log("id: " + files[i].id);
+        var r = $(document.getElementById(files[i].id));
         r.on("dblclick", {id: files[i].id}, dblclickFile);
         r.find("a").on("click", {id: files[i].id}, dblclickFile);
 

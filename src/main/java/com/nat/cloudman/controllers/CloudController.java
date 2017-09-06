@@ -3,6 +3,7 @@ package com.nat.cloudman.controllers;
 import java.io.*;
 import java.util.*;
 
+import com.nat.cloudman.cloud.CloudManager;
 import com.nat.cloudman.cloud.OneDriveUtils;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
@@ -42,6 +43,9 @@ public class CloudController {
     @Autowired
     OneDriveUtils oneDriveUtils;
 
+    @Autowired
+    CloudManager cloudManager;
+
     @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
@@ -49,7 +53,7 @@ public class CloudController {
         System.out.println("got path: " + path + ", cloudName: " + cloudName);
 
         userManager.showAuth("dropbox");
-        return new FilesContainer(dropboxUtils.getFilesList(cloudName, path));
+        return new FilesContainer(cloudManager.getFilesList(cloudName, path));
     }
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)

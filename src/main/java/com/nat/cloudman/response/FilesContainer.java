@@ -5,9 +5,10 @@ import java.util.HashMap;
 
 public class FilesContainer {
 
-    private  ArrayList<HashMap<String, String>> files;
+    private ArrayList<HashMap<String, String>> files;
 
     public FilesContainer(ArrayList<HashMap<String, String>> files) {
+        System.out.println("FilesContainer len: " + files.size());
         this.files = files;
     }
 

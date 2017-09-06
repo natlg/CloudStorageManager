@@ -13,15 +13,17 @@ public class Cloud {
     @Column(name = "cloud_id")
     private long id;
 
-
     @Column(name = "account_name")
     @NotEmpty(message = "*Please provide account name")
     private String accountName;
 
-    @Column(name = "access_token", length = 600)
+    @Column(name = "access_token", length = 1300)
     @NotEmpty(message = "*Please provide access token")
-    private String token;
+    private String accessToken;
 
+    @Column(name = "refresh_token", length = 600)
+    @NotEmpty(message = "*Please provide refresh token")
+    private String refreshToken;
 
     @Column(name = "account_email")
     private String accountEmail;
@@ -62,11 +64,20 @@ public class Cloud {
         this.cloudService = cloudService;
     }
 
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
 }
