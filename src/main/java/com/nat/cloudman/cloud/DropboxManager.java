@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
-public class DropboxUtils {
+public class DropboxManager {
 
     @Autowired
     private UserManager userManager;

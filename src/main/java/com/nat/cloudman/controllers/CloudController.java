@@ -4,11 +4,11 @@ import java.io.*;
 import java.util.*;
 
 import com.nat.cloudman.cloud.CloudManager;
-import com.nat.cloudman.cloud.OneDriveUtils;
+import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
-import com.nat.cloudman.cloud.DropboxUtils;
+import com.nat.cloudman.cloud.DropboxManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.CloudService;
@@ -31,7 +31,7 @@ public class CloudController {
     @Autowired
     private UserService userService;
     @Autowired
-    private DropboxUtils dropboxUtils;
+    private DropboxManager dropboxManager;
 
     @Autowired
     private UserManager userManager;
@@ -41,7 +41,7 @@ public class CloudController {
     private CloudService cloudService;
 
     @Autowired
-    OneDriveUtils oneDriveUtils;
+    OneDriveManager oneDriveManager;
 
     @Autowired
     CloudManager cloudManager;
@@ -59,7 +59,7 @@ public class CloudController {
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
         System.out.println("getauthorizeurl ");
-        return dropboxUtils.getAuthorizeUrl();
+        return dropboxManager.getAuthorizeUrl();
     }
 
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
@@ -103,9 +103,9 @@ public class CloudController {
                     System.out.println("file getContentType: " + file.getContentType());
                     System.out.println("file getName: " + file.getName());
                     System.out.println("file getSize: " + file.getSize());
-                    File convertedFile = dropboxUtils.multipartToFile(file, "E:\\pics\\uploaded\\");
+                    File convertedFile = dropboxManager.multipartToFile(file, "E:\\pics\\uploaded\\");
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    dropboxUtils.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
+                    dropboxManager.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
                 } catch (Exception e) {
                     System.out.println("Exception: " + e.getMessage());
                 }

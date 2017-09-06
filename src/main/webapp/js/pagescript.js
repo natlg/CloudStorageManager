@@ -110,10 +110,7 @@ function getDropboxRedirectParams(url) {
     return obj;
 }
 
-$(document).ready(function () {
-    console.log("document ready");
-    filesProvider = new FilesProvider();
-    getClouds();
+function loadAuthorizedPage() {
     setHeader();
     var url = document.URL;
     var cloud = getFromSessionStorage("added_cloud_drive");
@@ -141,6 +138,13 @@ $(document).ready(function () {
         }
         removeFromSessionStorage("added_cloud_drive");
     }
+}
+
+$(document).ready(function () {
+    console.log("document ready");
+    filesProvider = new FilesProvider();
+    getClouds();
+
 
     $(document).on('click', '#login', function () {
         location.href = "login.html";

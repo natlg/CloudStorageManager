@@ -1,7 +1,6 @@
 package com.nat.cloudman.cloud;
 
 import com.nat.cloudman.model.Cloud;
-import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,13 +15,13 @@ public class CloudManager {
     private UserService userService;
 
     @Autowired
-    private DropboxUtils dropboxUtils;
+    private DropboxManager dropboxManager;
 
     @Autowired
     private UserManager userManager;
 
     @Autowired
-    OneDriveUtils oneDriveUtils;
+    OneDriveManager oneDriveManager;
 
 
     public ArrayList<HashMap<String, String>> getFilesList(String accountName, String folderPath) {
@@ -35,11 +34,11 @@ public class CloudManager {
 
         switch (cloudService) {
             case "Dropbox":
-                return dropboxUtils.getFilesList(accountName, folderPath);
+                return dropboxManager.getFilesList(accountName, folderPath);
             case "OneDrive":
-                oneDriveUtils.setAccessToken(accessToken);
-                oneDriveUtils.setRefreshToken(refreshToken);
-                return oneDriveUtils.getFilesList(folderPath);
+                oneDriveManager.setAccessToken(accessToken);
+                oneDriveManager.setRefreshToken(refreshToken);
+                return oneDriveManager.getFilesList(folderPath);
 
         }
         return null;

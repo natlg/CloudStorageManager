@@ -12,10 +12,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 @Component
-public class OneDriveUtils {
+public class OneDriveManager {
 
     @Value("${onedrive.app.key}")
     private String APP_KEY;
@@ -216,7 +215,7 @@ public class OneDriveUtils {
     public static void main(String[] args) {
         String accessToken = "EwBAA8l6BAAU7p9QDpi/D7xJLwsTgCg3TskyTaQAAalrhYbyUHh8z63NibrtFPGDLiKdBWTPE3QC9lVRUnvqNwuJyl0qjVJrhNpTeP62EP5sHPOSl7J15UMbywOny9jEq7vO1+xfc/Vezy5xAKUkyjYtloeDesvsLteUvZtxsp+DGGjWkvansXy6x3Eav3+ZoeWd7kbu7FwAEJmMZaF0ASeGQPfjG09JzBm7Ilj0TzMg2iBwaK6RfCQBGqPB4TQDnUFapkYCPKbfnbJQ12sdWvdXNxpCywPdwTg7POA1ISSW0nBQ3YRu9P13VpQRkS9qywRQwIAvEnW3Dd467taYyzaeMcxyWNjG1HkJOlHh/8yAX90ApAbtvieekd/8LpcDZgAACBDuJn9ZRFynEAINNqy1QX0nGJ4Jedq0eRh6pdyXDveU4HE+nJU0TYRY1v99S2VzA8Fg0B3Z6XWwjmMuIVDX5wCOuZ2JkbNHAoGA8JXzhCvzjrwabg5Y0zKMy5+8S8KUV/dTtR/A3J5WESpgTsXfsGmvtCx2VGSoz/sqagJTaprwFVvy+Sswz7KgZAEtTJg1q8HDsxJbpuRpfJZ3Yvm/l32Ch1NXKhs6q16NL4BDIi5Gqo/YPPrHRw+kGnLkug3QE6Pvkeiys1jRsNE4vTV3/J3iquDEOQ3bqLtMqtFMpvKwivQ9e/LOmltCt8vcy3Kayb3o5ZZzr2FtRV7ka2vt9PCBbFhWRAosNcZ1aGMkNwX98QnOMrz6KUJYJf5NOjEPU3LTHO8oKHrUtKv0NuPU6Zq8FiKaGNLl1cvInfDY3bbvTt+CriHFpQD/XlV/e/+pBB224HB8prqxkeexYGKY92rHnwPjMGBdidbUpQ5MIEvSlNXZFsmtJJTATcUBMe85xycm3EgrRSu40HOYG8rcAwM4+DW9d1OEmpOF2D9QQgAS0HPo8/hiDyRmKzNco8/JHCWduYsisd0Hdntc8/3lDx9g3SL7MxQyjbA1Xgp8eOFsyOcMRpQ9BM9F9BrEnzfbtkdoRnu05OVe/Y1qdesSp0hpmwcVZ4bIEFSttOrGheVanKKezlhSzuOzTdhkBJ4Wnz0fGw226dURY8hEAg==";
         String refreshToken = "MCVncBlg6Frfu2G3tB9!kmnveR1PEO2BcXpxx37uwT4!cX68nW3CJdUDD!Q91ZSVAv035DZmidb92rLP609WArg2BISBAFID!qICI1j!aWYFeB94tuZtDjz4BGWiOMsjiL6*8JFsNY93CsPlRqcEKcdls!H4HMSakKdZiEgPJRbmPZBpt0yKkr3fm6Kg5QDDDB0VQ9C*z3TcWs2mI6ebvveJ7a!FE6DuDgXuj1FZvQcNiZehaDAn4ICz9bv7aQn*7iz9xTX3V7PrcIu5wS63YlIeMIE*tz4EsAF3aw*4oPQHaipPzMYjCTp0UHf3Hd8g*oqec9W*XVmLpIlBlu6xuDQxTfSVJd9iKMziNEh4mgazJ";
-        OneDriveUtils oneDrive = new OneDriveUtils();
+        OneDriveManager oneDrive = new OneDriveManager();
         oneDrive.APP_KEY = "70a0893e-f51c-4f4b-abc0-827f347e4f43";
         oneDrive.APP_SECRET = "RHWfzUvTDnN5DuHbkWsewmx";
         oneDrive.setRefreshToken(refreshToken);

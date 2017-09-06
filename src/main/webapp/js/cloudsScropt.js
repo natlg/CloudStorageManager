@@ -45,16 +45,15 @@ function getClouds() {
                     container.append($(cloud));
                 }
             }
-
-
+            loadAuthorizedPage();
         }
         else {
-            if (this.readyState === 4 && this.status === 401) {
+            if (this.readyState === 4) {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
                 setAuthorized(false);
                 saveToSessionStorage("added_cloud_drive", "");
+                loadAuthorizedPage();
             }
-
         }
     };
     xhttp.open("POST", "http://localhost:8080/getclouds", true);

@@ -1,20 +1,15 @@
 package com.nat.cloudman.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nat.cloudman.cloud.DropboxUtils;
-import com.nat.cloudman.cloud.OneDriveUtils;
+import com.nat.cloudman.cloud.DropboxManager;
+import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.model.Cloud;
-import com.nat.cloudman.model.Role;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.repository.CloudRepository;
-import com.nat.cloudman.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.HashSet;
 
 @Service("cloudService")
 public class CloudServiceImpl implements CloudService {
@@ -25,7 +20,7 @@ public class CloudServiceImpl implements CloudService {
     @Autowired
     private UserService userService;
     @Autowired
-    private DropboxUtils dropboxUtils;
+    private DropboxManager dropboxManager;
 
     @Autowired
     private UserManager userManager;
@@ -35,7 +30,7 @@ public class CloudServiceImpl implements CloudService {
     private CloudService cloudService;
 
     @Autowired
-    OneDriveUtils oneDriveUtils;
+    OneDriveManager oneDriveManager;
 
     @Override
     public void saveCloud(Cloud cloud) {
@@ -49,7 +44,7 @@ public class CloudServiceImpl implements CloudService {
         String access_oken;
         switch (cloudDrive) {
             case "OneDrive":
-                ResponseEntity<JsonNode> response = oneDriveUtils.sendAuthorizationCodeRequest(token);
+                ResponseEntity<JsonNode> response = oneDriveManager.sendAuthorizationCodeRequest(token);
                 refreshToken = response.getBody().get("refresh_token").asText();
                 access_oken = response.getBody().get("access_token").asText();
                 break;
