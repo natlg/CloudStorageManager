@@ -46,7 +46,7 @@ public class CloudController {
     @Autowired
     CloudManager cloudManager;
 
-    @RequestMapping(value = "/dropbox", method = RequestMethod.POST)
+    @RequestMapping(value = "/listfiles", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                                     HttpServletRequest request, HttpServletResponse response) {

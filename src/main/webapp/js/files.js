@@ -34,7 +34,7 @@ class FilesProvider {
             }
         };
         var params = "path=" + path + "&cloudName=" + cloudName;
-        xhttp.open("POST", "http://localhost:8080/dropbox", true);
+        xhttp.open("POST", "http://localhost:8080/listfiles", true);
         //for get
         //xhttp.open("GET", "http://localhost:8080/dropbox", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");

@@ -46,17 +46,17 @@ public class CloudManager {
         return null;
     }
 
-    public void uploadFile(String cloudName, File localFile, String dropboxPath) throws Exception {
+    public void uploadFile(String cloudName, File localFile, String pathToUpload) throws Exception {
         Cloud cloud = userManager.getCloud(cloudName);
         String cloudService = cloud.getCloudService();
         System.out.println("uploadFile()," + " cloudService: " + cloudService);
 
         switch (cloudService) {
             case "Dropbox":
-                dropboxManager.uploadFile(cloudName, localFile, dropboxPath + "/" + localFile.getName());
+                dropboxManager.uploadFile(cloudName, localFile, pathToUpload);
                 break;
             case "OneDrive":
-                oneDriveManager.uploadFile(cloudName, localFile, dropboxPath + "/" + localFile.getName());
+                oneDriveManager.uploadFile(cloudName, localFile, pathToUpload);
                 break;
             default:
                 System.out.println(cloudService + " is not supported yet");
