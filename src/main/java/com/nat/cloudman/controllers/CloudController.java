@@ -91,11 +91,11 @@ public class CloudController {
     @ResponseBody
     public String handleFileUpload(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam("dropboxPath") String dropboxPath,
+            @RequestParam("filePath") String filePath,
             @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
             HttpServletRequest request, HttpServletResponse response
     ) {
-        System.out.println("dropboxPath: " + dropboxPath + ", cloudName: " + cloudName);
+        System.out.println("filePath: " + filePath + ", cloudName: " + cloudName);
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 try {
@@ -105,9 +105,10 @@ public class CloudController {
                     System.out.println("file getSize: " + file.getSize());
                     File convertedFile = dropboxManager.multipartToFile(file, "E:\\pics\\uploaded\\");
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    dropboxManager.uploadFile(cloudName, convertedFile, dropboxPath + "/" + convertedFile.getName());
+                    cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName());
                 } catch (Exception e) {
                     System.out.println("Exception: " + e.getMessage());
+                    e.printStackTrace();
                 }
             } else {
                 System.out.println("file is empty ");

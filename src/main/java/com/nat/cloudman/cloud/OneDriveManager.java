@@ -1,7 +1,10 @@
 package com.nat.cloudman.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -9,7 +12,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -24,6 +34,9 @@ public class OneDriveManager {
 
     private String accessToken;
     private String refreshToken;
+
+    private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 4L << 20; // 4MiB
+    private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 
     public ResponseEntity<JsonNode> sendAuthorizationCodeRequest(String code) {
         String url = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
@@ -46,11 +59,11 @@ public class OneDriveManager {
         RestTemplate restTemplate = new RestTemplate();
         try {
             ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, request, JsonNode.class);
-            String refreshToken = response.getBody().get("refresh_token").asText();
-            String access_oken = response.getBody().get("access_token").asText();
-            String expires_in = response.getBody().get("expires_in").asText();
+            String refreshToken = getResponseProperty(response, "refresh_token");
+            String accessToken = getResponseProperty(response, "access_token");
+            String expiresIn = getResponseProperty(response, "expires_in");
             System.out.println("got refreshToken: " + refreshToken);
-            System.out.println("got access_oken: " + access_oken + ", expires_in: " + expires_in);
+            System.out.println("got access_oken: " + accessToken + ", expires_in: " + expiresIn);
             return response;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
@@ -83,11 +96,11 @@ public class OneDriveManager {
         RestTemplate restTemplate = new RestTemplate();
         try {
             ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, request, JsonNode.class);
-            String refreshToken = response.getBody().get("refresh_token").asText();
-            String access_oken = response.getBody().get("access_token").asText();
-            String expires_in = response.getBody().get("expires_in").asText();
+            String refreshToken = getResponseProperty(response, "refresh_token");
+            String accessToken = getResponseProperty(response, "access_token");
+            String expiresIn = getResponseProperty(response, "expires_in");
             System.out.println("got token: " + refreshToken);
-            System.out.println("got access_oken: " + access_oken + " expires_in: " + expires_in);
+            System.out.println("got access_oken: " + accessToken + " expires_in: " + expiresIn);
             return refreshToken;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
@@ -120,12 +133,14 @@ public class OneDriveManager {
         RestTemplate restTemplate = new RestTemplate();
         try {
             ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, request, JsonNode.class);
-            String gotRefreshToken = response.getBody().get("refresh_token").asText();
-            String access_oken = response.getBody().get("access_token").asText();
-            String expires_in = response.getBody().get("expires_in").asText();
+            String gotRefreshToken = getResponseProperty(response, "refresh_token");
+            String accessToken = getResponseProperty(response, "access_token");
+            String expiresIn = getResponseProperty(response, "expires_in");
+
+
             System.out.println("gotRefreshToken: " + gotRefreshToken);
-            System.out.println("access_oken: " + access_oken + ", expires_in: " + expires_in);
-            return access_oken;
+            System.out.println("access_oken: " + accessToken + ", expires_in: " + expiresIn);
+            return accessToken;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
@@ -175,8 +190,9 @@ public class OneDriveManager {
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
         System.out.println("Result - status (" + response.getStatusCode() + ") ");
         System.out.println("getBody: " + response.getBody());
-        System.out.println("value get: " + response.getBody().get("value").asText());
-        System.out.println("value path: " + response.getBody().path("value").asText());
+        System.out.println("value get: " + getResponseProperty(response, "value"));
+        System.out.println("value path: " + getResponseProperty(response, "path"));
+
 
         JsonNode valueNode = response.getBody().path("value");
         Iterator<JsonNode> iterator = valueNode.iterator();
@@ -240,5 +256,151 @@ public class OneDriveManager {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public void uploadFile(String accountName, File localFile, String filePath) throws Exception {
+        System.err.println("uploadFile");
+        System.err.println("dropboxPath: " + filePath);
+        System.err.println("localFile getName: " + localFile.getName());
+        System.err.println("localFile getPath: " + localFile.getPath());
+        System.err.println("localFile getPath: " + localFile.length());
+
+        try {
+            if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
+                uploadSmallFile(localFile, filePath);
+            } else {
+                chunkedUploadFile(localFile, filePath);
+            }
+
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
+                uploadSmallFile(localFile, filePath);
+            } else {
+                chunkedUploadFile(localFile, filePath);
+            }
+        }
+    }
+
+    private void uploadSmallFile(File localFile, String filePath) {
+        String url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/content";
+        System.out.println("url: " + url);
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        InputStream in = null;
+        try {
+            in = new FileInputStream(localFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        HttpEntity<byte[]> entity = null;
+        try {
+            entity = new HttpEntity<byte[]>(IOUtils.toByteArray(in), headers);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PUT, entity, JsonNode.class);
+        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
+        System.out.println("value get: " + getResponseProperty(response, "value"));
+        System.out.println("value path: " + getResponseProperty(response, "path"));
+    }
+
+    // TODO pause, resume, check status
+    private void chunkedUploadFile(File localFile, String filePath) {
+        System.out.println("CHUNKED_UPLOAD_CHUNK_SIZE: " + CHUNKED_UPLOAD_CHUNK_SIZE);
+        Long fragmentSize = 4L << 20;
+        System.out.println("fragmentSize: " + fragmentSize);
+        Long fileSize = localFile.length();
+        System.out.println("fileSize: " + fileSize);
+        Long sentLen = 0L;
+
+        String createSessionUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/createUploadSession";
+        System.out.println("url: " + createSessionUrl);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "text/plain");
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<byte[]> entity = new HttpEntity<byte[]>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(createSessionUrl, HttpMethod.POST, entity, JsonNode.class);
+
+        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
+        String uploadUrl = getResponseProperty(response, "uploadUrl");
+        String nextExpectedRanges = getResponseProperty(response, "nextExpectedRanges");
+        String expirationDateTime = getResponseProperty(response, "expirationDateTime");
+        System.out.println("value uploadUrl: " + uploadUrl);
+        System.out.println("value nextExpectedRanges: " + nextExpectedRanges);
+        System.out.println("value expirationDateTime: " + expirationDateTime);
+
+
+        //////////////////////////////////////////// upload
+
+        InputStream in = null;
+        try {
+            in = new FileInputStream(localFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] fileBytes = null;
+        try {
+            fileBytes = IOUtils.toByteArray(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("fileBytes Len: " + fileBytes.length);
+        entity = null;
+        while (sentLen < fileSize) {
+            System.out.println("upload part, sentLen: " + sentLen);
+            Long fileRest = fileSize - sentLen;
+            Long nextPartSize = fileRest > fragmentSize ? fragmentSize : fileRest;
+            System.out.println("fileRest: " + fileRest);
+            System.out.println("nextPartSize: " + nextPartSize);
+
+            restTemplate = new RestTemplate();
+            headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Content-Length", nextPartSize.toString());
+            headers.set("Content-Range", "bytes " + sentLen + "-" + (sentLen + nextPartSize - 1) + "/" + fileSize);
+
+            entity = new HttpEntity<byte[]>(Arrays.copyOfRange(fileBytes, sentLen.intValue(), (int) (sentLen + nextPartSize)), headers);
+            System.out.println("entity: " + entity.toString());
+            System.out.println("entity length: " + entity.getBody().length);
+            try {
+                response = restTemplate.exchange(uploadUrl, HttpMethod.PUT, entity, JsonNode.class);
+            } catch (Exception e) {
+                System.out.println("Exception: " + e.getMessage());
+                e.printStackTrace();
+                return;
+            }
+            System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
+            System.out.println("getBody: " + response.getBody());
+            nextExpectedRanges = getResponseProperty(response, "nextExpectedRanges");
+            expirationDateTime = getResponseProperty(response, "expirationDateTime");
+            System.out.println("value uploadUrl: " + uploadUrl);
+            System.out.println("value nextExpectedRanges: " + nextExpectedRanges);
+            System.out.println("value expirationDateTime: " + expirationDateTime);
+
+            sentLen += nextPartSize;
+        }
+    }
+
+    private String getResponseProperty(ResponseEntity<JsonNode> response, String property) {
+        String value = null;
+        JsonNode node = response.getBody().get(property);
+        if (node != null) {
+            value = node.asText();
+        }
+        return value;
     }
 }

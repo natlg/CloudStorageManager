@@ -170,7 +170,7 @@ function clickUpload() {
         formData.append('files', file, file.name);
         console.log("append file: " + file.name);
     }
-    formData.append("dropboxPath", filesProvider.fullPath);
+    formData.append("filePath", filesProvider.fullPath);
     formData.append("cloudName", currentCloud);
 
     var xhr = new XMLHttpRequest();
