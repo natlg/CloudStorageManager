@@ -126,12 +126,11 @@ function handleFile(files) {
         console.log("id: " + files[i].id);
         var r = $(document.getElementById(files[i].id));
         r.on("dblclick", {id: files[i].id}, dblclickFile);
-        r.find("a").on("click", {id: files[i].id}, dblclickFile);
+        r.find("a.fileName").on("click", {id: files[i].id}, dblclickFile);
 
         var link = r.find('a');
 
         bindPopover();
-        link.on("click", {id: files[i].id}, clickDetails);
     }
 
     var pathContainer = $("#pathContainer");
