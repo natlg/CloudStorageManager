@@ -53,8 +53,19 @@ public class CloudController {
         System.out.println("got path: " + path + ", cloudName: " + cloudName);
 
         userManager.showAuth("dropbox");
-        return new FilesContainer(cloudManager.getFilesList(cloudName, path));
+        return cloudManager.getFilesList(cloudName, path);
     }
+
+    @RequestMapping(value = "/addfolder", method = RequestMethod.POST)
+    public void addFolder(@RequestParam(value = "path", defaultValue = "") String path,
+                          @RequestParam(value = "cloudName") String cloudName,
+                          @RequestParam(value = "folderName") String folderName,
+                          @RequestParam(value = "parentId") String parentId,
+                          HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("folderName: " + folderName + ", path: " + path + ", cloudName: " + cloudName + ", parentId: " + parentId);
+        cloudManager.addFolder(folderName, cloudName, path, parentId);
+    }
+
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {

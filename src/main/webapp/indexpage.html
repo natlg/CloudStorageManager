@@ -120,7 +120,6 @@
             <div class="modal-dialog">
 
                 <!-- Modal content-->
-
                 <div class="modal-content">
                     <form id="add_cloud_form" class="form-horizontal" role="form">
                         <div class="modal-header">
@@ -165,9 +164,38 @@
                     <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
                 </label>
 
-                <a href="#" data-toggle="tooltip" title="Create Folder" class="icon-link">
+                <span data-toggle="modal" data-target="#modalAddFolder">
+                <a title="Create Folder" class="icon-link" data-toggle=" tooltip">
                     <img class="icon" src="img/icon-folder-add.png" alt="add folder">
                 </a>
+                    </span>
+            </div>
+
+            <!-- Modal -->
+            <div id="modalAddFolder" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Add Folder</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="control-group">
+                                <p>Folder Name: </p>
+                                <input id="folder_name" type="text" class="form-control" name="folder_name"
+                                       placeholder="Folder Name">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="add_folder" type="button" class="btn btn-default" data-dismiss="modal">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <div class="col-sm-10 text-left">

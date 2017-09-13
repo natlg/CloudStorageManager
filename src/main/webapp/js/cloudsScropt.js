@@ -86,6 +86,32 @@ function addCloud() {
     }
 }
 
+function addFolder() {
+    console.log("addFolder click");
+    var folderName = $("#folder_name").val();
+    $("#folder_name").val("");
+    var parentId = filesProvider.parentId;
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log("XMLHttpRequest answer is ready");
+            console.log("responseText: " + xhttp.responseText);
+        }
+        else {
+            if (this.readyState === 4 && this.status === 401) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            }
+        }
+    };
+    var params = "folderName=" + folderName +
+        "&cloudName=" + currentCloud + "&path=" + filesProvider.fullPath + "&parentId=" + parentId;
+    xhttp.open("POST", "http://localhost:8080/addfolder", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    console.log("send params:");
+    console.log(params);
+    xhttp.send(params);
+}
+
 function openInNewTab(url) {
     console.log("url: " + url);
     var win = window.open(url, '_blank');

@@ -2,6 +2,8 @@ class FilesProvider {
     constructor() {
         this.pathList = [];
         this.fullPath = "";
+        this.fileArray = [];
+        this.parentId = "";
     }
 
     getFilesList(cloudName, path, handleData) {
@@ -13,21 +15,19 @@ class FilesProvider {
             if (this.readyState === 4 && this.status === 200) {
                 console.log("XMLHttpRequest answer is ready");
 
-                console.log("responseText: " + xhttp.responseText);
-                console.log("parsed: " + JSON.parse(xhttp.responseText));
-                console.log("files: " + JSON.parse(xhttp.responseText).files);
+                var response = JSON.parse(xhttp.responseText);
+                var responseFiles = response.files;
+                self.parentId = response.parentId;
+                console.log("parentId: " + self.parentId);
 
-                var response = JSON.parse(xhttp.responseText).files;
-                var arrayLength = response.length;
-                var fileArray = [];
+                var arrayLength = responseFiles.length;
+                self.fileArray = [];
                 console.log("arrayLength: " + arrayLength);
                 for (var i = 0; i < arrayLength; i++) {
-                    fileArray.push(new FileMetadata(self.getNameFromPath(response[i].pathLower), response[i].type, response[i].modified, response[i].size, response[i].id, response[i].pathLower));
-                    console.log("push: " + i);
+                    self.fileArray.push(new FileMetadata(self.getNameFromPath(responseFiles[i].pathLower), responseFiles[i].type, responseFiles[i].modified, responseFiles[i].size, responseFiles[i].id, responseFiles[i].pathLower, responseFiles[i].parentId));
                 }
-
                 self.parsePath(path);
-                handleData(fileArray);
+                handleData(self.fileArray);
             }
             else {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState + "...");
@@ -72,15 +72,16 @@ class FilesProvider {
 }
 
 class FileMetadata {
-    constructor(name, type, modified, size, id, pathLower) {
+    constructor(name, type, modified, size, id, pathLower, parentId) {
         this.name = name;
         this.type = type;
         this.modified = modified;
         this.id = id;
         this.pathLower = pathLower;
         this.size = size;
+        this.parentId = parentId
         console.log("created metadata, pathLower: " + pathLower + ", type: " + type
-            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name);
+            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name + ", parentId: " + parentId);
     }
 }
 

@@ -2,7 +2,11 @@ package com.nat.cloudman.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nat.cloudman.response.FilesContainer;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
@@ -149,13 +153,13 @@ public class OneDriveManager {
         return null;
     }
 
-    public ArrayList<HashMap<String, String>> getFilesList(String folderPath) {
+    public FilesContainer getFilesList(String folderPath) {
 
         System.out.println("oneDriveUtils. getFilesList");
         System.out.println("refreshToken: " + refreshToken);
         System.out.println("accessToken: " + accessToken);
         try {
-            return listChildrenRequest(folderPath);
+            return getItemExpandChildrensRequest(folderPath);
 
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
@@ -164,12 +168,74 @@ public class OneDriveManager {
 
             accessToken = getAccessToken(refreshToken);
             setAccessToken(accessToken);
-            return listChildrenRequest(folderPath);
+            return getItemExpandChildrensRequest(folderPath);
         }
     }
 
+    public FilesContainer getItemExpandChildrensRequest(String folderPath) {
+        System.out.println("oneDriveUtils. getItemExpandChildrensRequest");
+        System.out.println("folderPath: " + folderPath);
+        String url;
+        if (folderPath.isEmpty()) {
+            url = "https://graph.microsoft.com/v1.0/me/drive/root?$expand=children";
+        } else {
+            url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + folderPath + "?$expand=children";
+        }
+        System.out.println("GET url: " + url);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + accessToken);
 
-    public ArrayList<HashMap<String, String>> listChildrenRequest(String folderPath) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
+        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
+        System.out.println("children get: " + getResponseProperty(response, "children"));
+        String parentId = getResponseProperty(response, "id");
+        System.out.println("id get: " + getResponseProperty(response, "id"));
+
+
+        JsonNode valueNode = response.getBody().path("children");
+        Iterator<JsonNode> iterator = valueNode.iterator();
+        System.out.println("children:");
+
+        ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
+
+        while (iterator.hasNext()) {
+            JsonNode file = iterator.next();
+            System.out.println("name: " + file.get("name").asText());
+
+            HashMap<String, String> resultFile = new HashMap<String, String>();
+
+            if (file.has("folder")) {
+                resultFile.put("type", "folder");
+                System.out.println("+ " + file.get("folder").asText());
+                System.out.println(")))folder: " + file.get("name").asText());
+            }
+            if (file.has("file")) {
+                resultFile.put("type", "file");
+                System.out.println("++ " + file.get("file").asText());
+                System.out.println(")))file: " + file.get("name").asText());
+            }
+            System.out.println("node end");
+            resultFile.put("id", file.get("id").asText());
+            resultFile.put("pathLower", file.get("name").asText());
+            resultFile.put("modified", file.get("lastModifiedDateTime").asText());
+            resultFile.put("size", file.get("size").asText());
+            resultFile.put("displayPath", file.get("name").asText());
+            resultFile.put("parentId", file.get("parentReference").get("id").asText());
+            files.add(resultFile);
+        }
+        System.out.println("listChildrenRequest return len: " + files.size());
+
+        FilesContainer filesContainer = new FilesContainer(files);
+        filesContainer.setParentId(parentId);
+        return filesContainer;
+    }
+
+    public FilesContainer listChildrenRequest(String folderPath) {
         System.out.println("oneDriveUtils. listChildrenRequest");
 
         System.out.println("folderPath: " + folderPath);
@@ -222,10 +288,12 @@ public class OneDriveManager {
             resultFile.put("modified", file.get("lastModifiedDateTime").asText());
             resultFile.put("size", file.get("size").asText());
             resultFile.put("displayPath", file.get("name").asText());
+            resultFile.put("parentId", file.get("parentReference").get("id").asText());
             files.add(resultFile);
         }
         System.out.println("listChildrenRequest return len: " + files.size());
-        return files;
+        FilesContainer filesContainer = new FilesContainer(files);
+        return filesContainer;
     }
 
     public static void main(String[] args) {
@@ -402,5 +470,51 @@ public class OneDriveManager {
             value = node.asText();
         }
         return value;
+    }
+
+    private void addFolder(String folderName, String path, String parentId) {
+        System.out.println("addFolder, folderName: " + folderName + ", path: " + path + " parentId: " + parentId);
+        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + parentId + "/children";
+        System.out.println("url: " + url);
+
+        final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+        ObjectNode folderNode = nodeFactory.objectNode();
+
+        ObjectNode child = nodeFactory.objectNode(); // the child
+
+        child.put("childCount", 0);
+
+        folderNode.set("folder", child);
+        folderNode.put("name", folderName);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/json");
+
+        System.out.println("folderNode.toString(): " + folderNode.toString());
+
+        HttpEntity<String> entity = new HttpEntity<String>(folderNode.toString(), headers);
+
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
+
+        System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
+    }
+
+    public void addFolder(String folderName, String cloudName, String path, String parentId) {
+
+        try {
+            addFolder(folderName, path, parentId);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            addFolder(folderName, path, parentId);
+        }
     }
 }

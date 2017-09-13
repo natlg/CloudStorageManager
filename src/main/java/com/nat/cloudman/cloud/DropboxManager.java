@@ -5,6 +5,7 @@ import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
+import com.nat.cloudman.response.FilesContainer;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +60,7 @@ public class DropboxManager {
         System.out.println("dropbox account.getName: " + account.getName().getDisplayName());
     }
 
-    public ArrayList<HashMap<String, String>> getFilesList(String accountName, String folderPath) {
+    public FilesContainer getFilesList(String accountName, String folderPath) {
         String token = userManager.getCloud(accountName).getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
@@ -114,8 +115,7 @@ public class DropboxManager {
             }
         }
         System.out.println("size: " + files.size());
-        System.out.println("file: " + files.get(0).get("displayPath"));
-        return files;
+        return new FilesContainer(files);
     }
 
     public File multipartToFile(MultipartFile multipart, String pathToSave) throws IllegalStateException, IOException {
@@ -389,6 +389,17 @@ public class DropboxManager {
             DbxAuthInfo.Writer.writeToStream(authInfo, System.err);
             System.exit(1);
             return;
+        }
+    }
+
+    public void addFolder(String folderName, String cloudName, String path) {
+        String token = userManager.getCloud(cloudName).getAccessToken();
+        System.out.println("token: " + token);
+        DbxClientV2 client = getClient(token);
+        try {
+            client.files().createFolder(path + "/" + folderName);
+        } catch (DbxException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -153,6 +153,7 @@ $(document).ready(function () {
     $(document).on('click', '#logout', logoutClick);
 
     $(document).on('click', '#add_cloud', addCloud);
+    $(document).on('click', '#add_folder', addFolder);
 });
 
 
