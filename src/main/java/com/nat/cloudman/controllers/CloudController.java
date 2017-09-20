@@ -7,13 +7,21 @@ import com.nat.cloudman.cloud.CloudManager;
 import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
+import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.cloud.DropboxManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -64,6 +72,16 @@ public class CloudController {
                           HttpServletRequest request, HttpServletResponse response) {
         System.out.println("folderName: " + folderName + ", path: " + path + ", cloudName: " + cloudName + ", parentId: " + parentId);
         cloudManager.addFolder(folderName, cloudName, path, parentId);
+    }
+
+    @RequestMapping(value = "/downloadFile", method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> downloadFile(@RequestParam(value = "fileName", defaultValue = "") String fileName,
+                                                            @RequestParam(value = "cloudName") String cloudName,
+                                                            @RequestParam(value = "fileId") String fileId,
+                                                            @RequestParam(value = "path") String path,
+                                                            HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println("download: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        return cloudManager.downloadFile(fileName, cloudName, fileId, path);
     }
 
 

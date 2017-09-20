@@ -114,6 +114,7 @@ public class OneDriveManager {
         return null;
     }
 
+
     public String getAccessToken(String refreshToken) {
 
         System.out.println("getAccessToken");
@@ -170,6 +171,11 @@ public class OneDriveManager {
             setAccessToken(accessToken);
             return getItemExpandChildrensRequest(folderPath);
         }
+    }
+
+    //TODO
+    private void downloadRequest(String fileName, String fileId) {
+
     }
 
     public FilesContainer getItemExpandChildrensRequest(String folderPath) {
@@ -517,4 +523,20 @@ public class OneDriveManager {
             addFolder(folderName, path, parentId);
         }
     }
+
+    public void download(String fileName, String fileId) {
+        try {
+            downloadRequest(fileName, fileId);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            downloadRequest(fileName, fileId);
+        }
+    }
+
+
 }

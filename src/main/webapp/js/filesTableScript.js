@@ -60,11 +60,11 @@ function clickDetails(event) {
 //bind popover to dynamic elements
 function bindPopover() {
     var content = `<div id="popoverContent" class="borderless">
-        <a href="#" class="list-group-item">Copy</a>
-        <a href="#" class="list-group-item">Move</a>
-        <a href="#" class="list-group-item">Rename</a>
-        <a href="#" class="list-group-item">Delete</a>
-        <a href="#" class="list-group-item">Download</a>
+        <a id="pop_copy" href="#" class="list-group-item">Copy</a>
+        <a id="pop_move" href="#" class="list-group-item">Move</a>
+        <a id="pop_rename" href="#" class="list-group-item">Rename</a>
+        <a id="pop_delete" href="#" class="list-group-item">Delete</a>
+        <a id="pop_download" href="#" class="list-group-item">Download</a>
         </div>`;
 
     $('body').popover({
@@ -93,6 +93,13 @@ function listFolder(cloudName, path) {
         filesProvider = new FilesProvider();
     }
     filesProvider.getFilesList(cloudName, path, handleFile);
+}
+
+//gets clicked row information when clicking details
+function rowClick(event) {
+    fileIdPopover = event.data.id;
+    fileNamePopover = $(document.getElementById(event.data.id)).find(".fileName").text();
+    console.log("data id: " + fileIdPopover + ", fileName: " + fileNamePopover);
 }
 
 // callback function after getting answer from server
@@ -126,6 +133,7 @@ function handleFile(files) {
         console.log("id: " + files[i].id);
         var r = $(document.getElementById(files[i].id));
         r.on("dblclick", {id: files[i].id}, dblclickFile);
+        r.on("click", {id: files[i].id}, rowClick);
         r.find("a.fileName").on("click", {id: files[i].id}, dblclickFile);
 
         var link = r.find('a');
@@ -174,7 +182,6 @@ function clickUpload() {
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://localhost:8080/upload/', true);
-    //xhr.open('POST', 'http://localhost:8080/app/upload/', true);
 
     // Set up a handler for when the request finishes.
     xhr.onload = function () {

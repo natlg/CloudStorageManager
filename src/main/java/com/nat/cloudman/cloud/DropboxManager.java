@@ -5,7 +5,9 @@ import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
+import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +19,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +34,9 @@ public class DropboxManager {
 
     @Value("${dropbox.app.secret}")
     private String APP_SECRET;
+
+    @Value("${temp.download.path}")
+    private String DOWNLOAD_PATH;
 
     // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will
     // result in fewer network requests, which will be faster. But if an error occurs, the entire
@@ -102,6 +108,7 @@ public class DropboxManager {
                         file.put("modified", DateFormat.getDateInstance().format(((FileMetadata) metadata).getClientModified()));
                         file.put("size", Long.toString(((FileMetadata) metadata).getSize()));
                         file.put("pathLower", ((FileMetadata) metadata).getPathLower());
+
 
                     }
                     files.add(file);
@@ -401,5 +408,41 @@ public class DropboxManager {
         } catch (DbxException e) {
             e.printStackTrace();
         }
+    }
+
+    public DownloadedFileContainer download(String fileName, String cloudName, String path) {
+        String token = userManager.getCloud(cloudName).getAccessToken();
+        DbxClientV2 client = getClient(token);
+        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
+        OutputStream outputStream = null;
+        InputStream is = null;
+        try {
+            outputStream = new FileOutputStream(file);
+            client.files().download(path + "/" + fileName).download(outputStream);
+            outputStream.flush();
+            outputStream.close();
+            is = new FileInputStream(file);
+        } catch (DownloadErrorException e) {
+            e.printStackTrace();
+        } catch (DbxException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("downloaded ");
+        try {
+            byte[] arr = IOUtils.toByteArray(is);
+            is.close();
+            if (file.delete()) {
+                System.out.println(file.getName() + " is deleted");
+            } else {
+                System.out.println("Delete operation is failed");
+            }
+            System.out.println("arr size: " + arr.length);
+            return new DownloadedFileContainer(fileName, arr);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

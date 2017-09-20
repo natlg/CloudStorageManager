@@ -1,5 +1,7 @@
 var filesProvider;
 var currentCloud;
+var fileIdPopover;
+var fileNamePopover;
 
 
 function isAuthorized() {
@@ -140,6 +142,32 @@ function loadAuthorizedPage() {
     }
 }
 
+function copy() {
+
+}
+
+function move() {
+
+}
+
+function rename() {
+
+}
+
+function deleteFile() {
+
+}
+
+function download() {
+    var params = "fileName=" + fileNamePopover +
+        "&cloudName=" + currentCloud + "&fileId=" + fileIdPopover +
+        "&path=" + filesProvider.fullPath;
+
+    console.log("send params: " + params);
+    // download from browser after getting server response
+    window.location = "/downloadFile?" + params;
+}
+
 $(document).ready(function () {
     console.log("document ready");
     filesProvider = new FilesProvider();
@@ -154,6 +182,12 @@ $(document).ready(function () {
 
     $(document).on('click', '#add_cloud', addCloud);
     $(document).on('click', '#add_folder', addFolder);
+
+    $(document).on('click', '#pop_copy', copy);
+    $(document).on('click', '#pop_move', move);
+    $(document).on('click', '#pop_rename', rename);
+    $(document).on('click', '#pop_delete', deleteFile);
+    $(document).on('click', '#pop_download', download);
 });
 
 
