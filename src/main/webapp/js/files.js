@@ -2,8 +2,9 @@ class FilesProvider {
     constructor() {
         this.pathList = [];
         this.fullPath = "";
-        this.fileArray = [];
         this.parentId = "";
+        //use id as property name for getting file
+        this.filesObj = {};
     }
 
     getFilesList(cloudName, path, handleData) {
@@ -21,13 +22,15 @@ class FilesProvider {
                 console.log("parentId: " + self.parentId);
 
                 var arrayLength = responseFiles.length;
-                self.fileArray = [];
+                self.filesObj = {};
                 console.log("arrayLength: " + arrayLength);
                 for (var i = 0; i < arrayLength; i++) {
-                    self.fileArray.push(new FileMetadata(self.getNameFromPath(responseFiles[i].pathLower), responseFiles[i].type, responseFiles[i].modified, responseFiles[i].size, responseFiles[i].id, responseFiles[i].pathLower, responseFiles[i].parentId));
+                    self.filesObj[responseFiles[i].id] = new FileMetadata(self.getNameFromPath(responseFiles[i].pathLower),
+                        responseFiles[i].type, responseFiles[i].modified, responseFiles[i].size, responseFiles[i].id,
+                        responseFiles[i].pathLower, responseFiles[i].parentId, responseFiles[i].downloadUrl);
                 }
                 self.parsePath(path);
-                handleData(self.fileArray);
+                handleData(self.filesObj);
             }
             else {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState + "...");
@@ -72,7 +75,7 @@ class FilesProvider {
 }
 
 class FileMetadata {
-    constructor(name, type, modified, size, id, pathLower, parentId) {
+    constructor(name, type, modified, size, id, pathLower, parentId, downloadUrl) {
         this.name = name;
         this.type = type;
         this.modified = modified;
@@ -80,8 +83,12 @@ class FileMetadata {
         this.pathLower = pathLower;
         this.size = size;
         this.parentId = parentId
+        //null for Dropbox
+        if (downloadUrl != "null") {
+            this.downloadUrl = downloadUrl;
+        }
         console.log("created metadata, pathLower: " + pathLower + ", type: " + type
-            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name + ", parentId: " + parentId);
+            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name + ", parentId: " + parentId + ", downloadUrl: " + downloadUrl);
     }
 }
 

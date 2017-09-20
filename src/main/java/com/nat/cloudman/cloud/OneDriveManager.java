@@ -224,6 +224,9 @@ public class OneDriveManager {
                 resultFile.put("type", "file");
                 System.out.println("++ " + file.get("file").asText());
                 System.out.println(")))file: " + file.get("name").asText());
+                String downloadUrl = file.get("@microsoft.graph.downloadUrl").asText();
+                System.out.println("@microsoft.graph.downloadUrl: " + downloadUrl);
+                resultFile.put("downloadUrl", downloadUrl);
             }
             System.out.println("node end");
             resultFile.put("id", file.get("id").asText());

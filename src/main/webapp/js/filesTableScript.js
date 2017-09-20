@@ -104,43 +104,46 @@ function rowClick(event) {
 
 // callback function after getting answer from server
 function handleFile(files) {
-    console.log("handleFile len: " + files.length);
+    console.log("handleFile ");
     var table = $("#filesTableBody");
     $("#files_table").show();
 
     //remove rows after previous click
     table.empty();
-    console.log("handleFile, files Length: " + files.length);
-    for (var i = 0; i < files.length; i++) {
-        console.log("add: " + files[i].name);
-        var row =
-            `<tr id=${files[i].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
+
+    for (var key in files) {
+        if (files.hasOwnProperty(key)) {
+            // do stuff
+
+            console.log("add: " + files[key].name);
+            var row =
+                `<tr id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)">
-                        <td> <a class="fileName" href="#">${files[i].name}</a></td>
-                        <td>${files[i].type}</td>
-                        <td>${getText(files[i].size)}</td>
-                        <td>${getText(files[i].modified)}</td>
+                        <td> <a class="fileName" href="#">${files[key].name}</a></td>
+                        <td>${files[key].type}</td>
+                        <td>${getText(files[key].size)}</td>
+                        <td>${getText(files[key].modified)}</td>
                     <td>
-                    <a  href="#" class="hoverAble" data-toggle="popover" rel="popover" data-placement="left"
+                    <a  href="#" class="hoverAble details_btn" data-toggle="popover" rel="popover" data-placement="left"
                     data-popover-content="#popoverContent"
                     data-trigger="focus">
                 ...</a>
                     </td>
                     </tr>`;
 
-        table.append($(row));
+            table.append($(row));
 
-        console.log("id: " + files[i].id);
-        var r = $(document.getElementById(files[i].id));
-        r.on("dblclick", {id: files[i].id}, dblclickFile);
-        r.on("click", {id: files[i].id}, rowClick);
-        r.find("a.fileName").on("click", {id: files[i].id}, dblclickFile);
+            console.log("id: " + files[key].id);
+            var r = $(document.getElementById(files[key].id));
+            r.on("dblclick", {id: files[key].id}, dblclickFile);
+            r.on("click", {id: files[key].id}, rowClick);
+            r.find("a.fileName").on("click", {id: files[key].id}, dblclickFile);
 
-        var link = r.find('a');
+            var link = r.find('a');
 
-        bindPopover();
+            bindPopover();
+        }
     }
-
     var pathContainer = $("#pathContainer");
     emptyPath();
 

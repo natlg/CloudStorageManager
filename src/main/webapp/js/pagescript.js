@@ -159,6 +159,14 @@ function deleteFile() {
 }
 
 function download() {
+    var downloadPath = filesProvider.filesObj[fileIdPopover].downloadUrl;
+    console.log("download path: " + downloadPath);
+    //exists for all OneDrive files
+    if (notEmpty(downloadPath) === 1) {
+        window.location = downloadPath;
+        return;
+    }
+
     var params = "fileName=" + fileNamePopover +
         "&cloudName=" + currentCloud + "&fileId=" + fileIdPopover +
         "&path=" + filesProvider.fullPath;
@@ -189,5 +197,14 @@ $(document).ready(function () {
     $(document).on('click', '#pop_delete', deleteFile);
     $(document).on('click', '#pop_download', download);
 });
+
+function notEmpty(str) {
+    if (str === undefined || str == null || str.length <= 0) {
+        console.log("empty");
+        return 0;
+    }
+    console.log("not empty");
+    return 1;
+}
 
 
