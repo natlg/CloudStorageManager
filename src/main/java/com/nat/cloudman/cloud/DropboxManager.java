@@ -455,4 +455,14 @@ public class DropboxManager {
             e.printStackTrace();
         }
     }
+
+    public void renameFile(String fileName, String newName, String cloudName, String path) {
+        String token = userManager.getCloud(cloudName).getAccessToken();
+        DbxClientV2 client = getClient(token);
+        try {
+            client.files().move(path + "/" + fileName, path + "/" + newName);
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+    }
 }

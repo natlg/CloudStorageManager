@@ -133,4 +133,22 @@ public class CloudManager {
                 System.out.println(cloudService + " is not supported yet");
         }
     }
+
+    public void renameFile(String fileName, String newName, String cloudName, String fileId, String path) {
+
+        Cloud cloud = userManager.getCloud(cloudName);
+        String cloudService = cloud.getCloudService();
+        switch (cloudService) {
+            case "Dropbox":
+                dropboxManager.renameFile(fileName, newName, cloudName, path);
+                break;
+            case "OneDrive":
+                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
+                oneDriveManager.renameFile(fileName, newName, fileId);
+                break;
+            default:
+                System.out.println(cloudService + " is not supported yet");
+        }
+
+    }
 }

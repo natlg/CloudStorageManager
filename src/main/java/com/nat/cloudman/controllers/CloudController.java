@@ -94,6 +94,17 @@ public class CloudController {
         cloudManager.deleteFile(fileName, cloudName, fileId, path);
     }
 
+    @RequestMapping(value = "/renamefile", method = RequestMethod.POST)
+    public void renameFile(@RequestParam(value = "fileName", defaultValue = "") String fileName,
+                           @RequestParam(value = "newName", defaultValue = "") String newName,
+                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                           @RequestParam(value = "fileId", defaultValue = "") String fileId,
+                           @RequestParam(value = "path", defaultValue = "") String path,
+                           HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println("renameFile: fileName: " + fileName + ", newName: " + newName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        cloudManager.renameFile(fileName, newName, cloudName, fileId, path);
+    }
+
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {

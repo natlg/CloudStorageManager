@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -568,5 +569,44 @@ public class OneDriveManager {
             setAccessToken(accessToken);
             deleteRequest(fileName, fileId);
         }
+    }
+
+    public void renameFile(String fileName, String newName, String fileId) {
+        try {
+            renameRequest(newName, fileId);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            renameRequest(fileName, fileId);
+        }
+    }
+
+    private void renameRequest(String newName, String fileId) {
+        System.out.println("renameRequest");
+        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
+        System.out.println("url: " + url);
+        final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+        ObjectNode node = nodeFactory.objectNode();
+        node.put("name", newName);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/json");
+        System.out.println("node.toString(): " + node.toString());
+        HttpEntity<String> entity = new HttpEntity<String>(node.toString(), headers);
+
+        //PATCH is not working for RestTemplate
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(10000);
+        restTemplate.setRequestFactory(requestFactory);
+
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
+        System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
     }
 }

@@ -150,8 +150,39 @@ function move() {
 
 }
 
-function rename() {
+function renameClick() {
+    var name = filesProvider.filesObj[fileIdPopover].name;
+    $("#new_name").val(name);
+    console.log("renameClick fileIdPopover: " + fileIdPopover + ", name: " + name);
+}
 
+function rename() {
+    var name = filesProvider.filesObj[fileIdPopover].name;
+    var newName = $("#new_name").val();
+    console.log("rename fileIdPopover: " + fileIdPopover + ", name: " + name + ", newName: " + newName);
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log("XMLHttpRequest answer is ready");
+            console.log("responseText: " + xhttp.responseText);
+        }
+        else {
+            if (this.readyState === 4 && this.status !== 200) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            }
+        }
+    };
+    var params = "fileId=" + fileIdPopover +
+        "&fileName=" + name +
+        "&newName=" + newName +
+        "&path=" + filesProvider.fullPath +
+        "&cloudName=" + currentCloud;
+    xhttp.open("POST", "http://localhost:8080/renamefile", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    console.log("send params:");
+    console.log(params);
+    xhttp.send(params);
 }
 
 function deleteFile() {
@@ -216,9 +247,12 @@ $(document).ready(function () {
 
     $(document).on('click', '#pop_copy', copy);
     $(document).on('click', '#pop_move', move);
-    $(document).on('click', '#pop_rename', rename);
+    $(document).on('click', '#pop_rename', renameClick);
     $(document).on('click', '#pop_delete', deleteFile);
     $(document).on('click', '#pop_download', download);
+
+    $(document).on('click', '#rename_btn', rename);
+
 });
 
 function notEmpty(str) {
