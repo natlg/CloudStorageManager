@@ -445,4 +445,14 @@ public class DropboxManager {
         }
         return null;
     }
+
+    public void deleteFile(String fileName, String cloudName, String path) {
+        String token = userManager.getCloud(cloudName).getAccessToken();
+        DbxClientV2 client = getClient(token);
+        try {
+            client.files().delete(path + "/" + fileName);
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+    }
 }

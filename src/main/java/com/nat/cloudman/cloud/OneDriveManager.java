@@ -542,4 +542,31 @@ public class OneDriveManager {
     }
 
 
+    public void deleteRequest(String fileName, String fileId) {
+        System.out.println("deleteRequest, fileName: " + fileName + ", fileId: " + fileId);
+        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
+        System.out.println("url: " + url);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/json");
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, JsonNode.class);
+        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
+    }
+
+    public void deleteFile(String fileName, String fileId) {
+        try {
+            deleteRequest(fileName, fileId);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            deleteRequest(fileName, fileId);
+        }
+    }
 }

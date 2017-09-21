@@ -84,6 +84,16 @@ public class CloudController {
         return cloudManager.downloadFile(fileName, cloudName, fileId, path);
     }
 
+    @RequestMapping(value = "/deletefile", method = RequestMethod.POST)
+    public void deleteFile(@RequestParam(value = "fileName", defaultValue = "") String fileName,
+                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+                           @RequestParam(value = "fileId", defaultValue = "") String fileId,
+                           @RequestParam(value = "path", defaultValue = "") String path,
+                           HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println("deleteFile: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        cloudManager.deleteFile(fileName, cloudName, fileId, path);
+    }
+
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {

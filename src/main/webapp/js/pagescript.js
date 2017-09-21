@@ -155,7 +155,30 @@ function rename() {
 }
 
 function deleteFile() {
+    var name = filesProvider.filesObj[fileIdPopover].name;
+    console.log("deleteFile fileIdPopover: " + fileIdPopover + ", name: " + name);
 
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log("XMLHttpRequest answer is ready");
+            console.log("responseText: " + xhttp.responseText);
+        }
+        else {
+            if (this.readyState === 4 && this.status !== 200) {
+                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            }
+        }
+    };
+
+    var params = "fileId=" + fileIdPopover +
+        "&fileName=" + name +
+        "&cloudName=" + currentCloud;
+    xhttp.open("POST", "http://localhost:8080/deletefile", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    console.log("send params:");
+    console.log(params);
+    xhttp.send(params);
 }
 
 function download() {

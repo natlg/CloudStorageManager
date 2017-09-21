@@ -117,4 +117,20 @@ public class CloudManager {
         InputStreamResource isr = new InputStreamResource(new ByteArrayInputStream(arr));
         return new ResponseEntity<InputStreamResource>(isr, respHeaders, HttpStatus.OK);
     }
+
+    public void deleteFile(String fileName, String cloudName, String fileId, String path) {
+        Cloud cloud = userManager.getCloud(cloudName);
+        String cloudService = cloud.getCloudService();
+        switch (cloudService) {
+            case "Dropbox":
+                dropboxManager.deleteFile(fileName, cloudName, path);
+                break;
+            case "OneDrive":
+                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
+                oneDriveManager.deleteFile(fileName, fileId);
+                break;
+            default:
+                System.out.println(cloudService + " is not supported yet");
+        }
+    }
 }
