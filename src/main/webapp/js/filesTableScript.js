@@ -59,18 +59,12 @@ function clickDetails(event) {
 
 //bind popover to dynamic elements
 function bindPopover() {
-    var content = `<div id="popoverContent" class="borderless">
-        <a id="pop_copy" href="#" class="list-group-item">Copy</a>
-        <a id="pop_move" href="#" class="list-group-item">Move</a>
-        <a id="pop_rename" href="#" class="list-group-item" data-toggle="modal" data-target="#modalRename">Rename</a>
-        <a id="pop_delete" href="#" class="list-group-item">Delete</a>
-        <a id="pop_download" href="#" class="list-group-item">Download</a>
-        </div>`;
+    console.log("bindPopover  ");
 
     $('body').popover({
         selector: '[rel=popover]',
         trigger: 'focus',
-        content: content,
+        content: detailsMenuContent,
         placement: "left",
         html: true
     });
@@ -117,8 +111,8 @@ function handleFile(files) {
 
             console.log("add: " + files[key].name);
             var row =
-                `<tr id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
-                    ondragstart="drag(event)">
+                `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
+                    ondragstart="drag(event)" ">
                         <td> <a class="fileName" href="#">${files[key].name}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
@@ -138,10 +132,11 @@ function handleFile(files) {
             r.on("dblclick", {id: files[key].id}, dblclickFile);
             r.on("click", {id: files[key].id}, rowClick);
             r.find("a.fileName").on("click", {id: files[key].id}, dblclickFile);
-
             var link = r.find('a');
-
             bindPopover();
+
+            setContextMenuPopover(r);
+            rowId = "";
         }
     }
     var pathContainer = $("#pathContainer");
@@ -155,6 +150,45 @@ function handleFile(files) {
             fileLink.on("click", pathClick);
         }
     }
+}
+
+function setContextMenuPopover(r) {
+
+    r.popover({
+        placement: 'bottom',
+        trigger: 'manual',
+        html: true,
+        content: detailsMenuContent
+    });
+
+    $(document).on('contextmenu', '.context_popup', function (event) {
+        console.log("contextmenu ");
+        // prevent default right click from browser
+        event.preventDefault();
+
+        fileIdPopover = this.id;
+        fileNamePopover = $(document.getElementById(this.id)).find(".fileName").text();
+
+        if (notEmpty(rowId) == 1 && rowId != this.id) {
+            console.log("contextmenu remove popup for old id: " + rowId + ", new: " + this.id);
+            // hide old
+            $('.context_popup').popover('hide');
+        }
+        rowId = this.id;
+        console.log("show ");
+        $(this).popover('show');
+    });
+
+
+    //hide popover after left clicking any element
+    $("body").click(function (e) {
+        console.log("! click ");
+        console.log("rowId: " + rowId);
+        if (notEmpty(rowId)) {
+            console.log("click remove popup for old id: " + rowId);
+            $('.context_popup').popover('hide');
+        }
+    });
 }
 
 function emptyPath() {

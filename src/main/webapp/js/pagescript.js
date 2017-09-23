@@ -2,6 +2,14 @@ var filesProvider;
 var currentCloud;
 var fileIdPopover;
 var fileNamePopover;
+var rowId;
+var detailsMenuContent = `<div id="popoverContent" class="borderless popoverDetails">
+        <a id="pop_copy" href="#" class="list-group-item">Copy</a>
+        <a id="pop_move" href="#" class="list-group-item">Move</a>
+        <a id="pop_rename" href="#" class="list-group-item" data-toggle="modal" data-target="#modalRename">Rename</a>
+        <a id="pop_delete" href="#" class="list-group-item">Delete</a>
+        <a id="pop_download" href="#" class="list-group-item">Download</a>
+        </div>`;
 
 
 function isAuthorized() {
