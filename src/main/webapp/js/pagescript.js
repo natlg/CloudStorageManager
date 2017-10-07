@@ -4,7 +4,7 @@ var fileIdPopover;
 var fileNamePopover;
 var rowId;
 var detailsMenuContent = `<div id="popoverContent" class="borderless popoverDetails">
-        <a id="pop_copy" href="#" class="list-group-item">Copy</a>
+        <a id="pop_copy" href="#" class="list-group-item" data-toggle="modal" data-target="#modalCopy">Copy</a>
         <a id="pop_move" href="#" class="list-group-item">Move</a>
         <a id="pop_rename" href="#" class="list-group-item" data-toggle="modal" data-target="#modalRename">Rename</a>
         <a id="pop_delete" href="#" class="list-group-item">Delete</a>
@@ -154,6 +154,92 @@ function copy() {
 
 }
 
+
+function copyClick() {
+    fillTree();
+}
+
+function fillTree() {
+    var source = [];
+    console.log(" fillTree: ");
+    for (var i = 0; i < filesProvider.clouds.length; i++) {
+        var cloud = {};
+        cloud.title = filesProvider.clouds[i].accountName;
+        cloud.folder = true;
+        cloud.lazy = true;
+        source.push(cloud);
+    }
+    console.log(" source: " + source);
+
+    $(function () {
+        $("#tree").fancytree({
+            checkbox: false,
+            selectMode: 3,
+            source: source,
+            lazyLoad: function (event, data) {
+                var parents = data.node.getParentList(false, true);
+                if (parents.length > 0) {
+                    //check why 0th is root title
+                    var cloud = parents[0];
+                    console.log("lazyLoad cloud: " + cloud.title + ", parents: " + parents);
+                    var path = "";
+                    if (parents.length > 1) {
+                        for (var i = 1; i < parents.length; i++) {
+                            path += "/" + parents[i].title;
+                            console.log(" folder in path: " + parents[i].title);
+                        }
+                    }
+                }
+                console.log(" path: " + path);
+                var json = JSON.stringify({cloudName: cloud.title, path: path, id: ""});
+
+                data.result = {
+                    url: "http://localhost:8080/getcloudstree",
+                    cache: false,
+                    type: 'POST',
+                    data: json,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        console.log("lazyLoad responseObj: " + response.toString());
+                    },
+                    error: function () {
+                        console.log("lazyLoad error");
+                    }
+                };
+            },
+
+            //convert response to the tree format
+            postProcess: function (event, data) {
+                data.result = convertData(data.response);
+            },
+            activate: function (event, data) {
+                $("#statusLine").text(event.type + ": " + data.node);
+            },
+            select: function (event, data) {
+                $("#statusLine").text(event.type + ": " + data.node.isSelected() +
+                    " " + data.node);
+            }
+        });
+    });
+}
+
+function convertData(filesObj) {
+    var file;
+    var sourceFiles = [];
+    for (file of filesObj.files) {
+        console.log("show file: " + file.title)
+        // need only folders for copy|move
+        if (file.type == "folder") {
+            file.title = filesProvider.getNameFromPath(file.displayPath);
+            file.key = file.id;
+            file.lazy = true;
+            file.folder = true;
+            sourceFiles.push(file);
+        }
+    }
+    return sourceFiles;
+}
+
 function move() {
 
 }
@@ -253,13 +339,16 @@ $(document).ready(function () {
     $(document).on('click', '#add_cloud', addCloud);
     $(document).on('click', '#add_folder', addFolder);
 
-    $(document).on('click', '#pop_copy', copy);
+    $(document).on('click', '#pop_copy', copyClick);
     $(document).on('click', '#pop_move', move);
     $(document).on('click', '#pop_rename', renameClick);
     $(document).on('click', '#pop_delete', deleteFile);
     $(document).on('click', '#pop_download', download);
 
     $(document).on('click', '#rename_btn', rename);
+    $(document).on('click', '#copy_btn', copy);
+    // $(document).on('click', '.cloud_expand', cloudExpand);
+
 
 });
 
