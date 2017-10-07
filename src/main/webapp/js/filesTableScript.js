@@ -182,10 +182,7 @@ function setContextMenuPopover(r) {
 
     //hide popover after left clicking any element
     $("body").click(function (e) {
-        console.log("! click ");
-        console.log("rowId: " + rowId);
         if (notEmpty(rowId)) {
-            console.log("click remove popup for old id: " + rowId);
             $('.context_popup').popover('hide');
         }
     });

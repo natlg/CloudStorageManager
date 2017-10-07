@@ -19,6 +19,13 @@
     <script src="js/cloudsScropt.js"></script>
     <script src="https://use.fontawesome.com/27792a6b84.js"></script>
 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"
+          rel="stylesheet">
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.24.0/jquery.fancytree-all-deps.min.js"></script>
+    <link href=" https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.24.0/skin-win8/ui.fancytree.css"
+          rel="stylesheet">
     <style>
 
         /*<!--for height  working on child elements -->*/
@@ -81,7 +88,13 @@
         .icon-link {
             align-self: left;
             alignment: left;
+            align-self: left;
+            text-align: left;
 
+        }
+
+        .tree-view {
+            text-align: left;
         }
 
         /* On small screens, set height to 'auto' for sidenav and grid */
@@ -178,7 +191,32 @@
                     </span>
             </div>
 
-            <!-- Modal -->
+            <!-- Copy file Modal -->
+            <div id="modalCopy" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Copy file to:</h4>
+                        </div>
+                        <div class="modal-body tree-view">
+                            <div class="control-group" id="copyContainer">
+                                <div id="tree"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="copy_btn" type="button" class="btn btn-default" data-dismiss="modal">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Rename file Modal -->
             <div id="modalRename" class="modal fade" role="dialog">
                 <div class="modal-dialog">
 
@@ -204,7 +242,7 @@
                 </div>
             </div>
 
-            <!-- Modal -->
+            <!--Add Folder Modal -->
             <div id="modalAddFolder" class="modal fade" role="dialog">
                 <div class="modal-dialog">
 

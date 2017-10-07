@@ -3,6 +3,10 @@ package com.nat.cloudman.controllers;
 import java.io.*;
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nat.cloudman.cloud.CloudManager;
 import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
@@ -137,6 +141,7 @@ public class CloudController {
         return null;
     }
 
+
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @ResponseBody
     public String handleFileUpload(
@@ -167,10 +172,38 @@ public class CloudController {
         return null;
     }
 
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
+    public static class Param1 {
+        public String cloudName;
+        public String path;
+        public String id;
+    }
+
+    @RequestMapping(value = "/getcloudstree", method = RequestMethod.POST)
+    public FilesContainer getCloudsTree(
+            @RequestBody Param1 params,
+            HttpServletRequest request, HttpServletResponse response) {
+        String cloudName = params.cloudName;
+        String path = params.path;
+        String id = params.id;
+        System.out.println("getcloudstree, cloudName: " + cloudName + ", path: " + path + ", id: " + id);
+        User user = userManager.getUser();
+        HashMap<String, FilesContainer> files = new HashMap<>();
+        Set<Cloud> clouds = user.getClouds();
+        for (Cloud cl : clouds) {
+            if (cl.getAccountName().equals(cloudName)) {
+                System.out.println("have cloud getAccountName: " + cl.getAccountName());
+                System.out.println("have cloud getCloudService: " + cl.getCloudService());
+                FilesContainer f = cloudManager.getFilesList(cl.getAccountName(), path);
+                return f;
+            }
+        }
+        return null;
+    }
+
     private void addCorsHeader(HttpServletResponse response) {
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         response.addHeader("Access-Control-Allow-Headers", "Content-Type,X-XSRF-TOKEN");
         response.addHeader("Access-Control-Max-Age", "1");
     }
-
 }

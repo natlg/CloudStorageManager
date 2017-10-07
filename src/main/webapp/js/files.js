@@ -5,6 +5,7 @@ class FilesProvider {
         this.parentId = "";
         //use id as property name for getting file
         this.filesObj = {};
+        this.clouds = [];
     }
 
     getFilesList(cloudName, path, handleData) {

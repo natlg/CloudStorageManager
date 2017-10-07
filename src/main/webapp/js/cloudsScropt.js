@@ -40,6 +40,7 @@ function getClouds() {
             </p>`;
                 container.append($(addBtn));
 
+                filesProvider.clouds = cloudArray;
                 for (var i = 0; i < cloudArray.length; i++) {
                     var cloud = ` <p><a href="#" id="${cloudArray[i].id}" onclick="cloudClick(event)" class="${cloudArray[i].cloudService}">${cloudArray[i].accountName}</a></p>`;
                     container.append($(cloud));
