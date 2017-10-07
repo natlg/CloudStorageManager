@@ -609,4 +609,23 @@ public class OneDriveManager {
         System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
         System.out.println("getBody: " + response.getBody());
     }
+
+    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest) {
+        try {
+            copyRequest(pathSourse, pathDest, idSource, idDest);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+
+            accessToken = getAccessToken(refreshToken);
+            setAccessToken(accessToken);
+            copyRequest(pathSourse, pathDest, idSource, idDest);
+        }
+    }
+
+    private void copyRequest(String pathSourse, String pathDest, String idSource, String idDest) {
+
+
+    }
 }

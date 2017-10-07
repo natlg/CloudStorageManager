@@ -151,4 +151,23 @@ public class CloudManager {
         }
 
     }
+
+    public void copyFile(String cloudSourceName, String pathSource, String idSource, String cloudDestName, String pathDest, String idDest) {
+        Cloud cloudSource = userManager.getCloud(cloudSourceName);
+        String cloudServiceSource = cloudSource.getCloudService();
+
+        if (cloudSourceName.equals(cloudDestName)) {
+            switch (cloudServiceSource) {
+                case "Dropbox":
+                    dropboxManager.copyFile(pathSource, pathDest, cloudSourceName);
+                    break;
+                case "OneDrive":
+                    oneDriveManager.setRefreshToken(cloudSource.getRefreshToken());
+                    oneDriveManager.copyFile(pathSource, pathDest, idSource, idDest);
+                    break;
+                default:
+                    System.out.println(cloudServiceSource + " is not supported yet");
+            }
+        }
+    }
 }

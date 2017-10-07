@@ -3,6 +3,7 @@ var currentCloud;
 var fileIdPopover;
 var fileNamePopover;
 var rowId;
+var selectedNode;
 var detailsMenuContent = `<div id="popoverContent" class="borderless popoverDetails">
         <a id="pop_copy" href="#" class="list-group-item" data-toggle="modal" data-target="#modalCopy">Copy</a>
         <a id="pop_move" href="#" class="list-group-item">Move</a>
@@ -152,8 +153,73 @@ function loadAuthorizedPage() {
 
 function copy() {
 
+    var nameSource = filesProvider.filesObj[fileIdPopover].name;
+    var cloudSource = currentCloud;
+    var pathSource = filesProvider.fullPath + "/" + nameSource;
+    var idSource = filesProvider.filesObj[fileIdPopover].id;
+    console.log("copy nameSource: " + nameSource + ", cloudSource: " + cloudSource + ", idSource: " + idSource + ", pathSource: " + pathSource);
+
+    var pathDest = getPathFromNode(selectedNode) + "/" + nameSource;
+    var cloudDest = getCloudFromNode(selectedNode);
+    var idDest = selectedNode.key;
+    console.log("copy pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest);
+
+
+    var params = {
+        cloudSource: cloudSource,
+        pathSource: pathSource,
+        idSource: idSource,
+        cloudDest: cloudDest,
+        pathDest: pathDest,
+        idDest: idDest
+    };
+
+    callMethod("http://localhost:8080/copy", params, function (response) {
+        console.log("Copied");
+    });
+
 }
 
+function callMethod(url, parameters, successCallback) {
+    //show loading... image
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: JSON.stringify(parameters),
+        contentType: 'application/json;',
+        dataType: 'json',
+        success: function (data) {
+            console.log("success");
+            successCallback(data);
+        },
+        error: function () {
+            console.log('error');
+        }
+    });
+}
+
+function getPathFromNode(node) {
+    var parents = node.getParentList(false, true);
+    var path = "";
+    if (parents.length > 1) {
+        //0th is cloud name
+        for (var i = 1; i < parents.length; i++) {
+            path += "/" + parents[i].title;
+        }
+    }
+    console.log(" path: " + path);
+    return path;
+}
+
+function getCloudFromNode(node) {
+    var parents = node.getParentList(false, true);
+    if (parents.length > 0) {
+        var cloud = parents[0].title;
+        console.log(" cloud: " + cloud);
+        return cloud;
+    }
+}
 
 function copyClick() {
     fillTree();
@@ -177,21 +243,10 @@ function fillTree() {
             selectMode: 3,
             source: source,
             lazyLoad: function (event, data) {
-                var parents = data.node.getParentList(false, true);
-                if (parents.length > 0) {
-                    //check why 0th is root title
-                    var cloud = parents[0];
-                    console.log("lazyLoad cloud: " + cloud.title + ", parents: " + parents);
-                    var path = "";
-                    if (parents.length > 1) {
-                        for (var i = 1; i < parents.length; i++) {
-                            path += "/" + parents[i].title;
-                            console.log(" folder in path: " + parents[i].title);
-                        }
-                    }
-                }
-                console.log(" path: " + path);
-                var json = JSON.stringify({cloudName: cloud.title, path: path, id: ""});
+                var cloud = getCloudFromNode(data.node);
+                var path = getPathFromNode(data.node);
+                console.log(" path: " + path + " cloud: " + cloud);
+                var json = JSON.stringify({cloudName: cloud, path: path, id: ""});
 
                 data.result = {
                     url: "http://localhost:8080/getcloudstree",
@@ -213,11 +268,16 @@ function fillTree() {
                 data.result = convertData(data.response);
             },
             activate: function (event, data) {
-                $("#statusLine").text(event.type + ": " + data.node);
+
             },
             select: function (event, data) {
-                $("#statusLine").text(event.type + ": " + data.node.isSelected() +
-                    " " + data.node);
+
+            },
+            focus: function (event, data) {
+                console.log("focus type: " + event.type + +data.node.isSelected() +
+                    " title:" + data.node.title);
+                //save selected node for case it will be copied
+                selectedNode = data.node;
             }
         });
     });

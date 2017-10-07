@@ -173,7 +173,7 @@ public class CloudController {
     }
 
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
-    public static class Param1 {
+    public static class cloudTreeParam {
         public String cloudName;
         public String path;
         public String id;
@@ -181,7 +181,7 @@ public class CloudController {
 
     @RequestMapping(value = "/getcloudstree", method = RequestMethod.POST)
     public FilesContainer getCloudsTree(
-            @RequestBody Param1 params,
+            @RequestBody cloudTreeParam params,
             HttpServletRequest request, HttpServletResponse response) {
         String cloudName = params.cloudName;
         String path = params.path;
@@ -199,6 +199,29 @@ public class CloudController {
             }
         }
         return null;
+    }
+
+
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
+    public static class ParamCopy {
+        public String cloudSource;
+        public String pathSource;
+        public String idSource;
+        public String cloudDest;
+        public String pathDest;
+        public String idDest;
+    }
+
+    @RequestMapping(value = "/copy", method = RequestMethod.POST)
+    public void copyFile(
+            @RequestBody ParamCopy params,
+            HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("params  cloudSource: " + params.cloudSource +
+                ", pathSource: " + params.pathSource + ", idSource: " +
+                params.idSource + ", cloudDest: " + params.cloudDest +
+                ", pathDest: " + params.pathDest + ", idDest: " + params.idDest);
+
+        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.cloudDest, params.pathDest, params.idDest);
     }
 
     private void addCorsHeader(HttpServletResponse response) {

@@ -465,4 +465,14 @@ public class DropboxManager {
             e.printStackTrace();
         }
     }
+
+    public void copyFile(String pathSourse, String pathDest, String cloudName) {
+        String token = userManager.getCloud(cloudName).getAccessToken();
+        DbxClientV2 client = getClient(token);
+        try {
+            client.files().copy(pathSourse, pathDest);
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+    }
 }
