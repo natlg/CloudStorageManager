@@ -82,7 +82,7 @@ function addCloud() {
                 "&response_type=code" +
                 "&redirect_uri=http://localhost:8080/indexpage.html" +
                 "&response_mode=query" +
-                "&scope=Files.ReadWrite.All";
+                "&scope=Files.ReadWrite.All%20offline_access";
             break;
     }
 }
