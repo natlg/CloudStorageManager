@@ -625,7 +625,38 @@ public class OneDriveManager {
     }
 
     private void copyRequest(String pathSourse, String pathDest, String idSource, String idDest) {
+        System.out.println("copyRequest");
+        //need to get driveId for copying
+        String url = "https://graph.microsoft.com/v1.0/me/drive";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + accessToken);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
+        System.out.println("Result - status (" + response.getStatusCode() + "getBody: " + response.getBody());
+        String driveId = getResponseProperty(response, "id");
+        System.out.println("driveId : " + driveId);
 
+        //copy request
+        url = "https://graph.microsoft.com/v1.0/me/drive/items/" + idSource + "/copy";
+        System.out.println("copy url: " + url);
+        //destination information
+        final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+        ObjectNode node = nodeFactory.objectNode();
+        ObjectNode parentReferenceNode = nodeFactory.objectNode();
+        parentReferenceNode.put("driveId", driveId);
+        parentReferenceNode.put("id", idDest);
+        node.set("parentReference", parentReferenceNode);
 
+        restTemplate = new RestTemplate();
+        headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/json");
+        System.out.println("node.toString(): " + node.toString());
+        entity = new HttpEntity<String>(node.toString(), headers);
+
+        response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
+        System.out.println(" Result - status :" + response.getStatusCode() + " getBody: " + response.getBody());
     }
 }
