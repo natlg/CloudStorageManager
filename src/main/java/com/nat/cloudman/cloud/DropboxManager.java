@@ -19,12 +19,11 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
-public class DropboxManager {
+public class DropboxManager implements CloudManager {
 
     @Autowired
     private UserManager userManager;
@@ -43,6 +42,11 @@ public class DropboxManager {
     // chunk will be lost and have to be re-uploaded. Use a multiple of 4MiB for your chunk size.
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
+
+    @Override
+    public String getServiceName() {
+        return "Dropbox";
+    }
 
     public DbxClientV2 getClient(String token) {
         DbxRequestConfig config = new DbxRequestConfig("com/nat/cloudman/cloud/CloudMan/app");
@@ -66,6 +70,7 @@ public class DropboxManager {
         System.out.println("dropbox account.getName: " + account.getName().getDisplayName());
     }
 
+    @Override
     public FilesContainer getFilesList(String accountName, String folderPath) {
         String token = userManager.getCloud(accountName).getAccessToken();
         System.out.println("token: " + token);
@@ -135,7 +140,8 @@ public class DropboxManager {
         return convertedFile;
     }
 
-    public void uploadFile(String accountName, File localFile, String dropboxPath) throws Exception {
+    @Override
+    public void uploadFile(String accountName, File localFile, String dropboxPath) {
         System.err.println("uploadFile");
         System.err.println("dropboxPath: " + dropboxPath);
         System.err.println("localFile getName: " + localFile.getName());
@@ -157,7 +163,7 @@ public class DropboxManager {
      * @param localFile   local file to upload
      * @param dropboxPath Where to upload the file to within Dropbox
      */
-    private void uploadSmallFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) throws Exception {
+    private void uploadSmallFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         try {
             InputStream in = new FileInputStream(localFile);
             FileMetadata metadata = dbxClient.files().uploadBuilder(dropboxPath)
@@ -188,7 +194,7 @@ public class DropboxManager {
      *                    //     * @param localFIle local file to upload
      * @param dropboxPath Where to upload the file to within Dropbox
      */
-    private void chunkedUploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) throws Exception {
+    private void chunkedUploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         long size = localFile.length();
 
         // assert our file is at least the chunk upload size. We make this assumption in the code

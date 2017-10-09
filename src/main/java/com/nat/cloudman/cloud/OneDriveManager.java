@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.FilesContainer;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
@@ -29,7 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 @Component
-public class OneDriveManager {
+public class OneDriveManager implements CloudManager {
 
     @Value("${onedrive.app.key}")
     private String APP_KEY;
@@ -40,8 +42,16 @@ public class OneDriveManager {
     private String accessToken;
     private String refreshToken;
 
+    @Autowired
+    private UserManager userManager;
+
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 4L << 20; // 4MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
+
+    @Override
+    public String getServiceName() {
+        return "OneDrive";
+    }
 
     public ResponseEntity<JsonNode> sendAuthorizationCodeRequest(String code) {
         String url = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
@@ -149,14 +159,20 @@ public class OneDriveManager {
             return accessToken;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
-                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
-                    + " getStackTrace: " + e.getStackTrace());
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText());
+            e.printStackTrace();
         }
         return null;
     }
 
-    public FilesContainer getFilesList(String folderPath) {
-
+    @Override
+    public FilesContainer getFilesList(String accountName, String folderPath) {
+        Cloud cloud = userManager.getCloud(accountName);
+        String accessToken = cloud.getAccessToken();
+        String refreshToken = cloud.getRefreshToken();
+        String cloudService = cloud.getCloudService();
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
         System.out.println("oneDriveUtils. getFilesList");
         System.out.println("refreshToken: " + refreshToken);
         System.out.println("accessToken: " + accessToken);
@@ -336,9 +352,10 @@ public class OneDriveManager {
         this.accessToken = accessToken;
     }
 
-    public void uploadFile(String accountName, File localFile, String filePath) throws Exception {
+    @Override
+    public void uploadFile(String accountName, File localFile, String filePath) {
         System.err.println("uploadFile");
-        System.err.println("dropboxPath: " + filePath);
+        System.err.println("filePath: " + filePath);
         System.err.println("localFile getName: " + localFile.getName());
         System.err.println("localFile getPath: " + localFile.getPath());
         System.err.println("localFile getPath: " + localFile.length());
