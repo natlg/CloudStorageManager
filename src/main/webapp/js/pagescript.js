@@ -162,13 +162,15 @@ function copy() {
     var pathDest = getPathFromNode(selectedNode) + "/" + nameSource;
     var cloudDest = getCloudFromNode(selectedNode);
     var idDest = selectedNode.key;
-    console.log("copy pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest);
+    var downloadUrl = filesProvider.filesObj[fileIdPopover].downloadUrl;
+    console.log("copy pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl);
 
 
     var params = {
         cloudSource: cloudSource,
         pathSource: pathSource,
         idSource: idSource,
+        downloadUrl: downloadUrl,
         cloudDest: cloudDest,
         pathDest: pathDest,
         idDest: idDest
@@ -358,6 +360,7 @@ function deleteFile() {
 
     var params = "fileId=" + fileIdPopover +
         "&fileName=" + name +
+        "&path=" + filesProvider.fullPath +
         "&cloudName=" + currentCloud;
     xhttp.open("POST", "http://localhost:8080/deletefile", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");

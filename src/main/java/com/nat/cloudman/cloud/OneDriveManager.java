@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nat.cloudman.model.Cloud;
+import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
@@ -170,7 +171,6 @@ public class OneDriveManager implements CloudManager {
         Cloud cloud = userManager.getCloud(accountName);
         String accessToken = cloud.getAccessToken();
         String refreshToken = cloud.getRefreshToken();
-        String cloudService = cloud.getCloudService();
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
         System.out.println("oneDriveUtils. getFilesList");
@@ -205,6 +205,7 @@ public class OneDriveManager implements CloudManager {
             url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + folderPath + "?$expand=children";
         }
         System.out.println("GET url: " + url);
+        System.out.println("accessToken: " + accessToken);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + accessToken);
@@ -344,7 +345,9 @@ public class OneDriveManager implements CloudManager {
 
     }
 
+    //TODO remove
     public void setRefreshToken(String refreshToken) {
+        System.out.println("refreshToken before: " + this.refreshToken);
         this.refreshToken = refreshToken;
     }
 
@@ -353,13 +356,9 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public void uploadFile(String accountName, File localFile, String filePath) {
-        System.err.println("uploadFile");
-        System.err.println("filePath: " + filePath);
-        System.err.println("localFile getName: " + localFile.getName());
-        System.err.println("localFile getPath: " + localFile.getPath());
-        System.err.println("localFile getPath: " + localFile.length());
-
+    public void uploadFile(Cloud cloud, File localFile, String filePath) {
+        System.err.println("uploadFile" + "filePath: " + filePath);
+        setRefreshToken(cloud.getRefreshToken());
         try {
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
                 uploadSmallFile(localFile, filePath);
@@ -530,8 +529,9 @@ public class OneDriveManager implements CloudManager {
         System.out.println("getBody: " + response.getBody());
     }
 
-    public void addFolder(String folderName, String cloudName, String path, String parentId) {
-
+    @Override
+    public void addFolder(String folderName, Cloud cloud, String path, String parentId) {
+        setRefreshToken(cloud.getRefreshToken());
         try {
             addFolder(folderName, path, parentId);
         } catch (HttpClientErrorException e) {
@@ -545,7 +545,9 @@ public class OneDriveManager implements CloudManager {
         }
     }
 
-    public void download(String fileName, String fileId) {
+    @Override
+    public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
+        setRefreshToken(cloud.getRefreshToken());
         try {
             downloadRequest(fileName, fileId);
         } catch (HttpClientErrorException e) {
@@ -557,6 +559,7 @@ public class OneDriveManager implements CloudManager {
             setAccessToken(accessToken);
             downloadRequest(fileName, fileId);
         }
+        return null;
     }
 
 
@@ -574,7 +577,9 @@ public class OneDriveManager implements CloudManager {
         System.out.println("getBody: " + response.getBody());
     }
 
-    public void deleteFile(String fileName, String fileId) {
+    @Override
+    public void deleteFile(String fileName, String fileId, String path, Cloud cloud) {
+        setRefreshToken(cloud.getRefreshToken());
         try {
             deleteRequest(fileName, fileId);
         } catch (HttpClientErrorException e) {
@@ -588,7 +593,9 @@ public class OneDriveManager implements CloudManager {
         }
     }
 
-    public void renameFile(String fileName, String newName, String fileId) {
+    @Override
+    public void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
+        setRefreshToken(cloud.getRefreshToken());
         try {
             renameRequest(newName, fileId);
         } catch (HttpClientErrorException e) {

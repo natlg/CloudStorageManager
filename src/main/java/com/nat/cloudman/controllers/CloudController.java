@@ -4,27 +4,18 @@ import java.io.*;
 import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nat.cloudman.cloud.CloudManager;
+import com.nat.cloudman.cloud.CloudManagerFacade;
 import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.response.CloudContainer;
-import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.cloud.DropboxManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,15 +47,15 @@ public class CloudController {
     OneDriveManager oneDriveManager;
 
     @Autowired
-    CloudManager cloudManager;
+    CloudManagerFacade cloudManager;
 
     @RequestMapping(value = "/listfiles", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                                     HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got path: " + path + ", cloudName: " + cloudName);
+        System.out.println(" listfiles got path: " + path + ", cloudName: " + cloudName);
 
-        userManager.showAuth("dropbox");
+
         return cloudManager.getFilesList(cloudName, path);
     }
 
@@ -207,6 +198,7 @@ public class CloudController {
         public String cloudSource;
         public String pathSource;
         public String idSource;
+        public String downloadUrl;
         public String cloudDest;
         public String pathDest;
         public String idDest;
@@ -219,9 +211,8 @@ public class CloudController {
         System.out.println("params  cloudSource: " + params.cloudSource +
                 ", pathSource: " + params.pathSource + ", idSource: " +
                 params.idSource + ", cloudDest: " + params.cloudDest +
-                ", pathDest: " + params.pathDest + ", idDest: " + params.idDest);
-
-        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.cloudDest, params.pathDest, params.idDest);
+                ", pathDest: " + params.pathDest + ", idDest: " + params.idDest + ", downloadUrl: " + params.downloadUrl);
+        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
     private void addCorsHeader(HttpServletResponse response) {

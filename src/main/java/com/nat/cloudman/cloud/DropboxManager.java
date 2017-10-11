@@ -5,6 +5,7 @@ import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
+import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import org.apache.commons.io.IOUtils;
@@ -141,12 +142,12 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public void uploadFile(String accountName, File localFile, String dropboxPath) {
+    public void uploadFile(Cloud cloud, File localFile, String dropboxPath) {
         System.err.println("uploadFile");
         System.err.println("dropboxPath: " + dropboxPath);
         System.err.println("localFile getName: " + localFile.getName());
         System.err.println("localFile getPath: " + localFile.getPath());
-        DbxClientV2 client = getClient(userManager.getCloud(accountName).getAccessToken());
+        DbxClientV2 client = getClient(cloud.getAccessToken());
         if (localFile.length() <= (2 * CHUNKED_UPLOAD_CHUNK_SIZE)) {
             uploadSmallFile(client, localFile, dropboxPath);
         } else {
@@ -405,8 +406,10 @@ public class DropboxManager implements CloudManager {
         }
     }
 
-    public void addFolder(String folderName, String cloudName, String path) {
-        String token = userManager.getCloud(cloudName).getAccessToken();
+
+    @Override
+    public void addFolder(String folderName, Cloud cloud, String path, String parentId) {
+        String token = cloud.getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
         try {
@@ -416,23 +419,30 @@ public class DropboxManager implements CloudManager {
         }
     }
 
-    public DownloadedFileContainer download(String fileName, String cloudName, String path) {
-        String token = userManager.getCloud(cloudName).getAccessToken();
+    public File downloadLocal(String fileName, String path, Cloud cloud) {
+        String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
         OutputStream outputStream = null;
-        InputStream is = null;
         try {
             outputStream = new FileOutputStream(file);
             client.files().download(path + "/" + fileName).download(outputStream);
             outputStream.flush();
             outputStream.close();
+        } catch (DbxException | IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+
+    @Override
+    public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
+        File file = downloadLocal(fileName, path, cloud);
+        InputStream is = null;
+        try {
             is = new FileInputStream(file);
-        } catch (DownloadErrorException e) {
-            e.printStackTrace();
-        } catch (DbxException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         System.out.println("downloaded ");
@@ -452,8 +462,9 @@ public class DropboxManager implements CloudManager {
         return null;
     }
 
-    public void deleteFile(String fileName, String cloudName, String path) {
-        String token = userManager.getCloud(cloudName).getAccessToken();
+    @Override
+    public void deleteFile(String fileName, String fileId, String path, Cloud cloud) {
+        String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().delete(path + "/" + fileName);
@@ -462,8 +473,8 @@ public class DropboxManager implements CloudManager {
         }
     }
 
-    public void renameFile(String fileName, String newName, String cloudName, String path) {
-        String token = userManager.getCloud(cloudName).getAccessToken();
+    public void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
+        String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().move(path + "/" + fileName, path + "/" + newName);

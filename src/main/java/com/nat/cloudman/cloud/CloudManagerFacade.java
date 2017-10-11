@@ -1,5 +1,6 @@
 package com.nat.cloudman.cloud;
 
+import com.nat.cloudman.cloud.copy.InterCloudTask;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -14,9 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +28,15 @@ public class CloudManagerFacade {
     @Autowired
     private DropboxManager dropboxManager;
 
-    @Autowired
-    private UserManager userManager;
 
     @Autowired
     private OneDriveManager oneDriveManager;
+
+
+    @Autowired
+    private UserManager userManager;
+
+    private Map<String, InterCloudTask> interCloudTasks = new HashMap<>();
 
     private Map<String, CloudManager> cloudManagers = new HashMap<>();
 
@@ -42,6 +44,14 @@ public class CloudManagerFacade {
     public void setCloudManagers(List<CloudManager> cloudManagers) {
         for (CloudManager cloudManager : cloudManagers) {
             this.cloudManagers.put(cloudManager.getServiceName(), cloudManager);
+        }
+    }
+
+    @Autowired
+    public void setCopyTasks(List<InterCloudTask> tasks) {
+        for (InterCloudTask task : tasks) {
+            System.out.println("put task : " + task.getClass().getSimpleName());
+            this.interCloudTasks.put(task.getClass().getSimpleName(), task);
         }
     }
 
@@ -53,45 +63,19 @@ public class CloudManagerFacade {
     }
 
     public void uploadFile(String cloudName, File localFile, String pathToUpload) throws Exception {
+        System.out.println("uploadFile(),");
         Cloud cloud = userManager.getCloud(cloudName);
-        String cloudService = cloud.getCloudService();
-        System.out.println("uploadFile()," + " cloudService: " + cloudService);
-        oneDriveManager.setRefreshToken(cloud.getRefreshToken());
-
-        cloudManagers.get(cloudService).uploadFile(cloudName, localFile, pathToUpload);
+        cloudManagers.get(cloud.getCloudService()).uploadFile(cloud, localFile, pathToUpload);
     }
 
     public void addFolder(String folderName, String cloudName, String path, String parentId) {
         Cloud cloud = userManager.getCloud(cloudName);
-        String cloudService = cloud.getCloudService();
-
-        switch (cloudService) {
-            case "Dropbox":
-                dropboxManager.addFolder(folderName, cloudName, path);
-                break;
-            case "OneDrive":
-                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
-                oneDriveManager.addFolder(folderName, cloudName, path, parentId);
-                break;
-            default:
-                System.out.println(cloudService + " is not supported yet");
-        }
+        cloudManagers.get(cloud.getCloudService()).addFolder(folderName, cloud, path, parentId);
     }
 
     private DownloadedFileContainer download(String fileName, String cloudName, String fileId, String path) {
         Cloud cloud = userManager.getCloud(cloudName);
-        String cloudService = cloud.getCloudService();
-        switch (cloudService) {
-            case "Dropbox":
-                return dropboxManager.download(fileName, cloudName, path);
-            case "OneDrive":
-                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
-                oneDriveManager.download(fileName, fileId);
-                break;
-            default:
-                System.out.println(cloudService + " is not supported yet");
-        }
-        return null;
+        return cloudManagers.get(cloud.getCloudService()).download(fileName, fileId, path, cloud);
     }
 
     public ResponseEntity<InputStreamResource> downloadFile(String fileName, String cloudName, String fileId, String path) {
@@ -107,70 +91,20 @@ public class CloudManagerFacade {
 
     public void deleteFile(String fileName, String cloudName, String fileId, String path) {
         Cloud cloud = userManager.getCloud(cloudName);
-        String cloudService = cloud.getCloudService();
-        switch (cloudService) {
-            case "Dropbox":
-                dropboxManager.deleteFile(fileName, cloudName, path);
-                break;
-            case "OneDrive":
-                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
-                oneDriveManager.deleteFile(fileName, fileId);
-                break;
-            default:
-                System.out.println(cloudService + " is not supported yet");
-        }
+        cloudManagers.get(cloud.getCloudService()).deleteFile(fileName, fileId, path, cloud);
     }
 
     public void renameFile(String fileName, String newName, String cloudName, String fileId, String path) {
-
         Cloud cloud = userManager.getCloud(cloudName);
-        String cloudService = cloud.getCloudService();
-        switch (cloudService) {
-            case "Dropbox":
-                dropboxManager.renameFile(fileName, newName, cloudName, path);
-                break;
-            case "OneDrive":
-                oneDriveManager.setRefreshToken(cloud.getRefreshToken());
-                oneDriveManager.renameFile(fileName, newName, fileId);
-                break;
-            default:
-                System.out.println(cloudService + " is not supported yet");
-        }
-
+        cloudManagers.get(cloud.getCloudService()).renameFile(fileName, fileId, newName, path, cloud);
     }
 
-    public void copyFile(String cloudSourceName, String pathSource, String idSource, String cloudDestName, String pathDest, String idDest) {
+    public void copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
         Cloud cloudSource = userManager.getCloud(cloudSourceName);
-        String cloudServiceSource = cloudSource.getCloudService();
+        InterCloudTask task = interCloudTasks.get(userManager.getCloud(cloudSourceName).getCloudService() + "To" + userManager.getCloud(cloudDestName).getCloudService());
+        System.out.println("null:" + (task == null));
+        System.out.println("name:" + task.getClass().getSimpleName());
+        task.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
 
-        if (cloudSourceName.equals(cloudDestName)) {
-            switch (cloudServiceSource) {
-                case "Dropbox":
-                    dropboxManager.copyFile(pathSource, pathDest, cloudSourceName);
-                    break;
-                case "OneDrive":
-                    oneDriveManager.setRefreshToken(cloudSource.getRefreshToken());
-                    oneDriveManager.copyFile(pathSource, pathDest, idSource, idDest);
-                    break;
-                default:
-                    System.out.println(cloudServiceSource + " is not supported yet");
-            }
-        } else {
-            switch (cloudServiceSource) {
-                case "Dropbox":
-                    int index = pathSource.lastIndexOf("/");
-                    String fileName = pathSource.substring(index + 1);
-                    System.out.println(fileName + " is fileName");
-                    DownloadedFileContainer fileContainer = dropboxManager.download(fileName, cloudSourceName, pathSource);
-                    oneDriveManager.uploadFile(cloudDestName, new File(fileContainer.getName()), pathDest);
-                    break;
-                case "OneDrive":
-                    break;
-                default:
-                    System.out.println(cloudServiceSource + " is not supported yet");
-
-
-            }
-        }
     }
 }
