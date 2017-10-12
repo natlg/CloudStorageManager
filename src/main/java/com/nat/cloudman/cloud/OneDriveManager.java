@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
+import com.nat.cloudman.utils.Utils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +51,10 @@ public class OneDriveManager implements CloudManager {
 
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 4L << 20; // 4MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
+
+
+    @Value("${temp.download.path}")
+    private String DOWNLOAD_PATH;
 
     @Override
     public String getServiceName() {
@@ -609,6 +616,18 @@ public class OneDriveManager implements CloudManager {
         }
     }
 
+    @Override
+    public File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud) {
+        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
+        try {
+            FileUtils.copyURLToFile(new URL(downloadUrl), file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return file;
+    }
+
     private void renameRequest(String newName, String fileId) {
         System.out.println("renameRequest");
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
@@ -634,7 +653,10 @@ public class OneDriveManager implements CloudManager {
         System.out.println("getBody: " + response.getBody());
     }
 
-    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest) {
+
+    @Override
+    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
+        setRefreshToken(cloud.getRefreshToken());
         try {
             copyRequest(pathSourse, pathDest, idSource, idDest);
         } catch (HttpClientErrorException e) {
@@ -658,7 +680,7 @@ public class OneDriveManager implements CloudManager {
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + "getBody: " + response.getBody());
+        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
         String driveId = getResponseProperty(response, "id");
         System.out.println("driveId : " + driveId);
 

@@ -419,7 +419,8 @@ public class DropboxManager implements CloudManager {
         }
     }
 
-    public File downloadLocal(String fileName, String path, Cloud cloud) {
+    @Override
+    public File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
@@ -438,7 +439,7 @@ public class DropboxManager implements CloudManager {
 
     @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
-        File file = downloadLocal(fileName, path, cloud);
+        File file = downloadLocal(fileName, path, null, cloud);
         InputStream is = null;
         try {
             is = new FileInputStream(file);
@@ -473,6 +474,7 @@ public class DropboxManager implements CloudManager {
         }
     }
 
+    @Override
     public void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
@@ -483,8 +485,10 @@ public class DropboxManager implements CloudManager {
         }
     }
 
-    public void copyFile(String pathSourse, String pathDest, String cloudName) {
-        String token = userManager.getCloud(cloudName).getAccessToken();
+
+    @Override
+    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
+        String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().copy(pathSourse, pathDest);

@@ -21,4 +21,8 @@ public interface CloudManager {
     void deleteFile(String fileName, String fileId, String path, Cloud cloud);
 
     void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
+
+    File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud);
+
+    void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud);
 }

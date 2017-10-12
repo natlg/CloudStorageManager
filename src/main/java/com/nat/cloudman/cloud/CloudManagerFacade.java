@@ -1,6 +1,6 @@
 package com.nat.cloudman.cloud;
 
-import com.nat.cloudman.cloud.copy.InterCloudTask;
+import com.nat.cloudman.cloud.transfer.TransferTask;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -32,11 +32,12 @@ public class CloudManagerFacade {
     @Autowired
     private OneDriveManager oneDriveManager;
 
+    @Autowired
+    private TransferTask transferTask;
+
 
     @Autowired
     private UserManager userManager;
-
-    private Map<String, InterCloudTask> interCloudTasks = new HashMap<>();
 
     private Map<String, CloudManager> cloudManagers = new HashMap<>();
 
@@ -44,14 +45,6 @@ public class CloudManagerFacade {
     public void setCloudManagers(List<CloudManager> cloudManagers) {
         for (CloudManager cloudManager : cloudManagers) {
             this.cloudManagers.put(cloudManager.getServiceName(), cloudManager);
-        }
-    }
-
-    @Autowired
-    public void setCopyTasks(List<InterCloudTask> tasks) {
-        for (InterCloudTask task : tasks) {
-            System.out.println("put task : " + task.getClass().getSimpleName());
-            this.interCloudTasks.put(task.getClass().getSimpleName(), task);
         }
     }
 
@@ -100,11 +93,6 @@ public class CloudManagerFacade {
     }
 
     public void copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
-        Cloud cloudSource = userManager.getCloud(cloudSourceName);
-        InterCloudTask task = interCloudTasks.get(userManager.getCloud(cloudSourceName).getCloudService() + "To" + userManager.getCloud(cloudDestName).getCloudService());
-        System.out.println("null:" + (task == null));
-        System.out.println("name:" + task.getClass().getSimpleName());
-        task.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
-
+        transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
     }
 }

@@ -121,13 +121,15 @@ public class CloudController {
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("getclouds");
         User user = userManager.getUser();
+        CloudContainer cloudContainer = new CloudContainer(user.getEmail(), user.getName(), user.getLastName());
         if (user != null) {
             Set<Cloud> clouds = user.getClouds();
             for (Cloud cl : clouds) {
-                System.out.println("have cloud getAccountName: " + cl.getAccountName());
-                System.out.println("have cloud getCloudService: " + cl.getCloudService());
+                System.out.println("have cloud getAccountName: " + cl.getAccountName() + ",  getCloudService: " + cl.getCloudService());
+                cloudContainer.addCloud(cl.getAccountName(), cl.getCloudService());
             }
-            return new CloudContainer(clouds, user.getEmail(), user.getName(), user.getLastName());
+            System.out.println("getClouds().size(): " + cloudContainer.getClouds().size());
+            return cloudContainer;
         }
         return null;
     }
@@ -208,7 +210,7 @@ public class CloudController {
     public void copyFile(
             @RequestBody ParamCopy params,
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("params  cloudSource: " + params.cloudSource +
+        System.out.println("copy, params  cloudSource: " + params.cloudSource +
                 ", pathSource: " + params.pathSource + ", idSource: " +
                 params.idSource + ", cloudDest: " + params.cloudDest +
                 ", pathDest: " + params.pathDest + ", idDest: " + params.idDest + ", downloadUrl: " + params.downloadUrl);
