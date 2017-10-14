@@ -190,26 +190,24 @@ function removeCloud() {
     };
     callMethod("http://localhost:8080/removecloud", params, function (response) {
         console.log("removed");
+        getClouds();
     });
 }
 
 function callMethod(url, parameters, successCallback) {
-    //show loading... image
-
     $.ajax({
         type: 'POST',
         url: url,
         data: JSON.stringify(parameters),
         contentType: 'application/json;',
-        dataType: 'json',
-        success: function (data) {
+    })
+        .done(function (data, status) {
             console.log("success");
             successCallback(data);
-        },
-        error: function () {
-            console.log('error');
-        }
-    });
+        })
+        .fail(function (data, status) {
+            console.log('ajax fail');
+        });
 }
 
 function getPathFromNode(node) {
