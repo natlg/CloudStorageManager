@@ -110,4 +110,8 @@ public class User {
     public void addCloud(Cloud cloud) {
         clouds.add(cloud);
     }
+
+    public void deleteCloud(Cloud cloud) {
+        boolean removed = clouds.remove(cloud);
+    }
 }

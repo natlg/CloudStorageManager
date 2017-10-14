@@ -4,6 +4,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "cloud")
@@ -78,6 +79,26 @@ public class Cloud {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, accountName, accessToken, refreshToken, accountEmail, cloudService);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Cloud)) {
+            return false;
+        }
+        Cloud cloud = (Cloud) o;
+        return id == cloud.id &&
+                Objects.equals(accountName, cloud.accountName) &&
+                Objects.equals(accessToken, cloud.accessToken) &&
+                Objects.equals(refreshToken, cloud.refreshToken) &&
+                Objects.equals(accountEmail, cloud.accountEmail) &&
+                Objects.equals(cloudService, cloud.cloudService);
     }
 
 }

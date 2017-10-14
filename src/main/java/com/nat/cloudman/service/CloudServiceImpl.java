@@ -8,12 +8,14 @@ import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.repository.CloudRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service("cloudService")
 public class CloudServiceImpl implements CloudService {
 
+    // @Qualifier("")
     @Autowired
     private CloudRepository cloudRepository;
 
@@ -64,6 +66,14 @@ public class CloudServiceImpl implements CloudService {
         cloudService.saveCloud(cloud);
         User user = userManager.getUser();
         user.addCloud(cloud);
+        userService.saveUser(user);
+    }
+
+    @Override
+    public void removeCloud(String cloudName) {
+        Cloud cloud = userManager.getCloud(cloudName);
+        User user = userManager.getUser();
+        user.deleteCloud(cloud);
         userService.saveUser(user);
     }
 }

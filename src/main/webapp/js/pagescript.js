@@ -182,6 +182,17 @@ function copy() {
 
 }
 
+function removeCloud() {
+    var cloud = currentCloud;
+    console.log("remove cloud: " + cloud);
+    var params = {
+        cloud: cloud
+    };
+    callMethod("http://localhost:8080/removecloud", params, function (response) {
+        console.log("removed");
+    });
+}
+
 function callMethod(url, parameters, successCallback) {
     //show loading... image
 
@@ -411,7 +422,13 @@ $(document).ready(function () {
     $(document).on('click', '#rename_btn', rename);
     $(document).on('click', '#copy_btn', copy);
     // $(document).on('click', '.cloud_expand', cloudExpand);
+    $(document).on('click', '#remove_cloud', removeCloud);
 
+    $('#remove-cloud').click(function (event) {
+        console.log("remove-cloud click");
+        //add cloud name to the dialog
+        $('#remove-cloud-text').text('Are you sure you want to remove ' + currentCloud + '?');
+    });
 
 });
 

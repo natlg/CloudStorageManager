@@ -217,6 +217,17 @@ public class CloudController {
         cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
+    public static class ParamRemoveCloud {
+        public String cloud;
+    }
+
+    @RequestMapping(value = "/removecloud", method = RequestMethod.POST)
+    public void removeCloud(@RequestBody ParamRemoveCloud paramRemoveCloud) {
+        System.out.println("remove cloud: " + paramRemoveCloud.cloud);
+        cloudService.removeCloud(paramRemoveCloud.cloud);
+    }
+
     private void addCorsHeader(HttpServletResponse response) {
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         response.addHeader("Access-Control-Allow-Headers", "Content-Type,X-XSRF-TOKEN");
