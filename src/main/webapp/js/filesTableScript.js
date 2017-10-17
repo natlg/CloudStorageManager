@@ -8,8 +8,9 @@ function drag(ev) {
 
 function drop(ev) {
     ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    ev.target.appendChild(document.getElementById(data));
+    //  var data = ev.dataTransfer.getData("text");
+    //TODO
+    // ev.target.appendChild(document.getElementById(data));
 }
 
 function dblclickFile(event) {
@@ -222,10 +223,12 @@ function clickUpload() {
         if (xhr.status === 200) {
             // File(s) uploaded.
             console.log("UPLOADED! ");
+            listFolder(currentCloud, filesProvider.fullPath);
         } else {
             alert('An error occurred!');
         }
     };
     // Send the Data.
+    showTempAlert("Start uploading");
     xhr.send(formData);
 }

@@ -151,6 +151,16 @@ function loadAuthorizedPage() {
     }
 }
 
+function showTempAlert(text) {
+    $(".alert-info").text(text);
+    $('.alert-info').show();
+    window.setTimeout(function () {
+        $(".alert-info").fadeTo(500, 0).slideUp(500, function () {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
 function copy() {
 
     var nameSource = filesProvider.filesObj[fileIdPopover].name;
@@ -176,8 +186,10 @@ function copy() {
         idDest: idDest
     };
 
+    showTempAlert("Start copying");
     callMethod("http://localhost:8080/copy", params, function (response) {
         console.log("Copied");
+        listFolder(currentCloud, filesProvider.fullPath);
     });
 
 }
@@ -188,6 +200,7 @@ function removeCloud() {
     var params = {
         cloudName: cloud
     };
+    showTempAlert("Removing " + currentCloud);
     callMethod("http://localhost:8080/removecloud", params, function (response) {
         console.log("removed");
         getClouds();
@@ -332,6 +345,9 @@ function rename() {
         path: filesProvider.fullPath,
         cloudName: currentCloud
     };
+
+    showTempAlert("Start renaming");
+
     callMethod("http://localhost:8080/renamefile", params, function (response) {
         console.log("file is renamed");
         listFolder(currentCloud, filesProvider.fullPath);
@@ -347,6 +363,7 @@ function deleteFile() {
         path: filesProvider.fullPath,
         cloudName: currentCloud
     };
+    showTempAlert("Start deleting");
     callMethod("http://localhost:8080/deletefile", params, function (response) {
         console.log("file is deleted");
         listFolder(currentCloud, filesProvider.fullPath);
@@ -367,8 +384,8 @@ function download() {
     var params = "fileName=" + fileNamePopover +
         "&cloudName=" + currentCloud + "&fileId=" + fileIdPopover +
         "&path=" + filesProvider.fullPath;
-
     console.log("send params: " + params);
+    showTempAlert("Start downloading..");
     // download from browser after getting server response
     window.location = "/downloadFile?" + params;
 }
