@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.nat.cloudman.cloud.CloudManagerFacade;
 import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
+import com.nat.cloudman.controllers.params.CloudParameters;
+import com.nat.cloudman.controllers.params.FileParameters;
+import com.nat.cloudman.controllers.params.TransitParameters;
 import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.cloud.DropboxManager;
@@ -54,8 +57,6 @@ public class CloudController {
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                                     HttpServletRequest request, HttpServletResponse response) {
         System.out.println(" listfiles got path: " + path + ", cloudName: " + cloudName);
-
-
         return cloudManager.getFilesList(cloudName, path);
     }
 
@@ -80,29 +81,23 @@ public class CloudController {
     }
 
     @RequestMapping(value = "/deletefile", method = RequestMethod.POST)
-    public void deleteFile(@RequestParam(value = "fileName", defaultValue = "") String fileName,
-                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                           @RequestParam(value = "fileId", defaultValue = "") String fileId,
-                           @RequestParam(value = "path", defaultValue = "") String path,
+    public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("deleteFile: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
-        cloudManager.deleteFile(fileName, cloudName, fileId, path);
+        System.out.println("deleteFile " + params);
+        cloudManager.deleteFile(params.fileName, params.cloudName, params.fileId, params.path);
     }
 
     @RequestMapping(value = "/renamefile", method = RequestMethod.POST)
-    public void renameFile(@RequestParam(value = "fileName", defaultValue = "") String fileName,
-                           @RequestParam(value = "newName", defaultValue = "") String newName,
-                           @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                           @RequestParam(value = "fileId", defaultValue = "") String fileId,
-                           @RequestParam(value = "path", defaultValue = "") String path,
+    public void renameFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("renameFile: fileName: " + fileName + ", newName: " + newName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
-        cloudManager.renameFile(fileName, newName, cloudName, fileId, path);
+        System.out.println("renameFile: " + params);
+        cloudManager.renameFile(params.fileName, params.newName, params.cloudName, params.fileId, params.path);
     }
 
 
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
+        //TODO
         System.out.println("getauthorizeurl ");
         return dropboxManager.getAuthorizeUrl();
     }
@@ -134,7 +129,6 @@ public class CloudController {
         return null;
     }
 
-
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @ResponseBody
     public String handleFileUpload(
@@ -165,16 +159,9 @@ public class CloudController {
         return null;
     }
 
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
-    public static class cloudTreeParam {
-        public String cloudName;
-        public String path;
-        public String id;
-    }
-
     @RequestMapping(value = "/getcloudstree", method = RequestMethod.POST)
     public FilesContainer getCloudsTree(
-            @RequestBody cloudTreeParam params,
+            @RequestBody CloudParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         String cloudName = params.cloudName;
         String path = params.path;
@@ -194,38 +181,18 @@ public class CloudController {
         return null;
     }
 
-
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
-    public static class ParamCopy {
-        public String cloudSource;
-        public String pathSource;
-        public String idSource;
-        public String downloadUrl;
-        public String cloudDest;
-        public String pathDest;
-        public String idDest;
-    }
-
     @RequestMapping(value = "/copy", method = RequestMethod.POST)
     public void copyFile(
-            @RequestBody ParamCopy params,
+            @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("copy, params  cloudSource: " + params.cloudSource +
-                ", pathSource: " + params.pathSource + ", idSource: " +
-                params.idSource + ", cloudDest: " + params.cloudDest +
-                ", pathDest: " + params.pathDest + ", idDest: " + params.idDest + ", downloadUrl: " + params.downloadUrl);
+        System.out.println("copy, " + params);
         cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
-    public static class ParamRemoveCloud {
-        public String cloud;
-    }
-
     @RequestMapping(value = "/removecloud", method = RequestMethod.POST)
-    public void removeCloud(@RequestBody ParamRemoveCloud paramRemoveCloud) {
-        System.out.println("remove cloud: " + paramRemoveCloud.cloud);
-        cloudService.removeCloud(paramRemoveCloud.cloud);
+    public void removeCloud(@RequestBody CloudParameters paramRemoveCloud) {
+        System.out.println("remove cloud: " + paramRemoveCloud.cloudName);
+        cloudService.removeCloud(paramRemoveCloud.cloudName);
     }
 
     private void addCorsHeader(HttpServletResponse response) {

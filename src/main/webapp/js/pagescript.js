@@ -186,7 +186,7 @@ function removeCloud() {
     var cloud = currentCloud;
     console.log("remove cloud: " + cloud);
     var params = {
-        cloud: cloud
+        cloudName: cloud
     };
     callMethod("http://localhost:8080/removecloud", params, function (response) {
         console.log("removed");
@@ -325,57 +325,34 @@ function rename() {
     var name = filesProvider.filesObj[fileIdPopover].name;
     var newName = $("#new_name").val();
     console.log("rename fileIdPopover: " + fileIdPopover + ", name: " + name + ", newName: " + newName);
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log("XMLHttpRequest answer is ready");
-            console.log("responseText: " + xhttp.responseText);
-        }
-        else {
-            if (this.readyState === 4 && this.status !== 200) {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-            }
-        }
+    var params = {
+        fileId: fileIdPopover,
+        fileName: name,
+        newName: newName,
+        path: filesProvider.fullPath,
+        cloudName: currentCloud
     };
-    var params = "fileId=" + fileIdPopover +
-        "&fileName=" + name +
-        "&newName=" + newName +
-        "&path=" + filesProvider.fullPath +
-        "&cloudName=" + currentCloud;
-    xhttp.open("POST", "http://localhost:8080/renamefile", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    console.log("send params:");
-    console.log(params);
-    xhttp.send(params);
+    callMethod("http://localhost:8080/renamefile", params, function (response) {
+        console.log("file is renamed");
+        listFolder(currentCloud, filesProvider.fullPath);
+    });
 }
 
 function deleteFile() {
     var name = filesProvider.filesObj[fileIdPopover].name;
     console.log("deleteFile fileIdPopover: " + fileIdPopover + ", name: " + name);
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log("XMLHttpRequest answer is ready");
-            console.log("responseText: " + xhttp.responseText);
-        }
-        else {
-            if (this.readyState === 4 && this.status !== 200) {
-                console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
-            }
-        }
+    var params = {
+        fileId: fileIdPopover,
+        fileName: name,
+        path: filesProvider.fullPath,
+        cloudName: currentCloud
     };
+    callMethod("http://localhost:8080/deletefile", params, function (response) {
+        console.log("file is deleted");
+        listFolder(currentCloud, filesProvider.fullPath);
+    });
 
-    var params = "fileId=" + fileIdPopover +
-        "&fileName=" + name +
-        "&path=" + filesProvider.fullPath +
-        "&cloudName=" + currentCloud;
-    xhttp.open("POST", "http://localhost:8080/deletefile", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    console.log("send params:");
-    console.log(params);
-    xhttp.send(params);
+
 }
 
 function download() {
