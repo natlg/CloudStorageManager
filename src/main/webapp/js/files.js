@@ -27,7 +27,7 @@ class FilesProvider {
                 console.log("arrayLength: " + arrayLength);
                 for (var i = 0; i < arrayLength; i++) {
                     self.filesObj[responseFiles[i].id] = new FileMetadata(self.getNameFromPath(responseFiles[i].pathLower),
-                        responseFiles[i].type, responseFiles[i].modified, responseFiles[i].size, responseFiles[i].id,
+                        responseFiles[i].type, responseFiles[i].modified, self.formatBytes(responseFiles[i].size), responseFiles[i].id,
                         responseFiles[i].pathLower, responseFiles[i].parentId, responseFiles[i].downloadUrl);
                 }
                 self.parsePath(path);
@@ -72,6 +72,17 @@ class FilesProvider {
         var name = path.split("/").pop();
         console.log("name: " + name);
         return name;
+    }
+
+
+    formatBytes(bytes) {
+        var units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        let l = 0, n = parseInt(bytes, 10) || 0;
+        while (n >= 1024) {
+            n = n / 1024;
+            l++;
+        }
+        return (n.toFixed(n >= 10 || l < 1 ? 0 : 1) + ' ' + units[l]);
     }
 }
 
