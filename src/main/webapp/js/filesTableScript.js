@@ -135,8 +135,6 @@ function handleFile(files) {
             r.find("a.fileName").on("click", {id: files[key].id}, dblclickFile);
             var link = r.find('a');
             bindPopover();
-
-            setContextMenuPopover(r);
             rowId = "";
         }
     }
@@ -151,42 +149,6 @@ function handleFile(files) {
             fileLink.on("click", pathClick);
         }
     }
-}
-
-function setContextMenuPopover(r) {
-
-    r.popover({
-        placement: 'bottom',
-        trigger: 'manual',
-        html: true,
-        content: detailsMenuContent
-    });
-
-    $(document).on('contextmenu', '.context_popup', function (event) {
-        console.log("contextmenu ");
-        // prevent default right click from browser
-        event.preventDefault();
-
-        fileIdPopover = this.id;
-        fileNamePopover = $(document.getElementById(this.id)).find(".fileName").text();
-
-        if (notEmpty(rowId) == 1 && rowId != this.id) {
-            console.log("contextmenu remove popup for old id: " + rowId + ", new: " + this.id);
-            // hide old
-            $('.context_popup').popover('hide');
-        }
-        rowId = this.id;
-        console.log("show ");
-        $(this).popover('show');
-    });
-
-
-    //hide popover after left clicking any element
-    $("body").click(function (e) {
-        if (notEmpty(rowId)) {
-            $('.context_popup').popover('hide');
-        }
-    });
 }
 
 function emptyPath() {

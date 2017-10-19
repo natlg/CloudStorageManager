@@ -21,10 +21,18 @@
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"
           rel="stylesheet">
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
     <script src=" https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.24.0/jquery.fancytree-all-deps.min.js"></script>
-    <link href=" https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.24.0/skin-win8/ui.fancytree.css"
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.24.0/skin-win8/ui.fancytree.css"
+          rel="stylesheet">
+    <!--Context menu plugin-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/font/context-menu-icons.eot"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/font/context-menu-icons.ttf"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/font/context-menu-icons.woff"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/font/context-menu-icons.woff2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/jquery.contextMenu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/jquery.ui.position.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.6.2/jquery.contextMenu.css"
           rel="stylesheet">
     <style>
 
@@ -278,6 +286,30 @@
                         <div class="modal-footer">
                             <button id="add_folder" type="button" class="btn btn-default" data-dismiss="modal">
                                 Add
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!--Remove File Modal -->
+            <div id="modalRemoveFile" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Remove File</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="control-group">
+                                <p id="remove-file-text">Are you sure you want to remove file?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="remove_file" type="button" class="btn btn-default" data-dismiss="modal">
+                                Remove
                             </button>
                         </div>
                     </div>

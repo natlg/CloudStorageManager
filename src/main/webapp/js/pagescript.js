@@ -189,7 +189,6 @@ function copy() {
     showTempAlert("Start copying");
     callMethod("http://localhost:8080/copy", params, function (response) {
         console.log("Copied");
-        listFolder(currentCloud, filesProvider.fullPath);
     });
 
 }
@@ -246,6 +245,10 @@ function getCloudFromNode(node) {
 }
 
 function copyClick() {
+    console.log(" copyClick ");
+    if (!$('#modalCopy').hasClass('in')) {
+        $("#modalCopy").modal("show");
+    }
     fillTree();
 }
 
@@ -258,6 +261,7 @@ function fillTree() {
         cloud.folder = true;
         cloud.lazy = true;
         source.push(cloud);
+        console.log(" accountName: " + filesProvider.clouds[i].accountName);
     }
     console.log(" source: " + source);
 
@@ -291,12 +295,6 @@ function fillTree() {
             postProcess: function (event, data) {
                 data.result = convertData(data.response);
             },
-            activate: function (event, data) {
-
-            },
-            select: function (event, data) {
-
-            },
             focus: function (event, data) {
                 console.log("focus type: " + event.type + +data.node.isSelected() +
                     " title:" + data.node.title);
@@ -328,15 +326,29 @@ function move() {
 
 }
 
-function renameClick() {
+function deleteClick() {
+    console.log("deleteClick");
     var name = filesProvider.filesObj[fileIdPopover].name;
+    console.log("deleteClick fileIdPopover: " + fileIdPopover + ", name: " + name);
+    $("#remove-file-text").text("Are you sure you want to remove " + name + "?");
+    $("#modalRemoveFile").modal("show");
+}
+
+function renameClick() {
+    console.log("renameClick");
+    var name = filesProvider.filesObj[fileIdPopover].name;
+    //set default name
     $("#new_name").val(name);
     console.log("renameClick fileIdPopover: " + fileIdPopover + ", name: " + name);
+    $("#modalRename").modal("show");
 }
 
 function rename() {
     var name = filesProvider.filesObj[fileIdPopover].name;
     var newName = $("#new_name").val();
+    if (name === newName) {
+        return;
+    }
     console.log("rename fileIdPopover: " + fileIdPopover + ", name: " + name + ", newName: " + newName);
     var params = {
         fileId: fileIdPopover,
@@ -408,13 +420,13 @@ $(document).ready(function () {
     $(document).on('click', '#pop_copy', copyClick);
     $(document).on('click', '#pop_move', move);
     $(document).on('click', '#pop_rename', renameClick);
-    $(document).on('click', '#pop_delete', deleteFile);
+    $(document).on('click', '#pop_delete', deleteClick);
     $(document).on('click', '#pop_download', download);
 
     $(document).on('click', '#rename_btn', rename);
     $(document).on('click', '#copy_btn', copy);
-    // $(document).on('click', '.cloud_expand', cloudExpand);
     $(document).on('click', '#remove_cloud', removeCloud);
+    $(document).on('click', '#remove_file', deleteFile);
 
     $('#remove-cloud').click(function (event) {
         console.log("remove-cloud click");
@@ -422,6 +434,39 @@ $(document).ready(function () {
         $('#remove-cloud-text').text('Are you sure you want to remove ' + currentCloud + '?');
     });
 
+    $.contextMenu({
+        selector: '.context_popup',
+        items: {
+            copy: {
+                name: "Copy",
+                callback: copyClick
+            },
+            move: {
+                name: "Move",
+                callback: move
+            },
+            rename: {
+                name: "Rename",
+                callback: renameClick
+            },
+            delete: {
+                name: "Delete",
+                callback: deleteClick
+            },
+            download: {
+                name: "Download",
+                callback: download
+            }
+        },
+        events: {
+            show: function (options) {
+                console.log("contextMenu show ");
+                fileIdPopover = options.$trigger.attr("id");
+                fileNamePopover = $(document.getElementById(fileIdPopover)).find(".fileName").text();
+                console.log("fileIdPopover: " + fileIdPopover + ", fileNamePopover: " + fileNamePopover);
+            }
+        }
+    });
 });
 
 function notEmpty(str) {
