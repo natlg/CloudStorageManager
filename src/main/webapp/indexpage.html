@@ -137,6 +137,10 @@
             padding: 2px 2px 2px 2px;
         }
 
+        .well {
+            margin: 15px 15px 15px 15px;
+        }
+
     </style>
 </head>
 <body>
@@ -183,192 +187,203 @@
             </div>
         </div>
 
-        <div id="files_table" style="display:none;">
+        <div class="col-sm-10">
+            <div id="mainPageText" style="display: none" class="well well-lg text-info text-left">
+                <p class="text-info text-left"> Welcome to the CloudMan!
+                    It's free App for Managing Files and Transferring Files across Cloud Drives.</p>
+            </div>
+            <div id="aboutPageText" style="display: none" class="well well-lg ">
+                <p class="text-info text-left"> With CloudMan you can connect multiple accounts from cloud drives into a
+                    single platform. You can easily upload, download, copy and transfer files from all the cloud
+                    services you use without
+                    having to constantly switch between the different applications.
+                    <br> Once you connect your Cloud Drives, you can manage all your files from a single place.</p>
+            </div>
+            <div id="files_table" style="display:none;">
 
-            <div id="table-icons-container" class="icons-container" style="display:none;">
+                <div id="table-icons-container" class="icons-container" style="display:none;">
 
-                <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/"
-                      method="post">
-                    <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"
-                           onChange="clickUpload();"/>
-                    <input type="text" name="dropboxPath" style="display:none;"/>
-                </form>
+                    <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/"
+                          method="post">
+                        <input type="file" name="file" id="uploadFilesInput" multiple="" style="display:none;"
+                               onChange="clickUpload();"/>
+                        <input type="text" name="dropboxPath" style="display:none;"/>
+                    </form>
 
-                <label for="uploadFilesInput" data-toggle="tooltip" title="Upload Files">
-                    <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
-                </label>
+                    <label for="uploadFilesInput" data-toggle="tooltip" title="Upload Files">
+                        <img id="uploadIcon" src="img/icon-cloud-upload.png" class="icon" alt="upload"/>
+                    </label>
 
-                <span data-toggle="modal" data-target="#modalAddFolder">
+                    <span data-toggle="modal" data-target="#modalAddFolder">
                 <a title="Create Folder" class="icon-link" data-toggle=" tooltip">
                     <img class="icon" src="img/icon-folder-add.png" alt="add folder">
                 </a>
                     </span>
 
-                <span id="remove-cloud" data-toggle="modal" data-target="#modalRemoveCloud">
+                    <span id="remove-cloud" data-toggle="modal" data-target="#modalRemoveCloud">
                 <a title="Remove Cloud" class="icon-link" data-toggle=" tooltip">
                     <img class="icon" src="img/icon-remove.png" alt="remove cloud">
                 </a>
                     </span>
 
 
-                <!--<i class="fa fa-times" aria-hidden="true"></i>-->
+                    <!--<i class="fa fa-times" aria-hidden="true"></i>-->
 
-            </div>
+                </div>
 
-            <!-- Copy file Modal -->
-            <div id="modalCopy" class="modal fade" role="dialog">
-                <div class="modal-dialog">
+                <!-- Copy file Modal -->
+                <div id="modalCopy" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
 
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Copy file to:</h4>
-                        </div>
-                        <div class="modal-body tree-view">
-                            <div class="control-group" id="copyContainer">
-                                <div id="tree"></div>
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Copy file to:</h4>
+                            </div>
+                            <div class="modal-body tree-view">
+                                <div class="control-group" id="copyContainer">
+                                    <div id="tree"></div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="copy_btn" type="button" class="btn btn-default" data-dismiss="modal">
+                                    Copy
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button id="copy_btn" type="button" class="btn btn-default" data-dismiss="modal">
-                                Copy
-                            </button>
-                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            <!-- Rename file Modal -->
-            <div id="modalRename" class="modal fade" role="dialog">
-                <div class="modal-dialog">
+                <!-- Rename file Modal -->
+                <div id="modalRename" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
 
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Rename file:</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="control-group">
-                                <input id="new_name" type="text" class="form-control" name="folder_name"
-                                       placeholder="Folder Name">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Rename file:</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="control-group">
+                                    <input id="new_name" type="text" class="form-control" name="folder_name"
+                                           placeholder="Folder Name">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="rename_btn" type="button" class="btn btn-default" data-dismiss="modal">
+                                    Rename
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button id="rename_btn" type="button" class="btn btn-default" data-dismiss="modal">
-                                Rename
-                            </button>
-                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            <!--Add Folder Modal -->
-            <div id="modalAddFolder" class="modal fade" role="dialog">
-                <div class="modal-dialog">
+                <!--Add Folder Modal -->
+                <div id="modalAddFolder" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
 
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Add Folder</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="control-group">
-                                <p>Folder Name: </p>
-                                <input id="folder_name" type="text" class="form-control" name="folder_name"
-                                       placeholder="Folder Name">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Add Folder</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="control-group">
+                                    <p>Folder Name: </p>
+                                    <input id="folder_name" type="text" class="form-control" name="folder_name"
+                                           placeholder="Folder Name">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="add_folder" type="button" class="btn btn-default" data-dismiss="modal">
+                                    Add
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button id="add_folder" type="button" class="btn btn-default" data-dismiss="modal">
-                                Add
-                            </button>
-                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            <!--Remove File Modal -->
-            <div id="modalRemoveFile" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Remove File</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="control-group">
-                                <p id="remove-file-text">Are you sure you want to remove file?</p>
+                <!--Remove File Modal -->
+                <div id="modalRemoveFile" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Remove File</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="control-group">
+                                    <p id="remove-file-text">Are you sure you want to remove file?</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="remove_file" type="button" class="btn btn-default" data-dismiss="modal">
+                                    Remove
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button id="remove_file" type="button" class="btn btn-default" data-dismiss="modal">
-                                Remove
-                            </button>
-                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            <!--Remove Cloud Modal -->
-            <div id="modalRemoveCloud" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Remove Cloud</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="control-group">
-                                <p id="remove-cloud-text">Are you sure you want to remove cloud?</p>
+                <!--Remove Cloud Modal -->
+                <div id="modalRemoveCloud" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Remove Cloud</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="control-group">
+                                    <p id="remove-cloud-text">Are you sure you want to remove cloud?</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="remove_cloud" type="button" class="btn btn-default" data-dismiss="modal">
+                                    Remove
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button id="remove_cloud" type="button" class="btn btn-default" data-dismiss="modal">
-                                Remove
+
+                    </div>
+                </div>
+
+                <div class="col-sm-10 text-left">
+                    <div class="container file-table-container">
+
+                        <div id="pathContainer"></div>
+                        <div class="alert alert-info centered" role="alert" style="display: none">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             </button>
+                            Working..
                         </div>
+                        <table class="table table-hover ">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Modified</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="filesTableBody">
+                            </tbody>
+                        </table>
                     </div>
-
                 </div>
-            </div>
-
-            <div class="col-sm-10 text-left">
-                <div class="container file-table-container">
-
-                    <div id="pathContainer"></div>
-                    <div class="alert alert-info centered" role="alert" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        </button>
-                        Working..
-                    </div>
-                    <table class="table table-hover ">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Modified</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody id="filesTableBody">
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
         </div>
     </div>
-</div>
 </div>
 </body>
 </html>

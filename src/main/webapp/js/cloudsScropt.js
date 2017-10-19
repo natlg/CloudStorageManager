@@ -194,7 +194,7 @@ function sendAddCloudRequest(cloud, cloudName, code) {
 function cloudClick(event) {
     console.log("cloud click");
     console.log("id click: " + event.target.id);
-
+    $("#aboutPageText").hide();
     var clickedCloud = event.target.textContent;
     console.log("text click: " + clickedCloud);
 

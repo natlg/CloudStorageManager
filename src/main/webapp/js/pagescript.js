@@ -64,6 +64,8 @@ function setHeader() {
     }
     else {
         $('.header').load("templates/mainheader.html");
+        $("#mainPageText").show();
+
     }
 }
 
@@ -410,6 +412,12 @@ $(document).ready(function () {
 
     $(document).on('click', '#login', function () {
         location.href = "login.html";
+    });
+    $(document).on('click', '#aboutButton', function () {
+        console.log("aboutButton click");
+        $("#files_table").hide();
+        $("#mainPageText").hide();
+        $("#aboutPageText").show();
     });
 
     $(document).on('click', '#logout', logoutClick);
