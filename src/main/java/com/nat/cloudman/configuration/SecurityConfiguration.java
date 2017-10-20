@@ -48,6 +48,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers("/upload").authenticated();
         http.authorizeRequests().antMatchers("/addcloud").authenticated();
         http.authorizeRequests().antMatchers("/getclouds").authenticated();
+        http.authorizeRequests().antMatchers("/downloadFile").authenticated();
+        http.authorizeRequests().antMatchers("/deletefile").authenticated();
+        http.authorizeRequests().antMatchers("/renamefile").authenticated();
+        http.authorizeRequests().antMatchers("/getcloudstree").authenticated();
+        http.authorizeRequests().antMatchers("/copy").authenticated();
+        http.authorizeRequests().antMatchers("/removecloud").authenticated();
 
         http.csrf().disable();
 

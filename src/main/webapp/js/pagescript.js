@@ -163,19 +163,18 @@ function showTempAlert(text) {
     }, 3000);
 }
 
-function copy() {
-
+function transfer(action) {
     var nameSource = filesProvider.filesObj[fileIdPopover].name;
     var cloudSource = currentCloud;
     var pathSource = filesProvider.fullPath + "/" + nameSource;
     var idSource = filesProvider.filesObj[fileIdPopover].id;
-    console.log("copy nameSource: " + nameSource + ", cloudSource: " + cloudSource + ", idSource: " + idSource + ", pathSource: " + pathSource);
+    console.log(action + " nameSource: " + nameSource + ", cloudSource: " + cloudSource + ", idSource: " + idSource + ", pathSource: " + pathSource);
 
     var pathDest = getPathFromNode(selectedNode) + "/" + nameSource;
     var cloudDest = getCloudFromNode(selectedNode);
     var idDest = selectedNode.key;
     var downloadUrl = filesProvider.filesObj[fileIdPopover].downloadUrl;
-    console.log("copy pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl);
+    console.log(action + " pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl);
 
 
     var params = {
@@ -188,11 +187,18 @@ function copy() {
         idDest: idDest
     };
 
-    showTempAlert("Start copying");
-    callMethod("http://localhost:8080/copy", params, function (response) {
-        console.log("Copied");
+    showTempAlert("Start " + action);
+    callMethod("http://localhost:8080/" + action, params, function (response) {
+        console.log("Finished " + action);
+        if (action === 'move') {
+            listFolder(currentCloud, filesProvider.fullPath);
+        }
     });
+}
 
+
+function copy() {
+    transfer('copy');
 }
 
 function removeCloud() {
@@ -204,6 +210,7 @@ function removeCloud() {
     showTempAlert("Removing " + currentCloud);
     callMethod("http://localhost:8080/removecloud", params, function (response) {
         console.log("removed");
+        $("#files_table").hide();
         getClouds();
     });
 }
@@ -251,10 +258,10 @@ function copyClick() {
     if (!$('#modalCopy').hasClass('in')) {
         $("#modalCopy").modal("show");
     }
-    fillTree();
+    fillTree('copy');
 }
 
-function fillTree() {
+function fillTree(tree) {
     var source = [];
     console.log(" fillTree: ");
     for (var i = 0; i < filesProvider.clouds.length; i++) {
@@ -268,7 +275,7 @@ function fillTree() {
     console.log(" source: " + source);
 
     $(function () {
-        $("#tree").fancytree({
+        $("#" + tree + "Tree").fancytree({
             checkbox: false,
             selectMode: 3,
             source: source,
@@ -324,8 +331,16 @@ function convertData(filesObj) {
     return sourceFiles;
 }
 
-function move() {
+function moveClick() {
+    console.log(" copyClick ");
+    if (!$('#modalMove').hasClass('in')) {
+        $("#modalMove").modal("show");
+    }
+    fillTree('move');
+}
 
+function move() {
+    transfer('move');
 }
 
 function deleteClick() {
@@ -374,7 +389,7 @@ function deleteFile() {
     var params = {
         fileId: fileIdPopover,
         fileName: name,
-        path: filesProvider.fullPath,
+        path: filesProvider.fullPath + "/" + name,
         cloudName: currentCloud
     };
     showTempAlert("Start deleting");
@@ -426,13 +441,14 @@ $(document).ready(function () {
     $(document).on('click', '#add_folder', addFolder);
 
     $(document).on('click', '#pop_copy', copyClick);
-    $(document).on('click', '#pop_move', move);
+    $(document).on('click', '#pop_move', moveClick);
     $(document).on('click', '#pop_rename', renameClick);
     $(document).on('click', '#pop_delete', deleteClick);
     $(document).on('click', '#pop_download', download);
 
     $(document).on('click', '#rename_btn', rename);
     $(document).on('click', '#copy_btn', copy);
+    $(document).on('click', '#move_btn', move);
     $(document).on('click', '#remove_cloud', removeCloud);
     $(document).on('click', '#remove_file', deleteFile);
 
@@ -451,7 +467,7 @@ $(document).ready(function () {
             },
             move: {
                 name: "Move",
-                callback: move
+                callback: moveClick
             },
             rename: {
                 name: "Rename",

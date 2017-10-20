@@ -9,6 +9,7 @@ import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.controllers.params.CloudParameters;
 import com.nat.cloudman.controllers.params.FileParameters;
+import com.nat.cloudman.controllers.params.FolderParameters;
 import com.nat.cloudman.controllers.params.TransitParameters;
 import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -17,6 +18,7 @@ import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
+import com.nat.cloudman.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -61,13 +63,10 @@ public class CloudController {
     }
 
     @RequestMapping(value = "/addfolder", method = RequestMethod.POST)
-    public void addFolder(@RequestParam(value = "path", defaultValue = "") String path,
-                          @RequestParam(value = "cloudName") String cloudName,
-                          @RequestParam(value = "folderName") String folderName,
-                          @RequestParam(value = "parentId") String parentId,
+    public void addFolder(@RequestBody FolderParameters params,
                           HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("folderName: " + folderName + ", path: " + path + ", cloudName: " + cloudName + ", parentId: " + parentId);
-        cloudManager.addFolder(folderName, cloudName, path, parentId);
+        System.out.println("addFolder: " + params);
+        cloudManager.addFolder(params.folderName, params.cloudName, params.path, params.parentId);
     }
 
     @RequestMapping(value = "/downloadFile", method = RequestMethod.GET)
@@ -84,7 +83,7 @@ public class CloudController {
     public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
         System.out.println("deleteFile " + params);
-        cloudManager.deleteFile(params.fileName, params.cloudName, params.fileId, params.path);
+        cloudManager.deleteFile(params.cloudName, params.fileId, params.path);
     }
 
     @RequestMapping(value = "/renamefile", method = RequestMethod.POST)
@@ -187,6 +186,14 @@ public class CloudController {
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("copy, " + params);
         cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
+    }
+
+    @RequestMapping(value = "/move", method = RequestMethod.POST)
+    public void moveFile(
+            @RequestBody TransitParameters params,
+            HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("move, " + params);
+        cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
     @RequestMapping(value = "/removecloud", method = RequestMethod.POST)

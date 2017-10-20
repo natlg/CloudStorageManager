@@ -39,7 +39,7 @@ public class TransferTask {
         }
     }
 
-    public void copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
+    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
         Cloud cloudDest = userManager.getCloud(cloudDestName);
         if (!cloudSourceName.equals(cloudDestName)) {
             //need to download local and then upload to dest cloud
@@ -49,11 +49,11 @@ public class TransferTask {
             System.out.println(fileName + " is fileName, " + pathSource + " is a pathSource");
 
             File file = cloudManagers.get(cloudSource.getCloudService()).downloadLocal(fileName, pathSource, downloadUrl, cloudSource);
-            cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest);
+            return cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest);
 
         } else {
             // just copy inside of the same cloud
-            cloudManagers.get(cloudDest.getCloudService()).copyFile(pathSource, pathDest, idSource, idDest, cloudDest);
+            return cloudManagers.get(cloudDest.getCloudService()).copyFile(pathSource, pathDest, idSource, idDest, cloudDest);
         }
     }
 }

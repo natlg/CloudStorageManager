@@ -82,9 +82,9 @@ public class CloudManagerFacade {
         return new ResponseEntity<InputStreamResource>(isr, respHeaders, HttpStatus.OK);
     }
 
-    public void deleteFile(String fileName, String cloudName, String fileId, String path) {
+    public void deleteFile(String cloudName, String fileId, String path) {
         Cloud cloud = userManager.getCloud(cloudName);
-        cloudManagers.get(cloud.getCloudService()).deleteFile(fileName, fileId, path, cloud);
+        cloudManagers.get(cloud.getCloudService()).deleteFile(fileId, path, cloud);
     }
 
     public void renameFile(String fileName, String newName, String cloudName, String fileId, String path) {
@@ -92,7 +92,14 @@ public class CloudManagerFacade {
         cloudManagers.get(cloud.getCloudService()).renameFile(fileName, fileId, newName, path, cloud);
     }
 
-    public void copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
-        transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
+    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
+        return transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
+    }
+
+    public void moveFile(String cloudSource, String pathSource, String idSource, String downloadUrl, String cloudDest, String pathDest, String idDest) {
+        if (copyFile(cloudSource, pathSource, idSource, downloadUrl, cloudDest, pathDest, idDest)) {
+            System.out.println("finished copy, start deleting");
+            deleteFile(cloudSource, idSource, pathSource);
+        }
     }
 }

@@ -363,7 +363,8 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public void uploadFile(Cloud cloud, File localFile, String filePath) {
+    public boolean uploadFile(Cloud cloud, File localFile, String filePath) {
+        //TODO check status, return bool
         System.err.println("uploadFile" + "filePath: " + filePath);
         setRefreshToken(cloud.getRefreshToken());
         try {
@@ -385,6 +386,7 @@ public class OneDriveManager implements CloudManager {
                 chunkedUploadFile(localFile, filePath);
             }
         }
+        return true;
     }
 
     private void uploadSmallFile(File localFile, String filePath) {
@@ -570,8 +572,8 @@ public class OneDriveManager implements CloudManager {
     }
 
 
-    public void deleteRequest(String fileName, String fileId) {
-        System.out.println("deleteRequest, fileName: " + fileName + ", fileId: " + fileId);
+    public void deleteRequest(String filePath, String fileId) {
+        System.out.println("deleteRequest, fileName: " + filePath + ", fileId: " + fileId);
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
         System.out.println("url: " + url);
         RestTemplate restTemplate = new RestTemplate();
@@ -585,10 +587,10 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public void deleteFile(String fileName, String fileId, String path, Cloud cloud) {
+    public void deleteFile(String fileId, String path, Cloud cloud) {
         setRefreshToken(cloud.getRefreshToken());
         try {
-            deleteRequest(fileName, fileId);
+            deleteRequest(path, fileId);
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
@@ -596,7 +598,7 @@ public class OneDriveManager implements CloudManager {
 
             accessToken = getAccessToken(refreshToken);
             setAccessToken(accessToken);
-            deleteRequest(fileName, fileId);
+            deleteRequest(path, fileId);
         }
     }
 
@@ -655,7 +657,7 @@ public class OneDriveManager implements CloudManager {
 
 
     @Override
-    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
         setRefreshToken(cloud.getRefreshToken());
         try {
             copyRequest(pathSourse, pathDest, idSource, idDest);
@@ -666,11 +668,17 @@ public class OneDriveManager implements CloudManager {
 
             accessToken = getAccessToken(refreshToken);
             setAccessToken(accessToken);
-            copyRequest(pathSourse, pathDest, idSource, idDest);
+            try {
+                copyRequest(pathSourse, pathDest, idSource, idDest);
+            } catch (HttpClientErrorException exc) {
+                return false;
+            }
         }
+        return true;
     }
 
     private void copyRequest(String pathSourse, String pathDest, String idSource, String idDest) {
+        //TODO make boolean, check status
         System.out.println("copyRequest");
         //need to get driveId for copying
         String url = "https://graph.microsoft.com/v1.0/me/drive";

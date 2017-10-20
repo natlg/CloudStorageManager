@@ -12,17 +12,17 @@ public interface CloudManager {
 
     String getServiceName();
 
-    void uploadFile(Cloud cloud, File localFile, String pathToUpload);
+    boolean uploadFile(Cloud cloud, File localFile, String pathToUpload);
 
     void addFolder(String folderName, Cloud cloud, String path, String parentId);
 
     DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud);
 
-    void deleteFile(String fileName, String fileId, String path, Cloud cloud);
+    void deleteFile(String fileId, String path, Cloud cloud);
 
     void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
 
     File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud);
 
-    void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud);
+    boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud);
 }

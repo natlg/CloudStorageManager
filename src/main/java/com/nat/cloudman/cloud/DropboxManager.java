@@ -142,7 +142,8 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public void uploadFile(Cloud cloud, File localFile, String dropboxPath) {
+    public boolean uploadFile(Cloud cloud, File localFile, String dropboxPath) {
+        //TODO check upload, return bool
         System.err.println("uploadFile");
         System.err.println("dropboxPath: " + dropboxPath);
         System.err.println("localFile getName: " + localFile.getName());
@@ -154,6 +155,7 @@ public class DropboxManager implements CloudManager {
 
             chunkedUploadFile(client, localFile, dropboxPath);
         }
+        return true;
     }
 
     /**
@@ -464,11 +466,11 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public void deleteFile(String fileName, String fileId, String path, Cloud cloud) {
+    public void deleteFile(String fileId, String path, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
-            client.files().delete(path + "/" + fileName);
+            client.files().delete(path);
         } catch (DbxException e) {
             e.printStackTrace();
         }
@@ -487,13 +489,15 @@ public class DropboxManager implements CloudManager {
 
 
     @Override
-    public void copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().copy(pathSourse, pathDest);
         } catch (DbxException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }
