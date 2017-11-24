@@ -146,9 +146,10 @@
 <body>
 
 
-<div class="header"></div>
+<header class="header " style="width:100%"></header>
 
-<div class="container-fluid text-center nav-container">
+<div class="container-fluid text-center nav-container" style="width:100%">
+
     <div class="row content nav-container">
         <div id="cloud_container" class="col-sm-2 sidenav ">
         </div>
@@ -187,7 +188,7 @@
             </div>
         </div>
 
-        <div class="col-sm-10">
+        <div class="col-sm-10" style="padding-left:0px; padding-right:0px">
             <div id="mainPageText" style="display: none" class="well well-lg text-info text-left">
                 <p class="text-info text-left"> Welcome to the CloudMan!
                     It's free App for Managing Files and Transferring Files across Cloud Drives.</p>
@@ -382,8 +383,8 @@
                     </div>
                 </div>
 
-                <div class="col-sm-10 text-left">
-                    <div class="container file-table-container">
+                <div class="col-sm-12 text-left">
+                    <div class="container file-table-container" style="padding-left:0px; padding-right:0px">
 
                         <div id="pathContainer"></div>
                         <div class="alert alert-info centered" role="alert" style="display: none">
@@ -391,19 +392,21 @@
                             </button>
                             Working..
                         </div>
-                        <table class="table table-hover ">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Size</th>
-                                <th>Modified</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody id="filesTableBody">
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover ">
+                                <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Modified</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody id="filesTableBody">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -19,10 +19,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class OneDriveClient {
 
@@ -132,6 +132,25 @@ public class OneDriveClient {
         }
     }
 
+    public String dateConvert(String inDate) {
+        System.out.println("dateConvert: " + inDate);
+        try {
+            DateFormat formatter;
+            Date date;
+            formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            new SimpleDateFormat();
+            date = (Date) formatter.parse(inDate);
+            formatter = new SimpleDateFormat("dd-MM-yyyy");
+            String outDate = formatter.format(date);
+            System.out.println("outDate: " + outDate);
+            return outDate;
+        } catch (ParseException e) {
+            System.out.println("ParseException  :" + e);
+        }
+        return null;
+    }
+
+
     public FilesContainer getItemExpandChildrensRequest(String folderPath) {
         System.out.println("oneDriveUtils. getItemExpandChildrensRequest");
         System.out.println("folderPath: " + folderPath);
@@ -185,7 +204,7 @@ public class OneDriveClient {
             System.out.println("node end");
             resultFile.put("id", file.get("id").asText());
             resultFile.put("pathLower", file.get("name").asText());
-            resultFile.put("modified", file.get("lastModifiedDateTime").asText());
+            resultFile.put("modified", dateConvert(file.get("lastModifiedDateTime").asText()));
             resultFile.put("size", file.get("size").asText());
             resultFile.put("displayPath", file.get("name").asText());
             resultFile.put("parentId", file.get("parentReference").get("id").asText());
