@@ -114,7 +114,7 @@ function handleFile(files) {
             var row =
                 `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)" ">
-                        <td> <a class="fileName" href="#">${files[key].name}</a></td>
+                        <td  style=" padding-left: 20px"> <a class="fileName" href="#">${files[key].name}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
                         <td>${getText(files[key].modified)}</td>

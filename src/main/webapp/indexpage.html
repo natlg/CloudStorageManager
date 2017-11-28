@@ -10,6 +10,8 @@
     <meta http-equiv="Expires" content="0"/>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="css/navbar-fixed-side.css" rel="stylesheet"/>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="js/pagescript.js"></script>
@@ -53,7 +55,11 @@
         .icons-container {
             background-color: #F8F8F8;
             text-align: left;
-            padding-left: 20px;
+        }
+
+        .table-header {
+            padding-left: 10px;
+            padding-right: 10px;
         }
 
         .place-left {
@@ -68,6 +74,13 @@
 
         .table {
             width: 100%;
+            /*padding-left: 15px;*/
+            /*padding-right: 10px;*/
+        }
+
+        .table-padding {
+            padding-left: 15px;
+        !important
         }
 
         /* Set gray background color and 100% height */
@@ -111,6 +124,10 @@
             left: 50%;
         }
 
+        #nav_footer {
+            padding: 10px;
+        }
+
         /* On small screens, set height to 'auto' for sidenav and grid */
         @media screen and (max-width: 767px) {
             .sidenav {
@@ -137,63 +154,51 @@
             padding: 2px 2px 2px 2px;
         }
 
-        .well {
+        .well-margin {
             margin: 15px 15px 15px 15px;
+        }
+
+        .no-padding {
+            padding-left: 0px;
+            padding-right: 0px;
         }
 
     </style>
 </head>
 <body>
 
+<div class="container-fluid" style="width:100%">
 
-<header class="header " style="width:100%"></header>
-
-<div class="container-fluid text-center nav-container" style="width:100%">
-
-    <div class="row content nav-container">
-        <div id="cloud_container" class="col-sm-2 sidenav ">
-        </div>
-
-        <!--Modal-->
-        <div class="modal fade" id="myModal" role="dialog">
-            <div class="modal-dialog">
-
-                <!-- Modal content-->
-                <div class="modal-content">
-                    <form id="add_cloud_form" class="form-horizontal" role="form">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Add Cloud Drive</h4>
+    <div class="row">
+        <div class="col-sm-3 col-lg-2">
+            <nav class="navbar navbar-default navbar-fixed-side">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="indexpage.html">Cloud Man</a>
+                    </div>
+                    <div class="collapse navbar-collapse relative">
+                        <ul class="nav navbar-nav pathLink " id="cloud_container">
+                        </ul>
+                        <div id="nav_footer" class="bottom">
                         </div>
-                        <div id="modal-container" class="modal-body place-left">
-                            <p>Select a Cloud Drive </p>
-                            <select id="cloud_select" name="cloud_select" class="bootstrap-select">
-                                <option value="1" selected="selected">Dropbox</option>
-                                <option value="2">OneDrive</option>
-                            </select>
-                            <div class="control-group">
-                                <p>Cloud Name </p>
-                                <input id="cloud_name" type="text" class="form-control" name="cloud_name"
-                                       placeholder="Cloud Name">
-                            </div>
-                        </div>
-                        <div id="addBtnContainer" class="modal-footer">
-                            <button id="add_cloud" type="button" class="btn btn-default" data-dismiss="modal">
-                                Authorize
-                            </button>
-                        </div>
-                    </form>
+
+                    </div>
                 </div>
-
-            </div>
+            </nav>
         </div>
+        <div class="col-sm-9 col-lg-10 no-padding">
 
-        <div class="col-sm-10" style="padding-left:0px; padding-right:0px">
-            <div id="mainPageText" style="display: none" class="well well-lg text-info text-left">
+            <div id="mainPageText" style="display: none" class="well-margin well-lg text-info text-left">
                 <p class="text-info text-left"> Welcome to the CloudMan!
                     It's free App for Managing Files and Transferring Files across Cloud Drives.</p>
             </div>
-            <div id="aboutPageText" style="display: none" class="well well-lg ">
+            <div id="aboutPageText" style="display: none" class="well-margin well-lg ">
                 <p class="text-info text-left"> With CloudMan you can connect multiple accounts from cloud drives into a
                     single platform. You can easily upload, download, copy and transfer files from all the cloud
                     services you use without
@@ -202,7 +207,7 @@
             </div>
             <div id="files_table" style="display:none;">
 
-                <div id="table-icons-container" class="icons-container" style="display:none;">
+                <div id="table-icons-container" class="icons-containe table-header" style="display:none;">
 
                     <form id="upload-form" enctype="multipart/form-data" action="http://localhost:8080/upload/"
                           method="post">
@@ -383,10 +388,10 @@
                     </div>
                 </div>
 
-                <div class="col-sm-12 text-left">
+                <div class="col-sm-12 text-left no-padding">
                     <div class="container file-table-container" style="padding-left:0px; padding-right:0px">
 
-                        <div id="pathContainer"></div>
+                        <div id="pathContainer" class="table-header"></div>
                         <div class="alert alert-info centered" role="alert" style="display: none">
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             </button>
@@ -396,7 +401,7 @@
                             <table class="table table-hover ">
                                 <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th style=" padding-left: 20px">Name</th>
                                     <th>Type</th>
                                     <th>Size</th>
                                     <th>Modified</th>
@@ -412,6 +417,41 @@
             </div>
         </div>
     </div>
+
+    <!--Modal-->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <form id="add_cloud_form" class="form-horizontal" role="form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Add Cloud Drive</h4>
+                    </div>
+                    <div id="modal-container" class="modal-body place-left">
+                        <p>Select a Cloud Drive </p>
+                        <select id="cloud_select" name="cloud_select" class="bootstrap-select">
+                            <option value="1" selected="selected">Dropbox</option>
+                            <option value="2">OneDrive</option>
+                        </select>
+                        <div class="control-group">
+                            <p>Cloud Name </p>
+                            <input id="cloud_name" type="text" class="form-control" name="cloud_name"
+                                   placeholder="Cloud Name">
+                        </div>
+                    </div>
+                    <div id="addBtnContainer" class="modal-footer">
+                        <button id="add_cloud" type="button" class="btn btn-default" data-dismiss="modal">
+                            Authorize
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

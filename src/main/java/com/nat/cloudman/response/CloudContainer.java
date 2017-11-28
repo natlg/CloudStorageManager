@@ -1,10 +1,10 @@
 package com.nat.cloudman.response;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class CloudContainer {
-    private Set<Cloud> clouds = new HashSet<>();
+    private Set<Cloud> clouds = new TreeSet<>();
     private String userEmail;
     private String userFirstName;
     private String userLastName;
@@ -43,7 +43,7 @@ public class CloudContainer {
         return userLastName;
     }
 
-    private class Cloud {
+    private class Cloud implements Comparable<Cloud> {
         public String accountName;
         public String service;
 
@@ -51,5 +51,17 @@ public class CloudContainer {
             this.accountName = accountName;
             this.service = service;
         }
+
+        @Override
+        public int compareTo(Cloud o) {
+            char ch1 = this.accountName.toLowerCase().charAt(0);
+            char ch2 = o.accountName.toLowerCase().charAt(0);
+            if (ch1 > ch2) {
+                return 1;
+            }
+            return -1;
+            //no 0 for equal so all clouds will be added anyway
+        }
     }
 }
+

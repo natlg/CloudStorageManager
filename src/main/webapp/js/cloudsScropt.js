@@ -26,23 +26,47 @@ function getClouds() {
                     var cloud = {
                         id: response[i].id,
                         accountName: response[i].accountName,
-                        cloudService: response[i].cloudService
+                        service: response[i].service
                     };
                     cloudArray.push(cloud);
-                    console.log("push: " + i);
+                    console.log("push: " + cloudArray[i].accountName + " " + cloudArray[i].service);
                 }
 
                 var container = $("#cloud_container");
                 container.empty();
-                var addBtn = `  <p>
-                <!-- Trigger the modal with a button -->
-                <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">+</button>
-            </p>`;
+                container.addClass("well");
+
+                var addBtn = `
+            <span data-toggle="modal" data-target="#myModal">
+                    <a title="Add Cloud" class="icon-link" data-toggle="tooltip" >
+                    <img class="icon" src="img/add-icon.png" alt="add cloud">
+                    Add Cloud
+                    </a>
+                    </span>
+                        <hr />`;
+
                 container.append($(addBtn));
 
                 filesProvider.clouds = cloudArray;
+
                 for (var i = 0; i < cloudArray.length; i++) {
-                    var cloud = ` <p><a href="#" id="${cloudArray[i].id}" onclick="cloudClick(event)" class="${cloudArray[i].cloudService}">${cloudArray[i].accountName}</a></p>`;
+                    var cloudService = cloudArray[i].service;
+                    var cloudIcon = ``;
+                    switch (cloudService) {
+                        case 'Dropbox':
+                            cloudIcon = ` <img class="icon" src="img/dropbox-icon.png" alt="Dropbox">`;
+                            break;
+                        case 'OneDrive':
+                            cloudIcon = ` <img class="icon" src="img/onedrive-icon.png" alt="OneDrive">`;
+                            break;
+                    }
+
+                    var cloud = `<li><div>`
+                        + cloudIcon
+                        + `<a href="#" id="${cloudArray[i].id}" onclick="cloudClick(event)" class="${cloudArray[i].service} cloud-padding">${cloudArray[i].accountName}</a></div></li>`;
+
+                    console.log("cloud: " + cloud);
+
                     container.append($(cloud));
                 }
             }

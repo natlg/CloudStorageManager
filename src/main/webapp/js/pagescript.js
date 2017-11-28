@@ -57,13 +57,13 @@ function removeFromSessionStorage(key) {
 function setHeader() {
     var url = document.URL;
     if (isAuthorized() == 'true') {
-        $('.header').load("templates/homeheader.html");
+        $('#nav_footer').load("templates/homeheader.html");
     }
     else if (url.indexOf("login") >= 0) {
         $('.header').load("templates/loginheader.html");
     }
     else {
-        $('.header').load("templates/mainheader.html");
+        $('#nav_footer').load("templates/mainheader.html");
         $("#mainPageText").show();
 
     }
