@@ -442,7 +442,7 @@ public class OneDriveClient {
 
     public void addFolder(String folderName, String path, String parentId) {
         try {
-            addFolder(folderName, path, parentId);
+            addFolderRequest(folderName, path, parentId);
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
