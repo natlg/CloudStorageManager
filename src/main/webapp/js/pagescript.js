@@ -60,7 +60,7 @@ function setHeader() {
         $('#nav_footer').load("templates/homeheader.html");
     }
     else if (url.indexOf("login") >= 0) {
-        $('.header').load("templates/loginheader.html");
+        $('.header-log').load("templates/loginheader.html");
     }
     else {
         $('#nav_footer').load("templates/mainheader.html");
