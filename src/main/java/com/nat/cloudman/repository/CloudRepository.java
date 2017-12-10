@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository("cloudRepository")
 public interface CloudRepository extends JpaRepository<Cloud, Long> {
-
 }

@@ -19,12 +19,6 @@ import java.util.Map;
 public class TransferTask {
 
     @Autowired
-    private DropboxManager dropboxManager;
-
-    @Autowired
-    private OneDriveManager oneDriveManager;
-
-    @Autowired
     private UserManager userManager;
 
     @Value("${temp.download.path}")

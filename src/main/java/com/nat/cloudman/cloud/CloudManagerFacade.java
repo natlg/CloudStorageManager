@@ -22,15 +22,6 @@ import java.util.Map;
 @Component
 public class CloudManagerFacade {
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private DropboxManager dropboxManager;
-
-
-    @Autowired
-    private OneDriveManager oneDriveManager;
 
     @Autowired
     private TransferTask transferTask;

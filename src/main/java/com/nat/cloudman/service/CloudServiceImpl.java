@@ -21,8 +21,6 @@ public class CloudServiceImpl implements CloudService {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private DropboxManager dropboxManager;
 
     @Autowired
     private UserManager userManager;

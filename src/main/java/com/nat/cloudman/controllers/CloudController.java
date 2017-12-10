@@ -20,6 +20,7 @@ import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.service.UserService;
 import com.nat.cloudman.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,22 +38,18 @@ import javax.servlet.http.HttpServletResponse;
 public class CloudController {
 
     @Autowired
-    private UserService userService;
-    @Autowired
-    private DropboxManager dropboxManager;
-
-    @Autowired
     private UserManager userManager;
 
 
     @Autowired
     private CloudService cloudService;
 
-    @Autowired
-    OneDriveManager oneDriveManager;
 
     @Autowired
     CloudManagerFacade cloudManager;
+
+    @Value("${temp.upload.path}")
+    private String UPLOAD_PATH;
 
     @RequestMapping(value = "/listfiles", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
@@ -79,7 +76,7 @@ public class CloudController {
         return cloudManager.downloadFile(fileName, cloudName, fileId, path);
     }
 
-    @RequestMapping(value = "/deletefile", method = RequestMethod.POST)
+    @RequestMapping(value = "/deletefile", method = RequestMethod.DELETE)
     public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
         System.out.println("deleteFile " + params);
@@ -98,7 +95,8 @@ public class CloudController {
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
         //TODO
         System.out.println("getauthorizeurl ");
-        return dropboxManager.getAuthorizeUrl();
+        return null;
+        //return dropboxManager.getAuthorizeUrl();
     }
 
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
@@ -144,7 +142,7 @@ public class CloudController {
                     System.out.println("file getContentType: " + file.getContentType());
                     System.out.println("file getName: " + file.getName());
                     System.out.println("file getSize: " + file.getSize());
-                    File convertedFile = dropboxManager.multipartToFile(file, "E:\\pics\\uploaded\\");
+                    File convertedFile = Utils.multipartToFile(file, UPLOAD_PATH);
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
                     cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName());
                 } catch (Exception e) {
@@ -167,7 +165,6 @@ public class CloudController {
         String id = params.id;
         System.out.println("getcloudstree, cloudName: " + cloudName + ", path: " + path + ", id: " + id);
         User user = userManager.getUser();
-        HashMap<String, FilesContainer> files = new HashMap<>();
         Set<Cloud> clouds = user.getClouds();
         for (Cloud cl : clouds) {
             if (cl.getAccountName().equals(cloudName)) {
@@ -196,7 +193,7 @@ public class CloudController {
         cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
-    @RequestMapping(value = "/removecloud", method = RequestMethod.POST)
+    @RequestMapping(value = "/removecloud", method = RequestMethod.DELETE)
     public void removeCloud(@RequestBody CloudParameters paramRemoveCloud) {
         System.out.println("remove cloud: " + paramRemoveCloud.cloudName);
         cloudService.removeCloud(paramRemoveCloud.cloudName);

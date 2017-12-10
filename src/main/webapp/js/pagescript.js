@@ -188,7 +188,7 @@ function transfer(action) {
     };
 
     showTempAlert("Start " + action);
-    callMethod("http://localhost:8080/" + action, params, function (response) {
+    callMethod("http://localhost:8080/" + action, "POST", params, function (response) {
         console.log("Finished " + action);
         if (action === 'move') {
             listFolder(currentCloud, filesProvider.fullPath);
@@ -208,16 +208,16 @@ function removeCloud() {
         cloudName: cloud
     };
     showTempAlert("Removing " + currentCloud);
-    callMethod("http://localhost:8080/removecloud", params, function (response) {
+    callMethod("http://localhost:8080/removecloud", "DELETE", params, function (response) {
         console.log("removed");
         $("#files_table").hide();
         getClouds();
     });
 }
 
-function callMethod(url, parameters, successCallback) {
+function callMethod(url, method, parameters, successCallback) {
     $.ajax({
-        type: 'POST',
+        type: method,
         url: url,
         data: JSON.stringify(parameters),
         contentType: 'application/json;',
@@ -377,7 +377,7 @@ function rename() {
 
     showTempAlert("Start renaming");
 
-    callMethod("http://localhost:8080/renamefile", params, function (response) {
+    callMethod("http://localhost:8080/renamefile", "POST", params, function (response) {
         console.log("file is renamed");
         listFolder(currentCloud, filesProvider.fullPath);
     });
@@ -393,7 +393,7 @@ function deleteFile() {
         cloudName: currentCloud
     };
     showTempAlert("Start deleting");
-    callMethod("http://localhost:8080/deletefile", params, function (response) {
+    callMethod("http://localhost:8080/deletefile", "DELETE", params, function (response) {
         console.log("file is deleted");
         listFolder(currentCloud, filesProvider.fullPath);
     });

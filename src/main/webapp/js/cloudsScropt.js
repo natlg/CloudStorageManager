@@ -123,7 +123,7 @@ function addFolder() {
         path: filesProvider.fullPath,
         cloudName: currentCloud
     };
-    callMethod("http://localhost:8080/addfolder", params, function (response) {
+    callMethod("http://localhost:8080/addfolder", "POST", params, function (response) {
         console.log("folder is added");
         listFolder(currentCloud, filesProvider.fullPath);
     });

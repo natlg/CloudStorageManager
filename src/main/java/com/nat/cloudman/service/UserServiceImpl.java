@@ -19,8 +19,6 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
-    @Autowired
-    private UserManager userManager;
 
     @Override
     public User findUserByEmail(String email) {
