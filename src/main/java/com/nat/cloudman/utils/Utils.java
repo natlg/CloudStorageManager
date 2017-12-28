@@ -18,6 +18,11 @@ public class Utils {
 
     public static File multipartToFile(MultipartFile multipart, String pathToSave) throws IllegalStateException, IOException {
         File convertedFile = new File(pathToSave + multipart.getOriginalFilename());
+        if (!convertedFile.exists()) {
+            convertedFile.createNewFile();
+            System.out.println("start creating new file: " + convertedFile.getPath());
+        }
+
         multipart.transferTo(convertedFile);
         System.out.println("converted, exists " + convertedFile.exists() + ", getPath " + convertedFile.getPath()
                 + ", getName " + convertedFile.getName() + ", length: " + convertedFile.length());

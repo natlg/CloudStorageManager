@@ -25,10 +25,6 @@ public class CloudServiceImpl implements CloudService {
     @Autowired
     private UserManager userManager;
 
-
-    @Autowired
-    private CloudService cloudService;
-
     @Autowired
     OneDriveManager oneDriveManager;
 
@@ -61,7 +57,7 @@ public class CloudServiceImpl implements CloudService {
         cloud.setAccountName(cloudName);
         cloud.setAccessToken(access_oken);
         cloud.setRefreshToken(refreshToken);
-        cloudService.saveCloud(cloud);
+        saveCloud(cloud);
         User user = userManager.getUser();
         user.addCloud(cloud);
         userService.saveUser(user);
