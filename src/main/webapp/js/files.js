@@ -86,7 +86,44 @@ class FilesProvider {
     }
 }
 
+
+var FileType = {
+    IMAGE: 'img/icon_image.png',
+    AUDIO: 'img/icon_audio.png',
+    VIDEO: 'img/icon_video.png',
+    TEXT: 'img/icon_document.png',
+    PRESENTATION: 'img/icon_file.png',
+    COMPRESSED: 'img/icon_file.png',
+    OTHER: 'img/icon_file.png',
+    FOLDER: 'img/icon_folder.png'
+};
+
+
 class FileMetadata {
+    getFileType(fileName) {
+        if (this.type === 'folder') {
+            return FileType.FOLDER;
+        }
+        var ext = (fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length) || fileName).toLocaleLowerCase();
+        if (ext === 'jpeg' || ext === 'jpg' || ext === 'png' || ext === 'ai' || ext === 'bmp' || ext === 'gif' || ext === 'ico' || ext === 'ps'
+            || ext === 'psd' || ext === 'svg' || ext === 'tif' || ext === 'tiff') {
+            return FileType.IMAGE;
+        }
+        if (ext === 'mp3' || ext === 'wma' || ext === 'wav' || ext === 'aif' || ext === 'cda' || ext === 'mid' || ext === 'midi' || ext === 'mpa'
+            || ext === 'ogg' || ext === 'wpl') {
+            return FileType.AUDIO;
+        }
+        if (ext === 'mp4' || ext === 'mov' || ext === 'wmv' || ext === 'avi' || ext === 'm4v' || ext === '3g2' || ext === '3gp' || ext === 'flv' || ext === 'h264'
+            || ext === 'mkv' || ext === 'mpg' || ext === 'mpeg' || ext === 'rm' || ext === 'swf' || ext === 'vob' || ext === 'wmv') {
+            return FileType.VIDEO;
+        }
+        if (ext === 'pdf' || ext === 'txt' || ext === 'docx' || ext === 'doc' || ext === 'odt' || ext === 'rtf' || ext === 'tex' || ext === 'wks'
+            || ext === 'wps' || ext === 'wpd') {
+            return FileType.TEXT;
+        }
+        return FileType.OTHER;
+    }
+
     constructor(name, type, modified, size, id, pathLower, parentId, downloadUrl) {
         this.name = name;
         this.type = type;
@@ -99,8 +136,9 @@ class FileMetadata {
         if (downloadUrl != "null") {
             this.downloadUrl = downloadUrl;
         }
+        this.fileType = this.getFileType(name);
         console.log("created metadata, pathLower: " + pathLower + ", type: " + type
-            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name + ", parentId: " + parentId + ", downloadUrl: " + downloadUrl);
+            + ", modified: " + modified, +", size: " + size + ", id: " + id + ", name: " + name + ", parentId: " + parentId + ", downloadUrl: " + this.downloadUrl + ", fileType: " + this.fileType);
     }
 }
 

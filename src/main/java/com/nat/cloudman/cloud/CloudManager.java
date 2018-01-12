@@ -25,4 +25,6 @@ public interface CloudManager {
     File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud);
 
     boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud);
+
+    String getThumbnail(Cloud cloud, String fileId, String path);
 }

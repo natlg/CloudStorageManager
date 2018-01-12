@@ -611,4 +611,47 @@ public class OneDriveClient {
         response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
         System.out.println(" Result - status :" + response.getStatusCode() + " getBody: " + response.getBody());
     }
+
+    private String getThumbnailRequest(String fileId) {
+        System.out.println("getThumbnailRequest");
+        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId + "/thumbnails?select=medium";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + accessToken);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
+        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
+        JsonNode valueNode = response.getBody().path("value");
+        Iterator<JsonNode> iterator = valueNode.iterator();
+        while (iterator.hasNext()) {
+            JsonNode thumbnailData = iterator.next();
+            if (thumbnailData.has("medium")) {
+                String thumbUrl = thumbnailData.path("medium").get("url").asText();
+                System.out.println("url: " + url);
+                //we need only one size
+                return thumbUrl;
+            }
+        }
+        return null;
+    }
+
+    public String getThumbnail(String fileId) {
+        try {
+            return getThumbnailRequest(fileId);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+            accessToken = getAccessToken(refreshToken);
+            try {
+                return getThumbnailRequest(fileId);
+            } catch (HttpClientErrorException exc) {
+                System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                        + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                        + " getStackTrace: " + e.getStackTrace());
+                return null;
+            }
+        }
+    }
 }

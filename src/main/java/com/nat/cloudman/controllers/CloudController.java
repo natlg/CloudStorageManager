@@ -193,6 +193,14 @@ public class CloudController {
         cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
     }
 
+    @RequestMapping(value = "/getthumbnail", method = RequestMethod.POST)
+    public String getThumbnail(
+            @RequestBody FileParameters params,
+            HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("getthumbnail, " + params);
+        return cloudManager.getThumbnail(params);
+    }
+
     @RequestMapping(value = "/removecloud", method = RequestMethod.DELETE)
     public void removeCloud(@RequestBody CloudParameters paramRemoveCloud) {
         System.out.println("remove cloud: " + paramRemoveCloud.cloudName);

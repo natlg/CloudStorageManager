@@ -8,6 +8,7 @@ import com.dropbox.core.v2.users.FullAccount;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
+import com.nat.cloudman.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.*;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -499,5 +502,34 @@ public class DropboxManager implements CloudManager {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getThumbnail(Cloud cloud, String fileId, String path) {
+        //TODO
+        String token = cloud.getAccessToken();
+        DbxClientV2 client = getClient(token);
+        try {
+            System.out.println(" file getThumbnail ");
+            InputStream dis = client.files().getThumbnail(path).getInputStream();
+            OutputStream os = null;
+            try {
+                os = new FileOutputStream("C:\\pics\\uploaded\\" + Utils.getNameFromPath(path));
+                IOUtils.copy(dis, os);
+                dis.close();
+                os.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                Image image = ImageIO.read(dis);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

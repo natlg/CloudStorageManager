@@ -100,4 +100,11 @@ public class OneDriveManager implements CloudManager {
         OneDriveClient client = getClient(refreshToken);
         return client.copyFile(pathSourse, pathDest, idSource, idDest);
     }
+
+    @Override
+    public String getThumbnail(Cloud cloud, String fileId, String path) {
+        String refreshToken = cloud.getRefreshToken();
+        OneDriveClient client = getClient(refreshToken);
+        return client.getThumbnail(fileId);
+    }
 }

@@ -1,6 +1,7 @@
 package com.nat.cloudman.cloud;
 
 import com.nat.cloudman.cloud.transfer.TransferTask;
+import com.nat.cloudman.controllers.params.FileParameters;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -92,5 +93,10 @@ public class CloudManagerFacade {
             System.out.println("finished copy, start deleting");
             deleteFile(cloudSource, idSource, pathSource);
         }
+    }
+
+    public String getThumbnail(FileParameters params) {
+        Cloud cloud = userManager.getCloud(params.cloudName);
+        return cloudManagers.get(cloud.getCloudService()).getThumbnail(cloud, params.fileId, params.path);
     }
 }

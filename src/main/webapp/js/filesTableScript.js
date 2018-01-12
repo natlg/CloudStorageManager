@@ -97,6 +97,23 @@ function rowClick(event) {
     console.log("data id: " + fileIdPopover + ", fileName: " + fileNamePopover);
 }
 
+function getThumbnail(currentCloud, id, pathLower) {
+    //TODO for dropbox
+    console.log("getThumbnail path: " + pathLower);
+    var params = {
+        fileId: id,
+        path: pathLower,
+        cloudName: currentCloud
+    };
+    callMethod("http://localhost:8080/getthumbnail", "POST", params, function (response) {
+        console.log("got thumbnail, response:" + response);
+        var imgThumb = document.getElementById(id).getElementsByTagName('img')[0];
+        imgThumb.src = response;
+        $(imgThumb).css('width', 'auto');
+        $(imgThumb).css('height', 'auto');
+    });
+}
+
 // callback function after getting answer from server
 function handleFile(files) {
     console.log("handleFile ");
@@ -108,13 +125,11 @@ function handleFile(files) {
 
     for (var key in files) {
         if (files.hasOwnProperty(key)) {
-            // do stuff
-
             console.log("add: " + files[key].name);
             var row =
                 `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)" ">
-                        <td  style=" padding-left: 20px"> <a class="fileName" href="#">${files[key].name}</a></td>
+                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}" alt="file icon"><a class="fileName" href="#">${files[key].name}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
                         <td>${getText(files[key].modified)}</td>
@@ -136,6 +151,9 @@ function handleFile(files) {
             var link = r.find('a');
             bindPopover();
             rowId = "";
+            if (files[key].fileType === FileType.IMAGE) {
+                getThumbnail(currentCloud, files[key].id, files[key].pathLower);
+            }
         }
     }
     var pathContainer = $("#pathContainer");
