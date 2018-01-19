@@ -8,19 +8,19 @@ import java.io.File;
 
 public interface CloudManager {
 
-    FilesContainer getFilesList(String accountName, String folderPath);
+    FilesContainer getFilesList(Cloud cloud, String folderPath);
 
     String getServiceName();
 
     boolean uploadFile(Cloud cloud, File localFile, String pathToUpload);
 
-    void addFolder(String folderName, Cloud cloud, String path, String parentId);
+    boolean addFolder(String folderName, Cloud cloud, String path, String parentId);
 
     DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud);
 
-    void deleteFile(String fileId, String path, Cloud cloud);
+    boolean deleteFile(String fileId, String path, Cloud cloud);
 
-    void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
+    boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
 
     File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud);
 

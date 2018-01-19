@@ -75,8 +75,8 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public FilesContainer getFilesList(String accountName, String folderPath) {
-        String token = userManager.getCloud(accountName).getAccessToken();
+    public FilesContainer getFilesList(Cloud cloud, String folderPath) {
+        String token = cloud.getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
         //Get files and folder metadata from Dropbox root directory
@@ -413,14 +413,16 @@ public class DropboxManager implements CloudManager {
 
 
     @Override
-    public void addFolder(String folderName, Cloud cloud, String path, String parentId) {
+    public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
         String token = cloud.getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
         try {
             client.files().createFolder(path + "/" + folderName);
+            return true;
         } catch (DbxException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -469,24 +471,28 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public void deleteFile(String fileId, String path, Cloud cloud) {
+    public boolean deleteFile(String fileId, String path, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().delete(path);
+            return true;
         } catch (DbxException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     @Override
-    public void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
+    public boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
             client.files().move(path + "/" + fileName, path + "/" + newName);
+            return true;
         } catch (DbxException e) {
             e.printStackTrace();
+            return false;
         }
     }
 

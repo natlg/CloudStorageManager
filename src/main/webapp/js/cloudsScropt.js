@@ -98,7 +98,6 @@ function addCloud() {
     switch (cloudDrive) {
         case 'Dropbox':
             location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=http://localhost:8080/indexpage.html?redirect=dropbox";
-
             break;
         case 'OneDrive':
             location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
@@ -107,6 +106,16 @@ function addCloud() {
                 "&redirect_uri=http://localhost:8080/indexpage.html" +
                 "&response_mode=query" +
                 "&scope=Files.ReadWrite.All%20offline_access";
+            break;
+        case 'Google Drive':
+            location.href = "https://accounts.google.com/o/oauth2/v2/auth?" +
+                "scope=https://www.googleapis.com/auth/drive&" +
+                "response_type=code&" +
+                "access_type=offline&" +
+                "include_granted_scopes=true&" +
+                "state=state_parameter_passthrough_value&" +
+                "redirect_uri=http://localhost:8080/indexpage.html&" +
+                "client_id=351462348570-v1282soo2bbd52f6l6qjdil2rh6cboqb.apps.googleusercontent.com";
             break;
     }
 }
@@ -198,7 +207,7 @@ function sendAddCloudRequest(cloud, cloudName, code) {
     };
 
     var params = "cloud=" + cloud +
-        "&cloudName=" + cloudName + "&token=" + code;
+        "&cloudName=" + cloudName + "&code=" + code;
     xhttp.open("POST", "http://localhost:8080/addcloud", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send params:");

@@ -69,7 +69,7 @@ function setHeader() {
     }
 }
 
-function getDropboxRedirectParams(url) {
+function getRedirectParams(url) {
     // get query string from url (
     var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
     // store the parameters
@@ -127,27 +127,32 @@ function loadAuthorizedPage() {
     setHeader();
     var url = document.URL;
     var cloud = getFromSessionStorage("added_cloud_drive");
-
+    var cloudName = getFromSessionStorage("added_cloud_name");
     // send request to add cloud if it's auth redirection
     if (isAuthorized() == 'true' && cloud !== undefined && cloud != null && cloud.length >= 0) {
         if (cloud.indexOf("OneDrive") >= 0) {
-            var params = getDropboxRedirectParams(url);
+            var params = getRedirectParams(url);
             var code = params.code;
             console.log("code: " + code);
-            var cloud = getFromSessionStorage("added_cloud_drive");
-            var cloudName = getFromSessionStorage("added_cloud_name");
             sendAddCloudRequest(cloud, cloudName, code);
         }
         else if (cloud.indexOf("Dropbox") >= 0) {
-            var params = getDropboxRedirectParams(url);
+            var params = getRedirectParams(url);
             console.log("access_token: " + params.access_token);
             console.log("token_type: " + params.token_type);
             console.log("uid: " + params.uid);
             console.log("account_id: " + params.account_id);
-            var cloud = getFromSessionStorage("added_cloud_drive");
-            var cloudName = getFromSessionStorage("added_cloud_name");
             var token = params.access_token;
             sendAddCloudRequest(cloud, cloudName, token);
+        }
+        else if (cloud.indexOf("Google") >= 0) {
+            console.log("google authorized: " + url);
+            console.log("google cloud: " + cloud);
+            var params = getRedirectParams(url);
+            var code = params.code;
+            console.log("code: " + code);
+            //var cloud = getFromSessionStorage("added_cloud_drive");
+            sendAddCloudRequest(cloud, cloudName, code);
         }
         removeFromSessionStorage("added_cloud_drive");
     }

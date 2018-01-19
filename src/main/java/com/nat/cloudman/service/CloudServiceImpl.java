@@ -35,18 +35,23 @@ public class CloudServiceImpl implements CloudService {
     }
 
     @Override
-    public void addCloudToCurrentUser(String cloudDrive, String cloudName, String token) {
+    public void addCloudToCurrentUser(String cloudDrive, String cloudName, String code) {
         String refreshToken;
         String access_oken;
         switch (cloudDrive) {
             case "OneDrive":
-                ResponseEntity<JsonNode> response = oneDriveManager.sendAuthorizationCodeRequest(token);
+                ResponseEntity<JsonNode> response = oneDriveManager.sendAuthorizationCodeRequest(code);
                 refreshToken = response.getBody().get("refresh_token").asText();
                 access_oken = response.getBody().get("access_token").asText();
                 break;
             case "Dropbox":
-                refreshToken = access_oken = token;
+                refreshToken = access_oken = code;
                 break;
+            case "Google Drive":
+                //TODO
+                System.out.println("add Google Drive");
+                return;
+            //break;
             default:
                 System.out.println(cloudDrive + " is not supported yet");
                 return;

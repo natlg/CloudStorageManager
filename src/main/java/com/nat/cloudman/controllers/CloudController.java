@@ -102,10 +102,10 @@ public class CloudController {
     @RequestMapping(value = "/addcloud", method = RequestMethod.POST)
     public void addCloud(@RequestParam(value = "cloud", defaultValue = "") String cloudDrive,
                          @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
-                         @RequestParam(value = "token", defaultValue = "") String token,
+                         @RequestParam(value = "code", defaultValue = "") String code,
                          HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", token: " + token);
-        cloudService.addCloudToCurrentUser(cloudDrive, cloudName, token);
+        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", code: " + code);
+        cloudService.addCloudToCurrentUser(cloudDrive, cloudName, code);
     }
 
     @RequestMapping(value = "/getclouds", method = RequestMethod.POST)

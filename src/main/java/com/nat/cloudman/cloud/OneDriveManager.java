@@ -7,6 +7,7 @@ import com.nat.cloudman.cloud.nat.onedrive.client.OneDriveConfig;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
+import com.nat.cloudman.service.CloudService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +26,13 @@ public class OneDriveManager implements CloudManager {
     private String APP_SECRET;
 
     @Autowired
-    private UserManager userManager;
+    private CloudService cloudService;
 
     @Value("${temp.download.path}")
     private String DOWNLOAD_PATH;
 
-    private OneDriveClient getClient(String refreshToken) {
-        return new OneDriveClient(new OneDriveConfig(APP_KEY, APP_SECRET), refreshToken);
+    private OneDriveClient getClient(String accessToken, String refreshToken) {
+        return new OneDriveClient(new OneDriveConfig(APP_KEY, APP_SECRET), accessToken, refreshToken);
     }
 
     @Override
@@ -39,72 +40,87 @@ public class OneDriveManager implements CloudManager {
         return "OneDrive";
     }
 
+    private void checkAndSaveAccessToken(String accessToken, Cloud cloud) {
+        if (!accessToken.equals(cloud.getAccessToken())) {
+            cloud.setAccessToken(accessToken);
+            cloudService.saveCloud(cloud);
+        }
+    }
+
     public ResponseEntity<JsonNode> sendAuthorizationCodeRequest(String code) {
-        OneDriveClient client = getClient(null);
+        OneDriveClient client = getClient(null, null);
         return client.sendAuthorizationCodeRequest(code);
     }
 
     @Override
-    public FilesContainer getFilesList(String accountName, String folderPath) {
-        Cloud cloud = userManager.getCloud(accountName);
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.getFilesList(folderPath);
+    public FilesContainer getFilesList(Cloud cloud, String folderPath) {
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        FilesContainer result = client.getFilesList(folderPath);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
     public boolean uploadFile(Cloud cloud, File localFile, String filePath) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.uploadFile(localFile, filePath);
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.uploadFile(localFile, filePath);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
-    public void addFolder(String folderName, Cloud cloud, String path, String parentId) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        client.addFolder(folderName, path, parentId);
+    public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.addFolder(folderName, path, parentId);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.download(fileName, fileId, path);
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        DownloadedFileContainer result = client.download(fileName, fileId, path);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
-    public void deleteFile(String fileId, String path, Cloud cloud) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        client.deleteFile(fileId, path);
+    public boolean deleteFile(String fileId, String path, Cloud cloud) {
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.deleteFile(fileId, path);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
-    public void renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        client.renameFile(fileName, fileId, newName, path);
+    public boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.renameFile(fileName, fileId, newName, path);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
     public File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.downloadLocal(fileName, path, downloadUrl, DOWNLOAD_PATH);
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        File result = client.downloadLocal(fileName, path, downloadUrl, DOWNLOAD_PATH);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
     public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.copyFile(pathSourse, pathDest, idSource, idDest);
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.copyFile(pathSourse, pathDest, idSource, idDest);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 
     @Override
     public String getThumbnail(Cloud cloud, String fileId, String path) {
-        String refreshToken = cloud.getRefreshToken();
-        OneDriveClient client = getClient(refreshToken);
-        return client.getThumbnail(fileId);
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        String result = client.getThumbnail(fileId);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
     }
 }

@@ -34,10 +34,16 @@ public class OneDriveClient {
     private static final long CHUNKED_UPLOAD_CHUNK_SIZE = 4L << 20; // 4MiB
     private static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 
-    public OneDriveClient(OneDriveConfig config, String refreshToken) {
+    public OneDriveClient(OneDriveConfig config, String accessToken, String refreshToken) {
         this.config = config;
         this.refreshToken = refreshToken;
-        System.out.println("OneDriveClient refreshToken: " + refreshToken + ", APP_KEY: " + config.APP_KEY + ", APP_SECRET: " + config.APP_SECRET);
+        this.accessToken = accessToken;
+        System.out.println("OneDriveClient refreshToken: " + refreshToken + ", APP_KEY: " + config.APP_KEY
+                + ", APP_SECRET: " + config.APP_SECRET + ", accessToken: " + accessToken);
+    }
+
+    public String getAccessToken() {
+        return accessToken;
     }
 
     public ResponseEntity<JsonNode> sendAuthorizationCodeRequest(String code) {
@@ -75,9 +81,9 @@ public class OneDriveClient {
         return null;
     }
 
-    public String getAccessToken(String refreshToken) {
+    public String requestNewAccessToken(String refreshToken) {
 
-        System.out.println("getAccessToken config.APP_KEY: " + config.APP_KEY + ", config.APP_SECRET: " + config.APP_SECRET + ", refreshToken: " + refreshToken);
+        System.out.println("requestNewAccessToken config.APP_KEY: " + config.APP_KEY + ", config.APP_SECRET: " + config.APP_SECRET + ", refreshToken: " + refreshToken);
         String url = "https://login.microsoftonline.com/common/oauth2/v2.0/token ";
 
         HttpHeaders headers = new HttpHeaders();
@@ -127,7 +133,7 @@ public class OneDriveClient {
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
-            this.accessToken = getAccessToken(refreshToken);
+            this.accessToken = requestNewAccessToken(refreshToken);
             return getItemExpandChildrensRequest(folderPath);
         }
     }
@@ -290,7 +296,7 @@ public class OneDriveClient {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
-            accessToken = getAccessToken(refreshToken);
+            accessToken = requestNewAccessToken(refreshToken);
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
                 uploadSmallFile(localFile, filePath);
             } else {
@@ -440,16 +446,22 @@ public class OneDriveClient {
         System.out.println("getBody: " + response.getBody());
     }
 
-    public void addFolder(String folderName, String path, String parentId) {
+    public boolean addFolder(String folderName, String path, String parentId) {
         try {
             addFolderRequest(folderName, path, parentId);
+            return true;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
-            accessToken = getAccessToken(refreshToken);
-            addFolderRequest(folderName, path, parentId);
+            accessToken = requestNewAccessToken(refreshToken);
+            try {
+                addFolderRequest(folderName, path, parentId);
+                return true;
+            } catch (Exception ex) {
+                return false;
+            }
         }
     }
 
@@ -462,7 +474,7 @@ public class OneDriveClient {
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
-            accessToken = getAccessToken(refreshToken);
+            accessToken = requestNewAccessToken(refreshToken);
             downloadRequest(fileName, fileId);
         }
         return null;
@@ -487,28 +499,39 @@ public class OneDriveClient {
         System.out.println("getBody: " + response.getBody());
     }
 
-    public void deleteFile(String fileId, String path) {
+    public boolean deleteFile(String fileId, String path) {
         try {
             deleteRequest(path, fileId);
+            return true;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
-            accessToken = getAccessToken(refreshToken);
-            deleteRequest(path, fileId);
+            accessToken = requestNewAccessToken(refreshToken);
+            try {
+                deleteRequest(path, fileId);
+                return true;
+            } catch (Exception ex) {
+                return false;
+            }
         }
     }
 
-    public void renameFile(String fileName, String fileId, String newName, String path) {
-
+    public boolean renameFile(String fileName, String fileId, String newName, String path) {
         try {
             renameRequest(newName, fileId);
+            return true;
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
-            accessToken = getAccessToken(refreshToken);
-            renameRequest(newName, fileId);
+            accessToken = requestNewAccessToken(refreshToken);
+            try {
+                renameRequest(newName, fileId);
+                return true;
+            } catch (Exception ex) {
+                return false;
+            }
         }
     }
 
@@ -565,7 +588,7 @@ public class OneDriveClient {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
-            accessToken = getAccessToken(refreshToken);
+            accessToken = requestNewAccessToken(refreshToken);
             try {
                 copyRequest(pathSourse, pathDest, idSource, idDest);
             } catch (HttpClientErrorException exc) {
@@ -643,7 +666,7 @@ public class OneDriveClient {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
-            accessToken = getAccessToken(refreshToken);
+            accessToken = requestNewAccessToken(refreshToken);
             try {
                 return getThumbnailRequest(fileId);
             } catch (HttpClientErrorException exc) {
