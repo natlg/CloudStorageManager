@@ -4,6 +4,10 @@ var fileIdPopover;
 var fileNamePopover;
 var rowId;
 var selectedNode;
+var domainName = "http://localhost:8080";
+var currentFolderId = "";
+var pathIdPref = "path_";
+
 var detailsMenuContent = `<div id="popoverContent" class="borderless popoverDetails">
         <a id="pop_copy" href="#" class="list-group-item" data-toggle="modal" data-target="#modalCopy">Copy</a>
         <a id="pop_move" href="#" class="list-group-item">Move</a>
@@ -193,7 +197,7 @@ function transfer(action) {
     };
 
     showTempAlert("Start " + action);
-    callMethod("http://localhost:8080/" + action, "POST", params, function (response) {
+    callMethod("/" + action, "POST", params, function (response) {
         console.log("Finished " + action);
         if (action === 'move') {
             listFolder(currentCloud, filesProvider.fullPath);
@@ -213,7 +217,7 @@ function removeCloud() {
         cloudName: cloud
     };
     showTempAlert("Removing " + currentCloud);
-    callMethod("http://localhost:8080/removecloud", "DELETE", params, function (response) {
+    callMethod("/removecloud", "DELETE", params, function (response) {
         console.log("removed");
         $("#files_table").hide();
         getClouds();
@@ -291,7 +295,7 @@ function fillTree(tree) {
                 var json = JSON.stringify({cloudName: cloud, path: path, id: ""});
 
                 data.result = {
-                    url: "http://localhost:8080/getcloudstree",
+                    url: "/getcloudstree",
                     cache: false,
                     type: 'POST',
                     data: json,
@@ -382,7 +386,7 @@ function rename() {
 
     showTempAlert("Start renaming");
 
-    callMethod("http://localhost:8080/renamefile", "POST", params, function (response) {
+    callMethod("/renamefile", "POST", params, function (response) {
         console.log("file is renamed");
         listFolder(currentCloud, filesProvider.fullPath);
     });
@@ -398,7 +402,7 @@ function deleteFile() {
         cloudName: currentCloud
     };
     showTempAlert("Start deleting");
-    callMethod("http://localhost:8080/deletefile", "DELETE", params, function (response) {
+    callMethod("/deletefile", "DELETE", params, function (response) {
         console.log("file is deleted");
         listFolder(currentCloud, filesProvider.fullPath);
     });
@@ -499,7 +503,7 @@ $(document).ready(function () {
 });
 
 function notEmpty(str) {
-    if (str === undefined || str == null || str.length <= 0) {
+    if (str === undefined || str === null || str.length <= 0) {
         console.log("empty");
         return 0;
     }

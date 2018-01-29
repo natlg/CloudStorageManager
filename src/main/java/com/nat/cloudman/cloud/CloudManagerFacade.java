@@ -40,9 +40,9 @@ public class CloudManagerFacade {
         }
     }
 
-    public FilesContainer getFilesList(String accountName, String folderPath) {
+    public FilesContainer getFilesList(String accountName, String folderId, String folderPath) {
         Cloud cloud = userManager.getCloud(accountName);
-        return cloudManagers.get(cloud.getCloudService()).getFilesList(cloud, folderPath);
+        return cloudManagers.get(cloud.getCloudService()).getFilesList(cloud, folderId, folderPath);
     }
 
     public void uploadFile(String cloudName, File localFile, String pathToUpload) throws Exception {

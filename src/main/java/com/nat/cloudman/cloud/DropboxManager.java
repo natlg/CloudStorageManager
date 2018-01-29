@@ -75,7 +75,7 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public FilesContainer getFilesList(Cloud cloud, String folderPath) {
+    public FilesContainer getFilesList(Cloud cloud, String folderId, String folderPath) {
         String token = cloud.getAccessToken();
         System.out.println("token: " + token);
         DbxClientV2 client = getClient(token);
@@ -131,7 +131,7 @@ public class DropboxManager implements CloudManager {
             }
         }
         System.out.println("size: " + files.size());
-        return new FilesContainer(files);
+        return new FilesContainer(files, folderId);
     }
 
     public File multipartToFile(MultipartFile multipart, String pathToSave) throws IllegalStateException, IOException {

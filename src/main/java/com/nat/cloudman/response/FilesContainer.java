@@ -8,8 +8,9 @@ public class FilesContainer {
     private ArrayList<HashMap<String, String>> files;
     private String parentId;
 
-    public FilesContainer(ArrayList<HashMap<String, String>> files) {
+    public FilesContainer(ArrayList<HashMap<String, String>> files, String parentId) {
         this.files = files;
+        this.parentId = parentId;
     }
 
     public ArrayList<HashMap<String, String>> getFiles() {

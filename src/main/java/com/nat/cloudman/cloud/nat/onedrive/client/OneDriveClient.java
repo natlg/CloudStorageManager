@@ -120,13 +120,13 @@ public class OneDriveClient {
         return null;
     }
 
-    public FilesContainer getFilesList(String folderPath) {
+    public FilesContainer getFilesList(String folderPath, String folderId) {
 
         System.out.println("oneDriveUtils. getFilesList");
         System.out.println("refreshToken: " + refreshToken);
         System.out.println("accessToken: " + accessToken);
         try {
-            return getItemExpandChildrensRequest(folderPath);
+            return getItemExpandChildrensRequest(folderPath, folderId);
 
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
@@ -134,7 +134,7 @@ public class OneDriveClient {
                     + " getStackTrace: " + e.getStackTrace());
 
             this.accessToken = requestNewAccessToken(refreshToken);
-            return getItemExpandChildrensRequest(folderPath);
+            return getItemExpandChildrensRequest(folderPath, folderId);
         }
     }
 
@@ -157,7 +157,7 @@ public class OneDriveClient {
     }
 
 
-    public FilesContainer getItemExpandChildrensRequest(String folderPath) {
+    public FilesContainer getItemExpandChildrensRequest(String folderPath, String folderId) {
         System.out.println("oneDriveUtils. getItemExpandChildrensRequest");
         System.out.println("folderPath: " + folderPath);
         String url;
@@ -218,12 +218,12 @@ public class OneDriveClient {
         }
         System.out.println("listChildrenRequest return len: " + files.size());
 
-        FilesContainer filesContainer = new FilesContainer(files);
+        FilesContainer filesContainer = new FilesContainer(files, folderId);
         filesContainer.setParentId(parentId);
         return filesContainer;
     }
 
-    public FilesContainer listChildrenRequest(String folderPath) {
+    public FilesContainer listChildrenRequest(String folderPath, String folderId) {
         System.out.println(" listChildrenRequest");
 
         System.out.println("folderPath: " + folderPath);
@@ -279,7 +279,7 @@ public class OneDriveClient {
             files.add(resultFile);
         }
         System.out.println("listChildrenRequest return len: " + files.size());
-        FilesContainer filesContainer = new FilesContainer(files);
+        FilesContainer filesContainer = new FilesContainer(files, folderId);
         return filesContainer;
     }
 

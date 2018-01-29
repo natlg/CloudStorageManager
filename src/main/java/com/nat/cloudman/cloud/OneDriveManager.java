@@ -47,15 +47,16 @@ public class OneDriveManager implements CloudManager {
         }
     }
 
-    public ResponseEntity<JsonNode> sendAuthorizationCodeRequest(String code) {
+    public CloudCredentials sendAuthorizationCodeRequest(String code) {
         OneDriveClient client = getClient(null, null);
-        return client.sendAuthorizationCodeRequest(code);
+        ResponseEntity<JsonNode> response = client.sendAuthorizationCodeRequest(code);
+        return new CloudCredentials(response.getBody().get("access_token").asText(), response.getBody().get("refresh_token").asText());
     }
 
     @Override
-    public FilesContainer getFilesList(Cloud cloud, String folderPath) {
+    public FilesContainer getFilesList(Cloud cloud, String folderId, String folderPath) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
-        FilesContainer result = client.getFilesList(folderPath);
+        FilesContainer result = client.getFilesList(folderPath, folderId);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
         return result;
     }

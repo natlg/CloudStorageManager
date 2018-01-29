@@ -13,7 +13,7 @@ function logoutClick() {
             console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
         }
     };
-    xhttp.open("POST", "http://localhost:8080/logout/", true);
+    xhttp.open("POST", "/logout/", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send logout");
     xhttp.send();
@@ -66,7 +66,7 @@ function submitLoginForm() {
 
             var params = "email=" + form.elements["email"].value +
                 "&password=" + form.elements["password"].value;
-            xhttp.open("POST", "http://localhost:8080/loginform", true);
+            xhttp.open("POST", "/loginform", true);
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             console.log("send params:");
             console.log(params);
@@ -124,7 +124,7 @@ function submitSignupForm() {
                 "&firstname=" + form.elements["firstname"].value +
                 "&lastname=" + form.elements["lastname"].value +
                 "&password=" + form.elements["password"].value;
-            xhttp.open("POST", "http://localhost:8080/signup", true);
+            xhttp.open("POST", "/signup", true);
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             console.log("send params:");
             console.log(params);

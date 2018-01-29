@@ -8,7 +8,7 @@ import java.io.File;
 
 public interface CloudManager {
 
-    FilesContainer getFilesList(Cloud cloud, String folderPath);
+    FilesContainer getFilesList(Cloud cloud, String folderId, String folderPath);
 
     String getServiceName();
 

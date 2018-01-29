@@ -59,6 +59,9 @@ function getClouds() {
                         case 'OneDrive':
                             cloudIcon = ` <img class="icon" src="img/onedrive-icon.png" alt="OneDrive">`;
                             break;
+                        case 'Google Drive':
+                            cloudIcon = ` <img class="icon" src="img/googledrive-icon.png" alt="GoogleDrive">`;
+                            break;
                     }
 
                     var cloud = `<li><div>`
@@ -81,7 +84,7 @@ function getClouds() {
             }
         }
     };
-    xhttp.open("POST", "http://localhost:8080/getclouds", true);
+    xhttp.open("POST", "/getclouds", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
@@ -97,13 +100,13 @@ function addCloud() {
 
     switch (cloudDrive) {
         case 'Dropbox':
-            location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=http://localhost:8080/indexpage.html?redirect=dropbox";
+            location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=" + domainName + "/indexpage.html?redirect=dropbox";
             break;
         case 'OneDrive':
             location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
                 "client_id=70a0893e-f51c-4f4b-abc0-827f347e4f43" +
                 "&response_type=code" +
-                "&redirect_uri=http://localhost:8080/indexpage.html" +
+                "&redirect_uri=/indexpage.html" +
                 "&response_mode=query" +
                 "&scope=Files.ReadWrite.All%20offline_access";
             break;
@@ -114,8 +117,8 @@ function addCloud() {
                 "access_type=offline&" +
                 "include_granted_scopes=true&" +
                 "state=state_parameter_passthrough_value&" +
-                "redirect_uri=http://localhost:8080/indexpage.html&" +
-                "client_id=351462348570-v1282soo2bbd52f6l6qjdil2rh6cboqb.apps.googleusercontent.com";
+                "redirect_uri=" + domainName + "/indexpage.html&" +
+                "client_id=770930937201-fr3kajpf35v7uelh5m120vn8dsqikno7.apps.googleusercontent.com";
             break;
     }
 }
@@ -132,7 +135,7 @@ function addFolder() {
         path: filesProvider.fullPath,
         cloudName: currentCloud
     };
-    callMethod("http://localhost:8080/addfolder", "POST", params, function (response) {
+    callMethod("/addfolder", "POST", params, function (response) {
         console.log("folder is added");
         listFolder(currentCloud, filesProvider.fullPath);
     });
@@ -159,7 +162,7 @@ function getAuthorizeUrl() {
             }
         }
     };
-    xhttp.open("POST", "http://localhost:8080/getauthorizeurl", true);
+    xhttp.open("POST", "/getauthorizeurl", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
@@ -208,7 +211,7 @@ function sendAddCloudRequest(cloud, cloudName, code) {
 
     var params = "cloud=" + cloud +
         "&cloudName=" + cloudName + "&code=" + code;
-    xhttp.open("POST", "http://localhost:8080/addcloud", true);
+    xhttp.open("POST", "/addcloud", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send params:");
     console.log(params);
@@ -222,7 +225,7 @@ function cloudClick(event) {
     $("#aboutPageText").hide();
     var clickedCloud = event.target.textContent;
     console.log("text click: " + clickedCloud);
-
     currentCloud = clickedCloud;
-    listFolder(clickedCloud, "");
+    filesProvider.pathIdList = [];
+    listFolder(clickedCloud, "", "");
 }

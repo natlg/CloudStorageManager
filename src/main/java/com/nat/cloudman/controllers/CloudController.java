@@ -40,7 +40,6 @@ public class CloudController {
     @Autowired
     private UserManager userManager;
 
-
     @Autowired
     private CloudService cloudService;
 
@@ -53,10 +52,11 @@ public class CloudController {
 
     @RequestMapping(value = "/listfiles", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
+                                    @RequestParam(value = "folderId", defaultValue = "") String folderId,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                                     HttpServletRequest request, HttpServletResponse response) {
         System.out.println(" listfiles got path: " + path + ", cloudName: " + cloudName);
-        return cloudManager.getFilesList(cloudName, path);
+        return cloudManager.getFilesList(cloudName, folderId, path);
     }
 
     @RequestMapping(value = "/addfolder", method = RequestMethod.POST)
@@ -170,7 +170,7 @@ public class CloudController {
             if (cl.getAccountName().equals(cloudName)) {
                 System.out.println("have cloud getAccountName: " + cl.getAccountName());
                 System.out.println("have cloud getCloudService: " + cl.getCloudService());
-                FilesContainer f = cloudManager.getFilesList(cl.getAccountName(), path);
+                FilesContainer f = cloudManager.getFilesList(cl.getAccountName(), id, path);
                 return f;
             }
         }

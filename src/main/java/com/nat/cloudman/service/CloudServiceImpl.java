@@ -1,9 +1,11 @@
 package com.nat.cloudman.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nat.cloudman.cloud.CloudCredentials;
 import com.nat.cloudman.cloud.DropboxManager;
 import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
+import com.nat.cloudman.cloud.google.GoogleManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.repository.CloudRepository;
@@ -28,6 +30,9 @@ public class CloudServiceImpl implements CloudService {
     @Autowired
     OneDriveManager oneDriveManager;
 
+    @Autowired
+    private GoogleManager googleManager;
+
     @Override
     public void saveCloud(Cloud cloud) {
         System.out.println("saveCloud");
@@ -36,32 +41,27 @@ public class CloudServiceImpl implements CloudService {
 
     @Override
     public void addCloudToCurrentUser(String cloudDrive, String cloudName, String code) {
-        String refreshToken;
-        String access_oken;
+        CloudCredentials cloudCredentials;
         switch (cloudDrive) {
             case "OneDrive":
-                ResponseEntity<JsonNode> response = oneDriveManager.sendAuthorizationCodeRequest(code);
-                refreshToken = response.getBody().get("refresh_token").asText();
-                access_oken = response.getBody().get("access_token").asText();
+                cloudCredentials = oneDriveManager.sendAuthorizationCodeRequest(code);
                 break;
             case "Dropbox":
-                refreshToken = access_oken = code;
+                cloudCredentials = new CloudCredentials(code, code);
                 break;
             case "Google Drive":
-                //TODO
-                System.out.println("add Google Drive");
-                return;
-            //break;
+                cloudCredentials = googleManager.sendAuthorizationCodeRequest(code);
+                break;
             default:
                 System.out.println(cloudDrive + " is not supported yet");
                 return;
         }
-
+        System.out.println("cloudDrive: " + cloudDrive + ", " + cloudCredentials);
         Cloud cloud = new Cloud();
         cloud.setCloudService(cloudDrive);
         cloud.setAccountName(cloudName);
-        cloud.setAccessToken(access_oken);
-        cloud.setRefreshToken(refreshToken);
+        cloud.setAccessToken(cloudCredentials.getAccessToken());
+        cloud.setRefreshToken(cloudCredentials.getRefreshToken());
         saveCloud(cloud);
         User user = userManager.getUser();
         user.addCloud(cloud);

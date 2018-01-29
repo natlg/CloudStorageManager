@@ -15,13 +15,16 @@ function drop(ev) {
 
 function dblclickFile(event) {
     console.log("dblclickFile");
-    console.log("data id: " + event.data.id);
+    console.log("data id: " + event.data.id + ", name: " + event.data.name);
     var folderPath = $(document.getElementById(event.data.id)).find(".fileName").text();
     console.log("textContent: " + folderPath);
-    console.log("current parent: " + filesProvider.fullPath);
+    console.log("fullPath: " + filesProvider.fullPath);
     var pathToShow = filesProvider.fullPath + "/" + folderPath;
     console.log("pathToShow: " + pathToShow);
-    listFolder(currentCloud, pathToShow);
+    var folderToShow = {name: event.data.name, id: pathIdPref + event.data.id};
+    filesProvider.pathIdList.push(folderToShow);
+    filesProvider.printPathIdList();
+    listFolder(currentCloud, pathToShow, event.data.id);
 }
 
 function pathClick() {
@@ -31,7 +34,7 @@ function pathClick() {
     console.log("class: " + $(this).attr('class'));
     if ($($(this)).attr('class').toString().indexOf("mainFolder") !== -1) {
         console.log("mainFolder ");
-        listFolder(currentCloud, "");
+        listFolder(currentCloud, "", "");
         return;
     }
 
@@ -49,7 +52,9 @@ function pathClick() {
     }
     path += clickedPath;
     console.log("all path: " + path);
-    listFolder(currentCloud, path);
+    var id = $(this).attr('id').substring(pathIdPref.length);
+    console.log("path click id: " + id)
+    listFolder(currentCloud, path, id);
 }
 
 // gets id of clicked file
@@ -79,7 +84,7 @@ function getText(text) {
         return "";
 }
 
-function listFolder(cloudName, path) {
+function listFolder(cloudName, path, id) {
     if (filesProvider) {
         console.log("current parent: " + filesProvider.fullPath);
     }
@@ -87,14 +92,14 @@ function listFolder(cloudName, path) {
         console.log("filesProvider doesn't exist");
         filesProvider = new FilesProvider();
     }
-    filesProvider.getFilesList(cloudName, path, handleFile);
+    filesProvider.getFilesList(cloudName, path, id, handleFile);
 }
 
 //gets clicked row information when clicking details
 function rowClick(event) {
     fileIdPopover = event.data.id;
     fileNamePopover = $(document.getElementById(event.data.id)).find(".fileName").text();
-    console.log("data id: " + fileIdPopover + ", fileName: " + fileNamePopover);
+    console.log("rowClick data id: " + fileIdPopover + ", fileName: " + fileNamePopover);
 }
 
 function getThumbnail(currentCloud, id, pathLower) {
@@ -105,13 +110,17 @@ function getThumbnail(currentCloud, id, pathLower) {
         path: pathLower,
         cloudName: currentCloud
     };
-    callMethod("http://localhost:8080/getthumbnail", "POST", params, function (response) {
+    callMethod("/getthumbnail", "POST", params, function (response) {
         console.log("got thumbnail, response:" + response);
         if (notEmpty(response) === 1) {
+            console.log("got thumbnail");
             var imgThumb = document.getElementById(id).getElementsByTagName('img')[0];
             imgThumb.src = response;
             $(imgThumb).css('width', 'auto');
             $(imgThumb).css('height', 'auto');
+        }
+        else {
+            console.log("didn't get thumbnail");
         }
     });
 }
@@ -135,11 +144,13 @@ function handleFile(files) {
 
     for (var key in files) {
         if (files.hasOwnProperty(key)) {
-            console.log("add: " + files[key].name);
+            var fileId = files[key].id;
+            var fileName = files[key].name;
+            console.log("add: " + fileName);
             var row =
-                `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${files[key].id} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
+                `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${fileId} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)" ">
-                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#">${files[key].name}</a></td>
+                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#">${fileName}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
                         <td>${getText(files[key].modified)}</td>
@@ -152,12 +163,12 @@ function handleFile(files) {
                     </tr>`;
 
             table.append($(row));
+            console.log("id: " + fileId);
+            var r = $(document.getElementById(fileId));
 
-            console.log("id: " + files[key].id);
-            var r = $(document.getElementById(files[key].id));
-            r.on("dblclick", {id: files[key].id}, dblclickFile);
-            r.on("click", {id: files[key].id}, rowClick);
-            r.find("a.fileName").on("click", {id: files[key].id}, dblclickFile);
+            r.on("dblclick", {id: fileId, name: fileName}, dblclickFile);
+            r.on("click", {id: fileId}, rowClick);
+            r.find("a.fileName").on("click", {id: fileId, name: fileName}, dblclickFile);
             var link = r.find('a');
             bindPopover();
             rowId = "";
@@ -169,10 +180,27 @@ function handleFile(files) {
     var pathContainer = $("#pathContainer");
     emptyPath();
 
-    if (filesProvider.pathList && filesProvider.pathList !== undefined && filesProvider.pathList.length > 0) {
-        for (var e = 0; e < filesProvider.pathList.length; e++) {
+    //TODO multy requests
+
+    if (filesProvider.pathIdList.length > 0) {
+        for (var i = 0; i < filesProvider.pathIdList.length; i++) {
+            console.log(i + " name: " + filesProvider.pathIdList[i].name);
+            //starts with 'path_' to not duplicate row id
+            var pathId = filesProvider.pathIdList[i].id.substring(pathIdPref.length);
+            if (pathId === filesProvider.parentId) {
+                console.log(" parent folder: " + filesProvider.pathIdList[i].name + ", id: " + filesProvider.pathIdList[i].id);
+                filesProvider.pathIdList.splice(i + 1, filesProvider.pathIdList.length + 1);
+                break;
+            }
+        }
+    }
+
+    // create path links
+    if (filesProvider.pathIdList && filesProvider.pathIdList !== undefined && filesProvider.pathIdList.length > 0) {
+        for (var e = 0; e < filesProvider.pathIdList.length; e++) {
+            console.log("pathlink e: " + e + ", id: " + filesProvider.pathIdList[e].id + ", name: " + filesProvider.pathIdList[e].name);
             var fileLink = $(`<i class="fa fa-angle-right"></i>
-            <a href="#" class="pathLink pathFolder">${filesProvider.pathList[e]}</a>`);
+            <a href="#" id="${filesProvider.pathIdList[e].id}" class="pathLink pathFolder">${filesProvider.pathIdList[e].name}</a>`);
             pathContainer.append(fileLink);
             fileLink.on("click", pathClick);
         }
@@ -206,7 +234,7 @@ function clickUpload() {
     formData.append("cloudName", currentCloud);
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://localhost:8080/upload/', true);
+    xhr.open('POST', '/upload/', true);
 
     // Set up a handler for when the request finishes.
     xhr.onload = function () {

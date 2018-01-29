@@ -1,6 +1,7 @@
 class FilesProvider {
     constructor() {
         this.pathList = [];
+        this.pathIdList = [];
         this.fullPath = "";
         this.parentId = "";
         //use id as property name for getting file
@@ -8,9 +9,21 @@ class FilesProvider {
         this.clouds = [];
     }
 
-    getFilesList(cloudName, path, handleData) {
+    printPathIdList() {
+        console.log("printPathIdList");
+        if (this.pathIdList.length > 0) {
+            for (var i = 0; i < this.pathIdList.length; i++) {
+                console.log(i + " name: " + this.pathIdList[i].name + ", id: " + this.pathIdList[i].id);
+            }
+        }
+        else {
+            console.log("empty");
+        }
+    }
 
-        console.log("getFilesList from path: " + path + ", cloudName: " + cloudName);
+    getFilesList(cloudName, path, id, handleData) {
+        currentFolderId = id;
+        console.log("getFilesList from path: " + path + ", cloudName: " + cloudName + ", id: " + id);
         var xhttp = new XMLHttpRequest();
         var self = this;
         xhttp.onreadystatechange = function () {
@@ -26,7 +39,18 @@ class FilesProvider {
                 self.filesObj = {};
                 console.log("arrayLength: " + arrayLength);
                 for (var i = 0; i < arrayLength; i++) {
-                    self.filesObj[responseFiles[i].id] = new FileMetadata(self.getNameFromPath(responseFiles[i].pathLower),
+                    var fileName;
+                    console.log("name: " + responseFiles[i].name);
+                    //get from Google Drive only
+                    if (notEmpty(responseFiles[i].name) === 1) {
+                        console.log("not undefined ");
+                        fileName = responseFiles[i].name;
+                    }
+                    else {
+                        console.log("undefined ");
+                        fileName = self.getNameFromPath(responseFiles[i].pathLower);
+                    }
+                    self.filesObj[responseFiles[i].id] = new FileMetadata(fileName,
                         responseFiles[i].type, responseFiles[i].modified, self.formatBytes(responseFiles[i].size), responseFiles[i].id,
                         responseFiles[i].pathLower, responseFiles[i].parentId, responseFiles[i].downloadUrl);
                 }
@@ -37,8 +61,15 @@ class FilesProvider {
                 console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState + "...");
             }
         };
-        var params = "path=" + path + "&cloudName=" + cloudName;
-        xhttp.open("POST", "http://localhost:8080/listfiles", true);
+        var folderIdParam;
+        if (notEmpty(id) === 1) {
+            folderIdParam = "&folderId=" + id;
+        }
+        else {
+            folderIdParam = "";
+        }
+        var params = "path=" + path + "&cloudName=" + cloudName + folderIdParam;
+        xhttp.open("POST", domainName + "/listfiles", true);
         //for get
         //xhttp.open("GET", "http://localhost:8080/dropbox", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -76,6 +107,9 @@ class FilesProvider {
 
 
     formatBytes(bytes) {
+        if (notEmpty(bytes) === 0) {
+            return;
+        }
         var units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         let l = 0, n = parseInt(bytes, 10) || 0;
         while (n >= 1024) {
