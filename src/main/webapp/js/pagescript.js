@@ -461,6 +461,14 @@ $(document).ready(function () {
     $(document).on('click', '#remove_cloud', removeCloud);
     $(document).on('click', '#remove_file', deleteFile);
 
+//hide clouds container when some is chosen (on mobile version)
+    $(document).on('click', '#cloud_container a', function () {
+        console.log("collapse clouds 3");
+        if ($('.navbar-toggle').css('display') != 'none') {
+            $(".navbar-toggle").trigger("click");
+        }
+    });
+
     $('#remove-cloud').click(function (event) {
         console.log("remove-cloud click");
         //add cloud name to the dialog

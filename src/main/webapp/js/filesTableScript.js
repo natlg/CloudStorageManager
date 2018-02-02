@@ -35,6 +35,7 @@ function pathClick() {
     if ($($(this)).attr('class').toString().indexOf("mainFolder") !== -1) {
         console.log("mainFolder ");
         listFolder(currentCloud, "", "");
+        filesProvider.pathIdList = [];
         return;
     }
 
