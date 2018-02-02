@@ -111,7 +111,9 @@ html, body, .nav-container {
 .details_btn {
     border: 1px solid #e0e0e0;
     border-radius: 5px;
-    padding: 2px 2px 2px 2px;
+    padding: 1px 9px 10px 9px;
+    font-weight: bold;
+    font-size: large;
 }
 
 .well-margin {
@@ -121,4 +123,8 @@ html, body, .nav-container {
 .no-padding {
     padding-left: 0px;
     padding-right: 0px;
+}
+
+.right-padding {
+    padding-right: 20px;
 }

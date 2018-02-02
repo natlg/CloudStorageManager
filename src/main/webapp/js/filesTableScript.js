@@ -149,13 +149,13 @@ function handleFile(files) {
             console.log("add: " + fileName);
             var row =
                 `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${fileId} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
-                    ondragstart="drag(event)" ">
+                    ondragstart="drag(event)">
                         <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#">${fileName}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
                         <td>${getText(files[key].modified)}</td>
-                    <td>
-                    <a  href="#" class="hoverAble details_btn" data-toggle="popover" rel="popover" data-placement="left"
+                    <td style=" padding-right: 20px">
+                    <a tabindex="0" role="button" href="#!" class="hoverAble details_btn" data-toggle="popover" rel="popover" data-placement="left"
                     data-popover-content="#popoverContent"
                     data-trigger="focus">
                 ...</a>

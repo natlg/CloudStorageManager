@@ -285,7 +285,7 @@ public class OneDriveClient {
 
     public boolean uploadFile(File localFile, String filePath) {
         //TODO check status, return bool
-        System.err.println("uploadFile" + "filePath: " + filePath);
+        System.out.println("uploadFile" + "filePath: " + filePath);
         try {
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
                 uploadSmallFile(localFile, filePath);
