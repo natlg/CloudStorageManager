@@ -39,7 +39,7 @@ function getClouds() {
                 var addBtn = `
             <span data-toggle="modal" data-target="#myModal">
                     <a title="Add Cloud" class="icon-link" data-toggle="tooltip" >
-                    <img class="icon" src="img/add-icon.png" alt="add cloud">
+                    <img class="icon" src="img/add-icon-2.png" alt="add cloud">
                     Add Cloud
                     </a>
                     </span>

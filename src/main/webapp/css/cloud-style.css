@@ -55,6 +55,10 @@ html, body, .nav-container {
     margin-right: 5px;
 }
 
+.pathText {
+    font-size: large;
+}
+
 .icon {
     width: 40px;
     height: 40px;
@@ -71,7 +75,7 @@ html, body, .nav-container {
     alignment: left;
     align-self: left;
     text-align: left;
-
+    color: #5e5e5e;
 }
 
 .tree-view {
@@ -128,3 +132,9 @@ html, body, .nav-container {
 .right-padding {
     padding-right: 20px;
 }
+
+.menu-text {
+    font-size: large;
+    color: #5e5e5e;
+}
+

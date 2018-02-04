@@ -201,7 +201,7 @@ function handleFile(files) {
         for (var e = 0; e < filesProvider.pathIdList.length; e++) {
             console.log("pathlink e: " + e + ", id: " + filesProvider.pathIdList[e].id + ", name: " + filesProvider.pathIdList[e].name);
             var fileLink = $(`<i class="fa fa-angle-right"></i>
-            <a href="#" id="${filesProvider.pathIdList[e].id}" class="pathLink pathFolder">${filesProvider.pathIdList[e].name}</a>`);
+            <a href="#" id="${filesProvider.pathIdList[e].id}" class="pathLink pathFolder pathText">${filesProvider.pathIdList[e].name}</a>`);
             pathContainer.append(fileLink);
             fileLink.on("click", pathClick);
         }
@@ -211,7 +211,7 @@ function handleFile(files) {
 function emptyPath() {
     var pathContainer = $("#pathContainer");
     pathContainer.empty();
-    var mainFileLink = $(`<a class="pathLink mainFolder" href="#" >${currentCloud}</a>`);
+    var mainFileLink = $(`<a class="pathLink mainFolder pathText" href="#" >${currentCloud}</a>`);
     pathContainer.append(mainFileLink);
     mainFileLink.on("click", pathClick);
 }
