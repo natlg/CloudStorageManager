@@ -5,7 +5,7 @@ function logoutClick() {
         if (this.readyState === 4 && this.status === 200) {
             console.log("XMLHttpRequest answer is ready");
             console.log("responseText: " + xhttp.responseText);
-            location.href = "indexpage.html";
+            location.href = "index.html";
             setAuthorized(false);
             $("#table-icons-container").hide();
         }
@@ -51,7 +51,7 @@ function submitLoginForm() {
                 if (this.readyState === 4 && this.status === 200) {
                     console.log("XMLHttpRequest answer is ready");
                     console.log("responseText: " + xhttp.responseText);
-                    location.href = "indexpage.html";
+                    location.href = "index.html";
                     setAuthorized(true);
                     console.log("XMLHttpRequest isLogged: " + isAuthorized());
                 }

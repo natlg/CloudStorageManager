@@ -100,13 +100,13 @@ function addCloud() {
 
     switch (cloudDrive) {
         case 'Dropbox':
-            location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=" + domainName + "/indexpage.html?redirect=dropbox";
+            location.href = "https://www.dropbox.com/1/oauth2/authorize?client_id=Kg4d1ewybw95ovb&response_type=token&redirect_uri=" + domainName + "/index.html?redirect=dropbox";
             break;
         case 'OneDrive':
             location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
                 "client_id=70a0893e-f51c-4f4b-abc0-827f347e4f43" +
                 "&response_type=code" +
-                "&redirect_uri=/indexpage.html" +
+                "&redirect_uri=" + domainName + "/index.html" +
                 "&response_mode=query" +
                 "&scope=Files.ReadWrite.All%20offline_access";
             break;
@@ -117,7 +117,7 @@ function addCloud() {
                 "access_type=offline&" +
                 "include_granted_scopes=true&" +
                 "state=state_parameter_passthrough_value&" +
-                "redirect_uri=" + domainName + "/indexpage.html&" +
+                "redirect_uri=" + domainName + "/index.html&" +
                 "client_id=770930937201-fr3kajpf35v7uelh5m120vn8dsqikno7.apps.googleusercontent.com";
             break;
     }
