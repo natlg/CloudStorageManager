@@ -132,9 +132,10 @@ public class CloudController {
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("filePath") String filePath,
             @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
+            @RequestParam(value = "parentId", defaultValue = "") String parentId,
             HttpServletRequest request, HttpServletResponse response
     ) {
-        System.out.println("filePath: " + filePath + ", cloudName: " + cloudName);
+        System.out.println("filePath: " + filePath + ", cloudName: " + cloudName + ", parentId: " + parentId);
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 try {
@@ -144,7 +145,7 @@ public class CloudController {
                     System.out.println("file getSize: " + file.getSize());
                     File convertedFile = Utils.multipartToFile(file, UPLOAD_PATH);
                     System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName());
+                    cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName(), parentId);
                 } catch (Exception e) {
                     System.out.println("Exception: " + e.getMessage());
                     e.printStackTrace();

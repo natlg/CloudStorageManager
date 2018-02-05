@@ -233,6 +233,7 @@ function clickUpload() {
     }
     formData.append("filePath", filesProvider.fullPath);
     formData.append("cloudName", currentCloud);
+    formData.append("parentId", filesProvider.parentId);
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/upload/', true);
@@ -242,12 +243,13 @@ function clickUpload() {
         if (xhr.status === 200) {
             // File(s) uploaded.
             console.log("UPLOADED! ");
-            listFolder(currentCloud, filesProvider.fullPath);
+            listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
         } else {
-            alert('An error occurred!');
+            console.log("error on upload request");
         }
     };
     // Send the Data.
+    console.log("Start uploading");
     showTempAlert("Start uploading");
     xhr.send(formData);
 }

@@ -56,7 +56,7 @@ public class OneDriveClient {
         map.add("client_id", config.APP_KEY);
         map.add("scope", "Files.ReadWrite.All offline_access");
         map.add("code", code);
-        map.add("redirect_uri", "http://localhost:8080/indexpage.html");
+        map.add("redirect_uri", "http://localhost:8080/index.html");
         map.add("grant_type", "authorization_code");
         map.add("client_secret", config.APP_SECRET);
 
@@ -93,7 +93,7 @@ public class OneDriveClient {
         map.add("client_id", config.APP_KEY);
         map.add("scope", "Files.ReadWrite.All offline_access");
         map.add("refresh_token", refreshToken);
-        map.add("redirect_uri", "http://localhost:8080/indexpage.html");
+        map.add("redirect_uri", "http://localhost:8080/index.html");
         map.add("grant_type", "refresh_token");
         map.add("client_secret", config.APP_SECRET);
 

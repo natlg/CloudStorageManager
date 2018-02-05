@@ -62,7 +62,7 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public boolean uploadFile(Cloud cloud, File localFile, String filePath) {
+    public boolean uploadFile(Cloud cloud, File localFile, String filePath, String parentId) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.uploadFile(localFile, filePath);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);

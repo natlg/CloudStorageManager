@@ -12,7 +12,7 @@ public interface CloudManager {
 
     String getServiceName();
 
-    boolean uploadFile(Cloud cloud, File localFile, String pathToUpload);
+    boolean uploadFile(Cloud cloud, File localFile, String pathToUpload, String parentId);
 
     boolean addFolder(String folderName, Cloud cloud, String path, String parentId);
 

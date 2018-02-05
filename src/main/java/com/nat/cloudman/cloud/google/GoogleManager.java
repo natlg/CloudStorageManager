@@ -1,14 +1,24 @@
 package com.nat.cloudman.cloud.google;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.ParentReference;
 import com.nat.cloudman.cloud.CloudCredentials;
 import com.nat.cloudman.cloud.CloudManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,6 +28,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -173,8 +187,50 @@ public class GoogleManager implements CloudManager {
         return "Google Drive";
     }
 
+
+    private com.google.api.services.drive.model.File insertFile(Drive service, String title, String description,
+                                                                String parentId, String mimeType, String filename) {
+        com.google.api.services.drive.model.File body = new com.google.api.services.drive.model.File();
+        body.setTitle(title);
+        body.setDescription(description);
+        body.setMimeType(mimeType);
+        if (parentId != null && parentId.length() > 0) {
+            body.setParents(
+                    Arrays.asList(new ParentReference().setId(parentId)));
+        }
+        java.io.File fileContent = new java.io.File(filename);
+        FileContent mediaContent = new FileContent(mimeType, fileContent);
+        try {
+            com.google.api.services.drive.model.File file = service.files().insert(body, mediaContent).execute();
+            return file;
+        } catch (IOException e) {
+            System.out.println("An error occurred: " + e);
+            return null;
+        }
+    }
+
+    private Drive getDrive(String accessToken, String refreshToken) {
+        HttpTransport httpTransport = new NetHttpTransport();
+        JsonFactory jsonFactory = new JacksonFactory();
+        GoogleCredential credential1 = new GoogleCredential.Builder().setJsonFactory(jsonFactory)
+                .setTransport(httpTransport).setClientSecrets(CLIENT_ID, CLIENT_SECRET).build();
+        credential1.setAccessToken(accessToken);
+        credential1.setRefreshToken(refreshToken);
+        return new Drive.Builder(httpTransport, jsonFactory, credential1).build();
+    }
+
     @Override
-    public boolean uploadFile(Cloud cloud, File localFile, String pathToUpload) {
+    public boolean uploadFile(Cloud cloud, File localFile, String pathToUpload, String parentId) {
+        String mimeType = null;
+        try {
+            mimeType = Files.probeContentType(localFile.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("upload file: " + localFile.getName() + ", mime type: " + mimeType);
+        insertFile(getDrive(cloud.getAccessToken(), cloud.getRefreshToken()),
+                localFile.getName(), "", parentId, mimeType, localFile.getPath());
+
         return false;
     }
 
@@ -220,7 +276,7 @@ public class GoogleManager implements CloudManager {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("client_id", CLIENT_ID);
         map.add("code", code);
-        map.add("redirect_uri", APP_DOMAIN + "/indexpage.html");
+        map.add("redirect_uri", APP_DOMAIN + "/index.html");
         map.add("grant_type", "authorization_code");
         map.add("client_secret", CLIENT_SECRET);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);

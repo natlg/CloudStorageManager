@@ -145,7 +145,7 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public boolean uploadFile(Cloud cloud, File localFile, String dropboxPath) {
+    public boolean uploadFile(Cloud cloud, File localFile, String dropboxPath, String parentId) {
         //TODO check upload, return bool
         System.err.println("uploadFile");
         System.err.println("dropboxPath: " + dropboxPath);

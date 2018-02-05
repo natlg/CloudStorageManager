@@ -1,8 +1,6 @@
 package com.nat.cloudman.cloud.transfer;
 
 import com.nat.cloudman.cloud.CloudManager;
-import com.nat.cloudman.cloud.DropboxManager;
-import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.utils.Utils;
@@ -43,7 +41,7 @@ public class TransferTask {
             System.out.println(fileName + " is fileName, " + pathSource + " is a pathSource");
 
             File file = cloudManagers.get(cloudSource.getCloudService()).downloadLocal(fileName, pathSource, downloadUrl, cloudSource);
-            return cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest);
+            return cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest, idDest);
 
         } else {
             // just copy inside of the same cloud
