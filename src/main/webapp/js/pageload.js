@@ -200,7 +200,7 @@ function transfer(action) {
     callMethod("/" + action, "POST", params, function (response) {
         console.log("Finished " + action);
         if (action === 'move') {
-            listFolder(currentCloud, filesProvider.fullPath);
+            listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
         }
     });
 }
@@ -262,6 +262,14 @@ function getCloudFromNode(node) {
     }
 }
 
+function getIdFromNode(node) {
+    var parents = node.getParentList(false, true);
+    // 1th node is cloud, so id will be wrong
+    if (parents.length > 1) {
+        return parents[parents.length - 1].key;
+    }
+}
+
 function copyClick() {
     console.log(" copyClick ");
     if (!$('#modalCopy').hasClass('in')) {
@@ -291,8 +299,12 @@ function fillTree(tree) {
             lazyLoad: function (event, data) {
                 var cloud = getCloudFromNode(data.node);
                 var path = getPathFromNode(data.node);
-                console.log(" path: " + path + " cloud: " + cloud);
-                var json = JSON.stringify({cloudName: cloud, path: path, id: ""});
+                var fileId = getIdFromNode(data.node);
+                if (notEmpty(fileId) === 0) {
+                    fileId = "";
+                }
+                console.log(" path: " + path + " cloud: " + cloud + ", fileId: " + fileId);
+                var json = JSON.stringify({cloudName: cloud, path: path, id: fileId});
 
                 data.result = {
                     url: "/getcloudstree",
@@ -327,10 +339,15 @@ function convertData(filesObj) {
     var file;
     var sourceFiles = [];
     for (file of filesObj.files) {
-        console.log("show file: " + file.title)
+        console.log("show file: " + file.name + ",path: " + file.displayPath)
         // need only folders for copy|move
         if (file.type == "folder") {
-            file.title = filesProvider.getNameFromPath(file.displayPath);
+            if (notEmpty(file.name) === 1) {
+                file.title = file.name;
+            }
+            else {
+                file.title = filesProvider.getNameFromPath(file.displayPath);
+            }
             file.key = file.id;
             file.lazy = true;
             file.folder = true;
@@ -388,7 +405,7 @@ function rename() {
 
     callMethod("/renamefile", "POST", params, function (response) {
         console.log("file is renamed");
-        listFolder(currentCloud, filesProvider.fullPath);
+        listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });
 }
 
@@ -404,7 +421,7 @@ function deleteFile() {
     showTempAlert("Start deleting");
     callMethod("/deletefile", "DELETE", params, function (response) {
         console.log("file is deleted");
-        listFolder(currentCloud, filesProvider.fullPath);
+        listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });
 
 

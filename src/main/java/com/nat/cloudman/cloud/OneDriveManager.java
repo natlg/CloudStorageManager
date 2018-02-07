@@ -102,7 +102,7 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud) {
+    public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         File result = client.downloadLocal(fileName, path, downloadUrl, DOWNLOAD_PATH);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
@@ -110,7 +110,7 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.copyFile(pathSourse, pathDest, idSource, idDest);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);

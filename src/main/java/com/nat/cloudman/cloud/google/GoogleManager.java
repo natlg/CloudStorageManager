@@ -18,7 +18,6 @@ import com.nat.cloudman.service.CloudService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -26,11 +25,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
+import java.io.*;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -48,6 +44,9 @@ public class GoogleManager implements CloudManager {
 
     @Autowired
     private CloudService cloudService;
+
+    @Value("${temp.download.path}")
+    private String DOWNLOAD_PATH;
 
     private String requestNewAccessToken(String refreshToken) {
         String url = "https://www.googleapis.com/oauth2/v4/token";
@@ -172,7 +171,6 @@ public class GoogleManager implements CloudManager {
             e.printStackTrace();
             String newAccessToken = requestNewAccessToken(cloud.getRefreshToken());
             checkAndSaveAccessToken(newAccessToken, cloud);
-            //cloud.setAccessToken(newAccessToken);
             try {
                 return getFilesListRequest(cloud, folderId);
             } catch (Exception ex) {
@@ -236,36 +234,136 @@ public class GoogleManager implements CloudManager {
 
     @Override
     public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        com.google.api.services.drive.model.File body = new com.google.api.services.drive.model.File();
+        body.setTitle(folderName);
+        body.setMimeType("application/vnd.google-apps.folder");
+        if (parentId != null && parentId.length() > 0) {
+            body.setParents(
+                    Arrays.asList(new ParentReference().setId(parentId)));
+        }
+        try {
+            driveService.files().insert(body).setFields("id").execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
     @Override
+    public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        //TODO timeout
+        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(file);
+            driveService.files().get(fileId)
+                    .executeMediaAndDownloadTo(outputStream);
+            outputStream.flush();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return file;
+    }
+
+    @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
+        File file = downloadLocal(fileName, path, null, fileId, cloud);
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println("downloaded ");
+        try {
+            byte[] arr = IOUtils.toByteArray(is);
+            is.close();
+            if (file.delete()) {
+                System.out.println(file.getName() + " is deleted");
+            } else {
+                System.out.println("Delete operation is failed");
+            }
+            System.out.println("arr size: " + arr.length);
+            return new DownloadedFileContainer(fileName, arr);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public boolean deleteFile(String fileId, String path, Cloud cloud) {
+        Drive service = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        try {
+            service.files().delete(fileId).execute();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
     @Override
     public boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
-        return false;
+        System.out.println("google renameFile");
+        Drive service = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        try {
+            com.google.api.services.drive.model.File file = new com.google.api.services.drive.model.File();
+            file.setTitle(newName);
+            // Rename file.
+            com.google.api.services.drive.Drive.Files.Patch patchRequest = service.files().patch(fileId, file);
+            patchRequest.setFields("title");
+            patchRequest.execute();
+            return true;
+        } catch (IOException e) {
+            System.out.println("An error occurred: " + e);
+            return false;
+        }
     }
 
-    @Override
-    public File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud) {
-        return null;
-    }
 
     @Override
-    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud) {
-        return false;
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        com.google.api.services.drive.model.File file = null;
+        try {
+            file = driveService.files().get(idSource)
+                    .setFields("parents")
+                    .execute();
+            StringBuilder previousParents = new StringBuilder();
+            for (ParentReference parent : file.getParents()) {
+                previousParents.append(parent);
+                previousParents.append(',');
+            }
+            // Move
+            driveService.files().update(idSource, null)
+                    .setAddParents(idDest)
+                    .setFields("id, parents")
+                    .execute();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
     public String getThumbnail(Cloud cloud, String fileId, String path) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        com.google.api.services.drive.model.File file = null;
+        try {
+            file = driveService.files().get(fileId)
+                    .execute();
+            String thumb = file.getThumbnailLink();
+            System.out.println("Thumbnail: " + thumb);
+            return thumb;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

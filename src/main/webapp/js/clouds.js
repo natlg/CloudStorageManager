@@ -137,7 +137,7 @@ function addFolder() {
     };
     callMethod("/addfolder", "POST", params, function (response) {
         console.log("folder is added");
-        listFolder(currentCloud, filesProvider.fullPath);
+        listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });
 }
 

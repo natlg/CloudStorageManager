@@ -31,21 +31,22 @@ public class TransferTask {
         }
     }
 
-    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
+    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String fileName) {
         Cloud cloudDest = userManager.getCloud(cloudDestName);
+        if (fileName == null) {
+            fileName = Utils.getNameFromPath(pathSource);
+        }
         if (!cloudSourceName.equals(cloudDestName)) {
             //need to download local and then upload to dest cloud
             Cloud cloudSource = userManager.getCloud(cloudSourceName);
-            String fileName = Utils.getNameFromPath(pathSource);
             pathSource = Utils.getParentFromPath(pathSource);
             System.out.println(fileName + " is fileName, " + pathSource + " is a pathSource");
-
-            File file = cloudManagers.get(cloudSource.getCloudService()).downloadLocal(fileName, pathSource, downloadUrl, cloudSource);
+            File file = cloudManagers.get(cloudSource.getCloudService()).downloadLocal(fileName, pathSource, downloadUrl, idSource, cloudSource);
             return cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest, idDest);
 
         } else {
             // just copy inside of the same cloud
-            return cloudManagers.get(cloudDest.getCloudService()).copyFile(pathSource, pathDest, idSource, idDest, cloudDest);
+            return cloudManagers.get(cloudDest.getCloudService()).copyFile(pathSource, pathDest, idSource, idDest, cloudDest, fileName);
         }
     }
 }

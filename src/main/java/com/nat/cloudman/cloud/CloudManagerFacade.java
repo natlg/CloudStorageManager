@@ -5,7 +5,6 @@ import com.nat.cloudman.controllers.params.FileParameters;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
-import com.nat.cloudman.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -82,12 +81,12 @@ public class CloudManagerFacade {
         cloudManagers.get(cloud.getCloudService()).renameFile(fileName, fileId, newName, path, cloud);
     }
 
-    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest) {
-        return transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest);
+    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String fileName) {
+        return transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest, fileName);
     }
 
-    public void moveFile(String cloudSource, String pathSource, String idSource, String downloadUrl, String cloudDest, String pathDest, String idDest) {
-        if (copyFile(cloudSource, pathSource, idSource, downloadUrl, cloudDest, pathDest, idDest)) {
+    public void moveFile(String cloudSource, String pathSource, String idSource, String downloadUrl, String cloudDest, String pathDest, String idDest, String fileName) {
+        if (copyFile(cloudSource, pathSource, idSource, downloadUrl, cloudDest, pathDest, idDest, fileName)) {
             System.out.println("finished copy, start deleting");
             deleteFile(cloudSource, idSource, pathSource);
         }

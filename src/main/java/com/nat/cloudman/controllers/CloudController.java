@@ -1,36 +1,28 @@
 package com.nat.cloudman.controllers;
 
-import java.io.*;
-import java.util.*;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.nat.cloudman.cloud.CloudManagerFacade;
-import com.nat.cloudman.cloud.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.controllers.params.CloudParameters;
 import com.nat.cloudman.controllers.params.FileParameters;
 import com.nat.cloudman.controllers.params.FolderParameters;
 import com.nat.cloudman.controllers.params.TransitParameters;
-import com.nat.cloudman.response.CloudContainer;
-import com.nat.cloudman.response.FilesContainer;
-import com.nat.cloudman.cloud.DropboxManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
+import com.nat.cloudman.response.CloudContainer;
+import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
-import com.nat.cloudman.service.UserService;
 import com.nat.cloudman.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-
 import org.springframework.web.multipart.MultipartFile;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.util.Set;
 
 //access from any domain
 //@CrossOrigin(origins = "*")
@@ -183,7 +175,7 @@ public class CloudController {
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("copy, " + params);
-        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
+        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName);
     }
 
     @RequestMapping(value = "/move", method = RequestMethod.POST)
@@ -191,7 +183,7 @@ public class CloudController {
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("move, " + params);
-        cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest);
+        cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName);
     }
 
     @RequestMapping(value = "/getthumbnail", method = RequestMethod.POST)

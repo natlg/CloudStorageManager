@@ -100,9 +100,11 @@ class FilesProvider {
 
     getNameFromPath(path) {
         console.log("getNameFromPath path: " + path);
-        var name = path.split("/").pop();
-        console.log("name: " + name);
-        return name;
+        if (notEmpty(path) === 1) {
+            var name = path.split("/").pop();
+            console.log("name: " + name);
+            return name;
+        }
     }
 
 

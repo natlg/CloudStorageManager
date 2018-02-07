@@ -12,10 +12,11 @@ public class TransitParameters {
     public String cloudDest = "";
     public String pathDest = "";
     public String idDest = "";
+    public String fileName = "";
 
     @Override
     public String toString() {
         return "TransitParameters, cloudSource: " + cloudSource + ", pathSource: " + pathSource + ", idSource: " + idSource +
-                ", cloudDest: " + cloudDest + ", pathDest: " + pathDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl;
+                ", cloudDest: " + cloudDest + ", pathDest: " + pathDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl + ", fileName: " + fileName;
     }
 }

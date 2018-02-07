@@ -22,9 +22,9 @@ public interface CloudManager {
 
     boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
 
-    File downloadLocal(String fileName, String path, String downloadUrl, Cloud cloud);
+    File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud);
 
-    boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud);
+    boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName);
 
     String getThumbnail(Cloud cloud, String fileId, String path);
 }
