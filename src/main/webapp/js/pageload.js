@@ -12,7 +12,7 @@ var detailsMenuContent = `<div id="popoverContent" class="borderless popoverDeta
         <a id="pop_copy" href="#" class="list-group-item" data-toggle="modal" data-target="#modalCopy">Copy</a>
         <a id="pop_move" href="#" class="list-group-item">Move</a>
         <a id="pop_rename" href="#" class="list-group-item" data-toggle="modal" data-target="#modalRename">Rename</a>
-        <a id="pop_delete" href="#" class="list-group-item">Delete</a>
+        <a id="pop_delete" href="#" class="list-group-item">Remove</a>
         <a id="pop_download" href="#" class="list-group-item">Download</a>
         </div>`;
 
@@ -181,12 +181,13 @@ function transfer(action) {
 
     var pathDest = getPathFromNode(selectedNode) + "/" + nameSource;
     var cloudDest = getCloudFromNode(selectedNode);
-    var idDest = selectedNode.key;
+    var idDest = getIdFromNode(selectedNode);
     var downloadUrl = filesProvider.filesObj[fileIdPopover].downloadUrl;
     console.log(action + " pathDest: " + pathDest + ", cloudDest: " + cloudDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl);
 
 
     var params = {
+        parentId: filesProvider.parentId,
         cloudSource: cloudSource,
         pathSource: pathSource,
         idSource: idSource,
@@ -267,6 +268,9 @@ function getIdFromNode(node) {
     // 1th node is cloud, so id will be wrong
     if (parents.length > 1) {
         return parents[parents.length - 1].key;
+    }
+    else {
+        return "";
     }
 }
 
@@ -373,7 +377,7 @@ function deleteClick() {
     console.log("deleteClick");
     var name = filesProvider.filesObj[fileIdPopover].name;
     console.log("deleteClick fileIdPopover: " + fileIdPopover + ", name: " + name);
-    $("#remove-file-text").text("Are you sure you want to remove " + name + "?");
+    $("#remove-file-text").text(name);
     $("#modalRemoveFile").modal("show");
 }
 
@@ -416,6 +420,7 @@ function deleteFile() {
         fileId: fileIdPopover,
         fileName: name,
         path: filesProvider.fullPath + "/" + name,
+        parentId: filesProvider.parentId,
         cloudName: currentCloud
     };
     showTempAlert("Start deleting");
@@ -489,7 +494,7 @@ $(document).ready(function () {
     $('#remove-cloud').click(function (event) {
         console.log("remove-cloud click");
         //add cloud name to the dialog
-        $('#remove-cloud-text').text('Are you sure you want to remove ' + currentCloud + '?');
+        $('#remove-cloud-text').text(currentCloud);
     });
 
     $.contextMenu({
@@ -508,7 +513,7 @@ $(document).ready(function () {
                 callback: renameClick
             },
             delete: {
-                name: "Delete",
+                name: "Remove",
                 callback: deleteClick
             },
             download: {

@@ -72,7 +72,7 @@ public class CloudController {
     public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
         System.out.println("deleteFile " + params);
-        cloudManager.deleteFile(params.cloudName, params.fileId, params.path);
+        cloudManager.deleteFile(params.cloudName, params.fileId, params.path, params.parentId);
     }
 
     @RequestMapping(value = "/renamefile", method = RequestMethod.POST)
@@ -175,7 +175,7 @@ public class CloudController {
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("copy, " + params);
-        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName);
+        cloudManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId);
     }
 
     @RequestMapping(value = "/move", method = RequestMethod.POST)
@@ -183,7 +183,7 @@ public class CloudController {
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         System.out.println("move, " + params);
-        cloudManager.moveFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName);
+        cloudManager.moveFile(params);
     }
 
     @RequestMapping(value = "/getthumbnail", method = RequestMethod.POST)

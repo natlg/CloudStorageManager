@@ -1,10 +1,12 @@
-package com.nat.cloudman.cloud;
+package com.nat.cloudman.cloud.dropbox;
 
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
+import com.nat.cloudman.cloud.CloudManager;
+import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -471,7 +473,7 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public boolean deleteFile(String fileId, String path, Cloud cloud) {
+    public boolean deleteFile(String fileId, String path, Cloud cloud, String parentId) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
@@ -498,7 +500,7 @@ public class DropboxManager implements CloudManager {
 
 
     @Override
-    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {

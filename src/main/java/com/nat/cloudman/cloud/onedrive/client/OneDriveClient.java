@@ -1,4 +1,4 @@
-package com.nat.cloudman.cloud.nat.onedrive.client;
+package com.nat.cloudman.cloud.onedrive.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;

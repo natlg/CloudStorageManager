@@ -2,6 +2,7 @@ package com.nat.cloudman.cloud;
 
 import com.nat.cloudman.cloud.transfer.TransferTask;
 import com.nat.cloudman.controllers.params.FileParameters;
+import com.nat.cloudman.controllers.params.TransitParameters;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -71,9 +72,9 @@ public class CloudManagerFacade {
         return new ResponseEntity<InputStreamResource>(isr, respHeaders, HttpStatus.OK);
     }
 
-    public void deleteFile(String cloudName, String fileId, String path) {
+    public void deleteFile(String cloudName, String fileId, String path, String parentId) {
         Cloud cloud = userManager.getCloud(cloudName);
-        cloudManagers.get(cloud.getCloudService()).deleteFile(fileId, path, cloud);
+        cloudManagers.get(cloud.getCloudService()).deleteFile(fileId, path, cloud, parentId);
     }
 
     public void renameFile(String fileName, String newName, String cloudName, String fileId, String path) {
@@ -81,14 +82,14 @@ public class CloudManagerFacade {
         cloudManagers.get(cloud.getCloudService()).renameFile(fileName, fileId, newName, path, cloud);
     }
 
-    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String fileName) {
-        return transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest, fileName);
+    public boolean copyFile(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String fileName, String parentId) {
+        return transferTask.copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest, fileName, parentId);
     }
 
-    public void moveFile(String cloudSource, String pathSource, String idSource, String downloadUrl, String cloudDest, String pathDest, String idDest, String fileName) {
-        if (copyFile(cloudSource, pathSource, idSource, downloadUrl, cloudDest, pathDest, idDest, fileName)) {
+    public void moveFile(TransitParameters params) {
+        if (copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
             System.out.println("finished copy, start deleting");
-            deleteFile(cloudSource, idSource, pathSource);
+            deleteFile(params.cloudSource, params.idSource, params.pathSource, params.parentId);
         }
     }
 

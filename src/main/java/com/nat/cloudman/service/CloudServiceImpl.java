@@ -1,17 +1,13 @@
 package com.nat.cloudman.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.nat.cloudman.cloud.CloudCredentials;
-import com.nat.cloudman.cloud.DropboxManager;
-import com.nat.cloudman.cloud.OneDriveManager;
+import com.nat.cloudman.cloud.onedrive.OneDriveManager;
 import com.nat.cloudman.cloud.UserManager;
 import com.nat.cloudman.cloud.google.GoogleManager;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.model.User;
 import com.nat.cloudman.repository.CloudRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service("cloudService")

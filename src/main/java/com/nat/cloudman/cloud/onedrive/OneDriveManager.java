@@ -1,9 +1,11 @@
-package com.nat.cloudman.cloud;
+package com.nat.cloudman.cloud.onedrive;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nat.cloudman.cloud.nat.onedrive.client.OneDriveClient;
-import com.nat.cloudman.cloud.nat.onedrive.client.OneDriveConfig;
+import com.nat.cloudman.cloud.CloudCredentials;
+import com.nat.cloudman.cloud.CloudManager;
+import com.nat.cloudman.cloud.onedrive.client.OneDriveClient;
+import com.nat.cloudman.cloud.onedrive.client.OneDriveConfig;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
@@ -86,7 +88,7 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public boolean deleteFile(String fileId, String path, Cloud cloud) {
+    public boolean deleteFile(String fileId, String path, Cloud cloud, String parentId) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.deleteFile(fileId, path);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
@@ -110,7 +112,7 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.copyFile(pathSourse, pathDest, idSource, idDest);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);

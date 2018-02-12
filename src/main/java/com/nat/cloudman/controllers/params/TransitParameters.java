@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
 
 public class TransitParameters {
+    public String parentId = "";
     public String cloudSource = "";
     public String pathSource = "";
     public String idSource = "";
@@ -17,6 +18,6 @@ public class TransitParameters {
     @Override
     public String toString() {
         return "TransitParameters, cloudSource: " + cloudSource + ", pathSource: " + pathSource + ", idSource: " + idSource +
-                ", cloudDest: " + cloudDest + ", pathDest: " + pathDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl + ", fileName: " + fileName;
+                ", cloudDest: " + cloudDest + ", pathDest: " + pathDest + ", idDest: " + idDest + ", downloadUrl: " + downloadUrl + ", fileName: " + fileName + ", parentId: " + parentId;
     }
 }

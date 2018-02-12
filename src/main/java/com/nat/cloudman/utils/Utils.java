@@ -7,8 +7,11 @@ import java.io.IOException;
 
 public class Utils {
     public static String getNameFromPath(String path) {
-        int index = path.lastIndexOf("/");
-        return path.substring(index + 1);
+        if (path != null && !path.trim().isEmpty()) {
+            int index = path.lastIndexOf("/");
+            return path.substring(index + 1);
+        }
+        return null;
     }
 
     public static String getParentFromPath(String path) {

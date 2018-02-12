@@ -9,9 +9,11 @@ public class FileParameters {
     public String cloudName = "";
     public String path = "";
     public String newName = "";
+    public String parentId = "";
 
     @Override
     public String toString() {
-        return "FileParam fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path + ", newName: " + newName;
+        return "FileParam fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName +
+                ", path: " + path + ", newName: " + newName + ", parentId: " + parentId;
     }
 }

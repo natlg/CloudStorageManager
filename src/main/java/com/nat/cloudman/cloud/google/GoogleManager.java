@@ -1,6 +1,5 @@
 package com.nat.cloudman.cloud.google;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.FileContent;
 import com.google.api.client.http.HttpTransport;
@@ -11,19 +10,18 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.ParentReference;
 import com.nat.cloudman.cloud.CloudCredentials;
 import com.nat.cloudman.cloud.CloudManager;
+import com.nat.cloudman.cloud.google.client.GoogleClient;
+import com.nat.cloudman.cloud.google.client.GoogleConfig;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
+import com.nat.cloudman.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 
@@ -48,31 +46,8 @@ public class GoogleManager implements CloudManager {
     @Value("${temp.download.path}")
     private String DOWNLOAD_PATH;
 
-    private String requestNewAccessToken(String refreshToken) {
-        String url = "https://www.googleapis.com/oauth2/v4/token";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-        map.add("client_id", CLIENT_ID);
-        map.add("client_secret", CLIENT_SECRET);
-        map.add("refresh_token", refreshToken);
-        map.add("grant_type", "refresh_token");
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, request, JsonNode.class);
-            String accessToken = getResponseProperty(response, "access_token");
-            String expiresIn = getResponseProperty(response, "expires_in");
-            System.out.println("got access_oken: " + accessToken + ", expires_in: " + expiresIn);
-            return accessToken;
-        } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getStatusText: " + e.getStatusText());
-            e.printStackTrace();
-        }
-        return null;
+    private GoogleClient getClient(Cloud cloud) {
+        return new GoogleClient(new GoogleConfig(CLIENT_ID, CLIENT_SECRET, cloud.getAccessToken(), cloud.getRefreshToken()));
     }
 
     private void checkAndSaveAccessToken(String accessToken, Cloud cloud) {
@@ -82,97 +57,18 @@ public class GoogleManager implements CloudManager {
         }
     }
 
-    private String getRootIdRequest(String accessToken) {
-        String url = "https://www.googleapis.com/drive/v3/files/" + "root";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Authorization", "Bearer " + accessToken);
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<String> entity = new HttpEntity<String>(headers);
-        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
-        String rootId = getResponseProperty(response, "id");
-        System.out.println("id : " + rootId);
-        return rootId;
-    }
-
-    private String getRootId(Cloud cloud) {
-        try {
-            return getRootIdRequest(cloud.getAccessToken());
-        } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
-                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText());
-            e.printStackTrace();
-            String newAccessToken = requestNewAccessToken(cloud.getRefreshToken());
-            checkAndSaveAccessToken(newAccessToken, cloud);
-            try {
-                return getRootIdRequest(newAccessToken);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    private FilesContainer getFilesListRequest(Cloud cloud, String folderId) {
-        if (folderId == null || folderId.isEmpty()) {
-            folderId = getRootId(cloud);
-        }
-        String url = "https://www.googleapis.com/drive/v3/files?q='" + folderId + "' in parents";
-        System.out.println("url: " + url);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Authorization", "Bearer " + cloud.getAccessToken());
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<String> entity = new HttpEntity<String>(headers);
-        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
-        System.out.println("files: " + getResponseProperty(response, "files"));
-        JsonNode valueNode = response.getBody().path("files");
-        Iterator<JsonNode> iterator = valueNode.iterator();
-        System.out.println("files:");
-        ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
-        while (iterator.hasNext()) {
-            JsonNode file = iterator.next();
-            System.out.println("name: " + file.get("name").asText());
-            HashMap<String, String> resultFile = new HashMap<String, String>();
-            if (file.get("mimeType").asText().equals("application/vnd.google-apps.folder")) {
-                resultFile.put("type", "folder");
-                System.out.println("folder: " + file.get("name").asText());
-            } else {
-                resultFile.put("type", "file");
-                System.out.println("file: " + file.get("name").asText());
-            }
-            resultFile.put("name", file.get("name").asText());
-            resultFile.put("id", file.get("id").asText());
-            files.add(resultFile);
-        }
-        System.out.println("listChildrenRequest return len: " + files.size());
-        return new FilesContainer(files, folderId);
-    }
-
     @Override
     public FilesContainer getFilesList(Cloud cloud, String folderId, String path) {
         try {
-            return getFilesListRequest(cloud, folderId);
+            return getClient(cloud).getFilesListRequest(folderId);
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText());
             e.printStackTrace();
-            String newAccessToken = requestNewAccessToken(cloud.getRefreshToken());
+            String newAccessToken = getClient(cloud).requestNewAccessToken(cloud.getRefreshToken());
             checkAndSaveAccessToken(newAccessToken, cloud);
             try {
-                return getFilesListRequest(cloud, folderId);
+                return getClient(cloud).getFilesListRequest(folderId);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return null;
@@ -219,6 +115,10 @@ public class GoogleManager implements CloudManager {
 
     @Override
     public boolean uploadFile(Cloud cloud, File localFile, String pathToUpload, String parentId) {
+        String fileName = Utils.getNameFromPath(pathToUpload);
+        if (fileName == null || fileName.trim().isEmpty()) {
+            fileName = localFile.getName();
+        }
         String mimeType = null;
         try {
             mimeType = Files.probeContentType(localFile.toPath());
@@ -227,8 +127,7 @@ public class GoogleManager implements CloudManager {
         }
         System.out.println("upload file: " + localFile.getName() + ", mime type: " + mimeType);
         insertFile(getDrive(cloud.getAccessToken(), cloud.getRefreshToken()),
-                localFile.getName(), "", parentId, mimeType, localFile.getPath());
-
+                fileName, "", parentId, mimeType, localFile.getPath());
         return false;
     }
 
@@ -287,7 +186,6 @@ public class GoogleManager implements CloudManager {
             } else {
                 System.out.println("Delete operation is failed");
             }
-            System.out.println("arr size: " + arr.length);
             return new DownloadedFileContainer(fileName, arr);
         } catch (IOException e) {
             e.printStackTrace();
@@ -296,15 +194,22 @@ public class GoogleManager implements CloudManager {
     }
 
     @Override
-    public boolean deleteFile(String fileId, String path, Cloud cloud) {
-        Drive service = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+    public boolean deleteFile(String fileId, String path, Cloud cloud, String parentId) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        System.out.println("google deleteFile, parentId: " + parentId);
+        if (parentId == null || parentId.trim().isEmpty()) {
+            parentId = getRootId(cloud);
+        }
         try {
-            service.files().delete(fileId).execute();
+            driveService.files().update(fileId, null)
+                    .setRemoveParents(parentId)
+                    .setFields("id, parents")
+                    .execute();
             return true;
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     @Override
@@ -325,28 +230,46 @@ public class GoogleManager implements CloudManager {
         }
     }
 
+    public String getRootId(Cloud cloud) {
+        try {
+            return getClient(cloud).getRootIdRequest(cloud.getAccessToken());
+        } catch (HttpClientErrorException e) {
+            e.printStackTrace();
+            String newAccessToken = getClient(cloud).requestNewAccessToken(cloud.getRefreshToken());
+            checkAndSaveAccessToken(newAccessToken, cloud);
+            try {
+                return getClient(cloud).getRootIdRequest(cloud.getAccessToken());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        }
+    }
 
     @Override
-    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName) {
+    public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        System.out.println("google copyFile, idDest: " + idDest);
         com.google.api.services.drive.model.File file = null;
+        if (idDest == null || idDest.trim().isEmpty()) {
+            idDest = getRootId(cloud);
+        }
+        com.google.api.services.drive.model.File copiedFile = new com.google.api.services.drive.model.File();
+        copiedFile.setTitle(fileName);
         try {
-            file = driveService.files().get(idSource)
-                    .setFields("parents")
-                    .execute();
-            StringBuilder previousParents = new StringBuilder();
-            for (ParentReference parent : file.getParents()) {
-                previousParents.append(parent);
-                previousParents.append(',');
-            }
-            // Move
-            driveService.files().update(idSource, null)
+            file = driveService.files().copy(idSource, copiedFile).execute();
+            String idCopied = file.getId();
+            file = driveService.files().update(idCopied, null)
                     .setAddParents(idDest)
+                    .setFields("id, parents")
+                    .execute();
+            file = driveService.files().update(idCopied, null)
+                    .setRemoveParents(parentId)
                     .setFields("id, parents")
                     .execute();
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("An error occurred: " + e);
             return false;
         }
     }
@@ -368,40 +291,6 @@ public class GoogleManager implements CloudManager {
     }
 
     public CloudCredentials sendAuthorizationCodeRequest(String code) {
-        String url = "https://www.googleapis.com/oauth2/v4/token";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-        map.add("client_id", CLIENT_ID);
-        map.add("code", code);
-        map.add("redirect_uri", APP_DOMAIN + "/index.html");
-        map.add("grant_type", "authorization_code");
-        map.add("client_secret", CLIENT_SECRET);
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, request, JsonNode.class);
-            String refreshToken = getResponseProperty(response, "refresh_token");
-            String accessToken = getResponseProperty(response, "access_token");
-            String expiresIn = getResponseProperty(response, "expires_in");
-            System.out.println("got refreshToken: " + refreshToken);
-            System.out.println("got access_oken: " + accessToken + ", expires_in: " + expiresIn);
-            return new CloudCredentials(accessToken, refreshToken);
-        } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getStatusText: " + e.getStatusText());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private String getResponseProperty(ResponseEntity<JsonNode> response, String property) {
-        String value = null;
-        JsonNode node = response.getBody().get(property);
-        if (node != null) {
-            value = node.asText();
-        }
-        return value;
+        return getClient(null).sendAuthorizationCodeRequest(code, APP_DOMAIN);
     }
 }
