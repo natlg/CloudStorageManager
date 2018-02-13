@@ -275,6 +275,29 @@ public class GoogleManager implements CloudManager {
     }
 
     @Override
+    public boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        System.out.println("google moveFile, idDest: " + idDest);
+        if (idDest == null || idDest.trim().isEmpty()) {
+            idDest = getRootId(cloud);
+        }
+        try {
+            driveService.files().update(idSource, null)
+                    .setAddParents(idDest)
+                    .setFields("id, parents")
+                    .execute();
+            driveService.files().update(idSource, null)
+                    .setRemoveParents(parentId)
+                    .setFields("id, parents")
+                    .execute();
+            return true;
+        } catch (IOException e) {
+            System.out.println("An error occurred: " + e);
+            return false;
+        }
+    }
+
+    @Override
     public String getThumbnail(Cloud cloud, String fileId, String path) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
         com.google.api.services.drive.model.File file = null;

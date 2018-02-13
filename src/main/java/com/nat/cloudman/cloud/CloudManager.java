@@ -26,5 +26,7 @@ public interface CloudManager {
 
     boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId);
 
+    boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId);
+
     String getThumbnail(Cloud cloud, String fileId, String path);
 }

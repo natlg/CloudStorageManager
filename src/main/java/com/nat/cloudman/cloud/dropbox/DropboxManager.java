@@ -513,6 +513,19 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
+    public boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
+        String token = cloud.getAccessToken();
+        DbxClientV2 client = getClient(token);
+        try {
+            client.files().move(pathSourse, pathDest);
+        } catch (DbxException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public String getThumbnail(Cloud cloud, String fileId, String path) {
         //TODO
         String token = cloud.getAccessToken();

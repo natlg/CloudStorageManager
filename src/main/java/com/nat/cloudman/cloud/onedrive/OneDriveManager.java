@@ -120,6 +120,14 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
+    public boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
+        OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
+        boolean result = client.moveFile(pathSourse, pathDest, idSource, idDest);
+        checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        return result;
+    }
+
+    @Override
     public String getThumbnail(Cloud cloud, String fileId, String path) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         String result = client.getThumbnail(fileId);

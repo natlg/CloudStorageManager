@@ -620,10 +620,12 @@ public class OneDriveClient {
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode node = nodeFactory.objectNode();
         ObjectNode parentReferenceNode = nodeFactory.objectNode();
+        if (idDest == null || idDest.isEmpty()) {
+            idDest = getRootFolderId();
+        }
         parentReferenceNode.put("driveId", driveId);
         parentReferenceNode.put("id", idDest);
         node.set("parentReference", parentReferenceNode);
-
         restTemplate = new RestTemplate();
         headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
@@ -676,5 +678,67 @@ public class OneDriveClient {
                 return null;
             }
         }
+    }
+
+    public boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest) {
+        try {
+            moveRequest(pathSourse, pathDest, idSource, idDest);
+        } catch (HttpClientErrorException e) {
+            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                    + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
+                    + " getStackTrace: " + e.getStackTrace());
+            accessToken = requestNewAccessToken(refreshToken);
+            try {
+                moveRequest(pathSourse, pathDest, idSource, idDest);
+            } catch (HttpClientErrorException exc) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String getRootFolderId() {
+        System.out.println("getRootFolderId");
+        String url = "https://graph.microsoft.com/v1.0/me/drive/root";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + accessToken);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
+        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
+        String rootId = getResponseProperty(response, "id");
+        System.out.println("driveId : " + rootId);
+        return rootId;
+    }
+
+    private void moveRequest(String pathSourse, String pathDest, String idSource, String idDest) {
+        System.out.println("moveRequest");
+        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + idSource;
+        System.out.println("move url: " + url);
+        //destination information
+        final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+        ObjectNode node = nodeFactory.objectNode();
+        ObjectNode parentReferenceNode = nodeFactory.objectNode();
+        if (idDest == null || idDest.isEmpty()) {
+            idDest = getRootFolderId();
+        }
+        parentReferenceNode.put("id", idDest);
+        node.set("parentReference", parentReferenceNode);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/json");
+        System.out.println("node.toString(): " + node.toString());
+        HttpEntity<String> entity = new HttpEntity<String>(node.toString(), headers);
+
+        //PATCH is not working for RestTemplate
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(10000);
+        restTemplate.setRequestFactory(requestFactory);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
+        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        System.out.println("getBody: " + response.getBody());
     }
 }

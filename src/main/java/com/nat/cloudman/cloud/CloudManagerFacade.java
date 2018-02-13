@@ -87,9 +87,14 @@ public class CloudManagerFacade {
     }
 
     public void moveFile(TransitParameters params) {
-        if (copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
-            System.out.println("finished copy, start deleting");
-            deleteFile(params.cloudSource, params.idSource, params.pathSource, params.parentId);
+        if (!params.cloudSource.equals(params.cloudDest)) {
+            if (copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
+                System.out.println("finished copy, start deleting");
+                deleteFile(params.cloudSource, params.idSource, params.pathSource, params.parentId);
+            }
+        } else {
+            Cloud cloudDest = userManager.getCloud(params.cloudDest);
+            cloudManagers.get(cloudDest.getCloudService()).moveFile(params.pathSource, params.pathDest, params.idSource, params.idDest, cloudDest, params.fileName, params.parentId);
         }
     }
 
