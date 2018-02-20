@@ -9,6 +9,15 @@ public class FolderParameters {
     public String folderName = "";
     public String parentId = "";
 
+    public FolderParameters() {
+    }
+
+    public FolderParameters(String path, String cloudName, String folderName, String parentId) {
+        this.path = path;
+        this.cloudName = cloudName;
+        this.folderName = folderName;
+        this.parentId = parentId;
+    }
 
     @Override
     public String toString() {

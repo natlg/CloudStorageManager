@@ -10,6 +10,8 @@ import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,8 @@ import java.io.File;
 
 @Component
 public class OneDriveManager implements CloudManager {
+
+    private static final Logger logger = LoggerFactory.getLogger(OneDriveManager.class);
 
     @Value("${onedrive.app.key}")
     private String APP_KEY;
@@ -76,6 +80,7 @@ public class OneDriveManager implements CloudManager {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.addFolder(folderName, path, parentId);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        logger.debug("addFolder return: " + result);
         return result;
     }
 

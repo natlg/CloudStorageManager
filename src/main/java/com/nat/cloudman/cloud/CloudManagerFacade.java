@@ -51,9 +51,9 @@ public class CloudManagerFacade {
         cloudManagers.get(cloud.getCloudService()).uploadFile(cloud, localFile, pathToUpload, parentId);
     }
 
-    public void addFolder(String folderName, String cloudName, String path, String parentId) {
+    public boolean addFolder(String folderName, String cloudName, String path, String parentId) {
         Cloud cloud = userManager.getCloud(cloudName);
-        cloudManagers.get(cloud.getCloudService()).addFolder(folderName, cloud, path, parentId);
+        return cloudManagers.get(cloud.getCloudService()).addFolder(folderName, cloud, path, parentId);
     }
 
     private DownloadedFileContainer download(String fileName, String cloudName, String fileId, String path) {

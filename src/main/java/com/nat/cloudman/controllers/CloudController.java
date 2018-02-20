@@ -12,6 +12,8 @@ import com.nat.cloudman.response.CloudContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -42,12 +44,14 @@ public class CloudController {
     @Value("${temp.upload.path}")
     private String UPLOAD_PATH;
 
+    private static final Logger logger = LoggerFactory.getLogger(CloudController.class);
+
     @RequestMapping(value = "/listfiles", method = RequestMethod.POST)
     public FilesContainer listFiles(@RequestParam(value = "path", defaultValue = "") String path,
                                     @RequestParam(value = "folderId", defaultValue = "") String folderId,
                                     @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                                     HttpServletRequest request, HttpServletResponse response) {
-        System.out.println(" listfiles got path: " + path + ", cloudName: " + cloudName);
+        logger.debug(" listfiles got path: " + path + ", cloudName: " + cloudName);
         return cloudManager.getFilesList(cloudName, folderId, path);
     }
 
@@ -55,7 +59,10 @@ public class CloudController {
     public void addFolder(@RequestBody FolderParameters params,
                           HttpServletRequest request, HttpServletResponse response) {
         System.out.println("addFolder: " + params);
-        cloudManager.addFolder(params.folderName, params.cloudName, params.path, params.parentId);
+        if (!cloudManager.addFolder(params.folderName, params.cloudName, params.path, params.parentId)) {
+            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
+        }
+        ;
     }
 
     @RequestMapping(value = "/downloadFile", method = RequestMethod.GET)

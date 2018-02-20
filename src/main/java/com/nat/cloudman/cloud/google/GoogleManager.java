@@ -143,6 +143,7 @@ public class GoogleManager implements CloudManager {
         }
         try {
             driveService.files().insert(body).setFields("id").execute();
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }

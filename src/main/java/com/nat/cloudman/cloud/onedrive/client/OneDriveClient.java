@@ -7,6 +7,8 @@ import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -25,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class OneDriveClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(OneDriveClient.class);
 
     private String accessToken;
     private String refreshToken;
@@ -415,10 +419,10 @@ public class OneDriveClient {
         }
     }
 
-    private void addFolderRequest(String folderName, String path, String parentId) {
-        System.out.println("addFolder, folderName: " + folderName + ", path: " + path + " parentId: " + parentId);
+    private boolean addFolderRequest(String folderName, String path, String parentId) {
+        logger.debug("addFolderRequest, folderName: " + folderName + ", path: " + path + " parentId: " + parentId);
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + parentId + "/children";
-        System.out.println("url: " + url);
+        logger.debug("url: " + url);
 
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode folderNode = nodeFactory.objectNode();
@@ -436,20 +440,24 @@ public class OneDriveClient {
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Content-Type", "application/json");
 
-        System.out.println("folderNode.toString(): " + folderNode.toString());
+        logger.debug("folderNode.toString(): " + folderNode.toString());
 
         HttpEntity<String> entity = new HttpEntity<String>(folderNode.toString(), headers);
 
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
 
-        System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
+        HttpStatus status = response.getStatusCode();
+        logger.debug("Result - status (" + status + ") ");
+        logger.debug("getBody: " + response.getBody());
+        if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
+            return true;
+        }
+        return false;
     }
 
     public boolean addFolder(String folderName, String path, String parentId) {
         try {
-            addFolderRequest(folderName, path, parentId);
-            return true;
+            return addFolderRequest(folderName, path, parentId);
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
@@ -457,8 +465,7 @@ public class OneDriveClient {
 
             accessToken = requestNewAccessToken(refreshToken);
             try {
-                addFolderRequest(folderName, path, parentId);
-                return true;
+                return addFolderRequest(folderName, path, parentId);
             } catch (Exception ex) {
                 return false;
             }
