@@ -213,6 +213,7 @@ public class OneDriveClient {
             }
             System.out.println("node end");
             resultFile.put("id", file.get("id").asText());
+            resultFile.put("name", file.get("name").asText());
             resultFile.put("pathLower", file.get("name").asText());
             resultFile.put("modified", dateConvert(file.get("lastModifiedDateTime").asText()));
             resultFile.put("size", file.get("size").asText());
@@ -288,13 +289,12 @@ public class OneDriveClient {
     }
 
     public boolean uploadFile(File localFile, String filePath) {
-        //TODO check status, return bool
         System.out.println("uploadFile" + "filePath: " + filePath);
         try {
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
-                uploadSmallFile(localFile, filePath);
+                return uploadSmallFile(localFile, filePath);
             } else {
-                chunkedUploadFile(localFile, filePath);
+                return chunkedUploadFile(localFile, filePath);
             }
         } catch (HttpClientErrorException e) {
             System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
@@ -302,15 +302,14 @@ public class OneDriveClient {
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
-                uploadSmallFile(localFile, filePath);
+                return uploadSmallFile(localFile, filePath);
             } else {
-                chunkedUploadFile(localFile, filePath);
+                return chunkedUploadFile(localFile, filePath);
             }
         }
-        return true;
     }
 
-    private void uploadSmallFile(File localFile, String filePath) {
+    private boolean uploadSmallFile(File localFile, String filePath) {
         String url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/content";
         System.out.println("url: " + url);
         RestTemplate restTemplate = new RestTemplate();
@@ -322,22 +321,29 @@ public class OneDriveClient {
             in = new FileInputStream(localFile);
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
         HttpEntity<byte[]> entity = null;
         try {
             entity = new HttpEntity<byte[]>(IOUtils.toByteArray(in), headers);
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PUT, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
+        HttpStatus status = response.getStatusCode();
+        System.out.println("Result - status (" + status + ") ");
         System.out.println("getBody: " + response.getBody());
         System.out.println("value get: " + getResponseProperty(response, "value"));
         System.out.println("value path: " + getResponseProperty(response, "path"));
+        if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
+            return true;
+        }
+        return false;
     }
 
     // TODO pause, resume, check status
-    private void chunkedUploadFile(File localFile, String filePath) {
+    private boolean chunkedUploadFile(File localFile, String filePath) {
         System.out.println("CHUNKED_UPLOAD_CHUNK_SIZE: " + CHUNKED_UPLOAD_CHUNK_SIZE);
         Long fragmentSize = 4L << 20;
         System.out.println("fragmentSize: " + fragmentSize);
@@ -405,7 +411,7 @@ public class OneDriveClient {
             } catch (Exception e) {
                 System.out.println("Exception: " + e.getMessage());
                 e.printStackTrace();
-                return;
+                return false;
             }
             System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
             System.out.println("getBody: " + response.getBody());
@@ -417,6 +423,11 @@ public class OneDriveClient {
 
             sentLen += nextPartSize;
         }
+        HttpStatus status = response.getStatusCode();
+        if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
+            return true;
+        }
+        return false;
     }
 
     private boolean addFolderRequest(String folderName, String path, String parentId) {

@@ -45,10 +45,10 @@ public class CloudManagerFacade {
         return cloudManagers.get(cloud.getCloudService()).getFilesList(cloud, folderId, folderPath);
     }
 
-    public void uploadFile(String cloudName, File localFile, String pathToUpload, String parentId) throws Exception {
+    public boolean uploadFile(String cloudName, File localFile, String pathToUpload, String parentId) throws Exception {
         System.out.println("uploadFile(),");
         Cloud cloud = userManager.getCloud(cloudName);
-        cloudManagers.get(cloud.getCloudService()).uploadFile(cloud, localFile, pathToUpload, parentId);
+        return cloudManagers.get(cloud.getCloudService()).uploadFile(cloud, localFile, pathToUpload, parentId);
     }
 
     public boolean addFolder(String folderName, String cloudName, String path, String parentId) {

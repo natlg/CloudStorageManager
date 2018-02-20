@@ -87,6 +87,7 @@ public class DropboxManager implements CloudManager {
             result = client.files().listFolder(folderPath);
         } catch (DbxException e) {
             e.printStackTrace();
+            return null;
         }
 
         ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
@@ -95,6 +96,7 @@ public class DropboxManager implements CloudManager {
                 for (Metadata metadata : result.getEntries()) {
                     HashMap<String, String> file = new HashMap<String, String>();
                     file.put("displayPath", metadata.getPathDisplay());
+                    file.put("name", metadata.getName());
                     if (metadata instanceof FolderMetadata) {
                         System.out.println(" FolderMetadata ");
                         metadata = (FolderMetadata) metadata;
@@ -155,12 +157,11 @@ public class DropboxManager implements CloudManager {
         System.err.println("localFile getPath: " + localFile.getPath());
         DbxClientV2 client = getClient(cloud.getAccessToken());
         if (localFile.length() <= (2 * CHUNKED_UPLOAD_CHUNK_SIZE)) {
-            uploadSmallFile(client, localFile, dropboxPath);
+            return uploadSmallFile(client, localFile, dropboxPath);
         } else {
-
-            chunkedUploadFile(client, localFile, dropboxPath);
+            return chunkedUploadFile(client, localFile, dropboxPath);
         }
-        return true;
+
     }
 
     /**
@@ -171,7 +172,7 @@ public class DropboxManager implements CloudManager {
      * @param localFile   local file to upload
      * @param dropboxPath Where to upload the file to within Dropbox
      */
-    private void uploadSmallFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
+    private boolean uploadSmallFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         try {
             InputStream in = new FileInputStream(localFile);
             FileMetadata metadata = dbxClient.files().uploadBuilder(dropboxPath)
@@ -179,16 +180,15 @@ public class DropboxManager implements CloudManager {
                     .withClientModified(new Date(localFile.lastModified()))
                     .uploadAndFinish(in);
             System.out.println("File is uploaded, metadata: " + metadata.toStringMultiline());
+            return true;
         } catch (UploadErrorException ex) {
             System.err.println("UploadErrorException Error uploading to Dropbox: " + ex.getMessage());
-            System.exit(1);
         } catch (DbxException ex) {
             System.err.println("DbxException Error uploading to Dropbox: " + ex.getMessage());
-            System.exit(1);
         } catch (IOException ex) {
             System.err.println("IOException Error reading from file \"" + localFile + "\": " + ex.getMessage());
-            System.exit(1);
         }
+        return false;
     }
 
 
@@ -202,15 +202,14 @@ public class DropboxManager implements CloudManager {
      *                    //     * @param localFIle local file to upload
      * @param dropboxPath Where to upload the file to within Dropbox
      */
-    private void chunkedUploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
+    private boolean chunkedUploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         long size = localFile.length();
 
         // assert our file is at least the chunk upload size. We make this assumption in the code
         // below to simplify the logic.
         if (size < CHUNKED_UPLOAD_CHUNK_SIZE) {
             System.err.println("File too small, use uploadSmallFile() instead.");
-            System.exit(1);
-            return;
+            return false;
         }
         long uploaded = 0L;
         DbxException thrown = null;
@@ -262,7 +261,7 @@ public class DropboxManager implements CloudManager {
                         .uploadAndFinish(in, remaining);
 
                 System.out.println(metadata.toStringMultiline());
-                return;
+                return true;
             } catch (RetryException ex) {
                 thrown = ex;
                 // RetryExceptions are never automatically retried by the client for uploads. Must
@@ -285,8 +284,7 @@ public class DropboxManager implements CloudManager {
                 } else {
                     // Some other error occurred, give up.
                     System.err.println("Error uploading to Dropbox: " + ex.getMessage());
-                    System.exit(1);
-                    return;
+                    return false;
                 }
             } catch (UploadSessionFinishErrorException ex) {
                 if (ex.errorValue.isLookupFailed() && ex.errorValue.getLookupFailedValue().isIncorrectOffset()) {
@@ -301,23 +299,20 @@ public class DropboxManager implements CloudManager {
                 } else {
                     // some other error occurred, give up.
                     System.err.println("Error uploading to Dropbox: " + ex.getMessage());
-                    System.exit(1);
-                    return;
+                    return false;
                 }
             } catch (DbxException ex) {
                 System.err.println("Error uploading to Dropbox: " + ex.getMessage());
-                System.exit(1);
-                return;
+                return false;
             } catch (IOException ex) {
                 System.err.println("Error reading from file \"" + localFile + "\": " + ex.getMessage());
-                System.exit(1);
-                return;
+                return false;
             }
         }
 
         // if we made it here, then we must have run out of attempts
         System.err.println("Maxed out upload attempts to Dropbox. Most recent error: " + thrown.getMessage());
-        System.exit(1);
+        return false;
     }
 
     private static void printProgress(long uploaded, long size) {
@@ -330,7 +325,6 @@ public class DropboxManager implements CloudManager {
         } catch (InterruptedException ex) {
             // just exit
             System.err.println("Error uploading to Dropbox: interrupted during backoff.");
-            System.exit(1);
         }
     }
 
@@ -362,7 +356,6 @@ public class DropboxManager implements CloudManager {
             appInfo = DbxAppInfo.Reader.readFromFile(argAppInfoFile);
         } catch (JsonReader.FileLoadException ex) {
             System.err.println("Error reading <app-info-file>: " + ex.getMessage());
-            System.exit(1);
             return;
         }
         // Run through Dropbox API authorization process
@@ -380,7 +373,6 @@ public class DropboxManager implements CloudManager {
 
         String code = new BufferedReader(new InputStreamReader(System.in)).readLine();
         if (code == null) {
-            System.exit(1);
             return;
         }
         code = code.trim();
@@ -390,7 +382,6 @@ public class DropboxManager implements CloudManager {
             authFinish = webAuth.finishFromCode(code);
         } catch (DbxException ex) {
             System.err.println("Error in DbxWebAuth.authorize: " + ex.getMessage());
-            System.exit(1);
             return;
         }
 
@@ -408,7 +399,6 @@ public class DropboxManager implements CloudManager {
             System.err.println("Error saving to <auth-file-out>: " + ex.getMessage());
             System.err.println("Dumping to stderr instead:");
             DbxAuthInfo.Writer.writeToStream(authInfo, System.err);
-            System.exit(1);
             return;
         }
     }

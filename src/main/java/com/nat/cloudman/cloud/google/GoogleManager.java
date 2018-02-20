@@ -126,8 +126,11 @@ public class GoogleManager implements CloudManager {
             e.printStackTrace();
         }
         System.out.println("upload file: " + localFile.getName() + ", mime type: " + mimeType);
-        insertFile(getDrive(cloud.getAccessToken(), cloud.getRefreshToken()),
-                fileName, "", parentId, mimeType, localFile.getPath());
+        if (insertFile(getDrive(cloud.getAccessToken(), cloud.getRefreshToken()),
+                fileName, "", parentId, mimeType, localFile.getPath()) != null) {
+            return true;
+        }
+
         return false;
     }
 

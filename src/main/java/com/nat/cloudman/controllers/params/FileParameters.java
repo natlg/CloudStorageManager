@@ -11,6 +11,18 @@ public class FileParameters {
     public String newName = "";
     public String parentId = "";
 
+    public FileParameters() {
+    }
+
+    public FileParameters(String fileName, String fileId, String cloudName, String path, String newName, String parentId) {
+        this.fileName = fileName;
+        this.fileId = fileId;
+        this.cloudName = cloudName;
+        this.path = path;
+        this.newName = newName;
+        this.parentId = parentId;
+    }
+
     @Override
     public String toString() {
         return "FileParam fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName +

@@ -62,7 +62,6 @@ public class CloudController {
         if (!cloudManager.addFolder(params.folderName, params.cloudName, params.path, params.parentId)) {
             response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
         }
-        ;
     }
 
     @RequestMapping(value = "/downloadFile", method = RequestMethod.GET)
@@ -134,24 +133,41 @@ public class CloudController {
             @RequestParam(value = "parentId", defaultValue = "") String parentId,
             HttpServletRequest request, HttpServletResponse response
     ) {
-        System.out.println("filePath: " + filePath + ", cloudName: " + cloudName + ", parentId: " + parentId);
+
+        logger.debug("handleFileUpload filePath: " + filePath + ", cloudName: " + cloudName + ", parentId: " + parentId);
+        int filesLen = files.length;
+        logger.debug("files length:" + filesLen);
+        if (filesLen < 1) {
+            logger.debug("no files ");
+            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
+            return "No files are sent";
+        }
+        logger.debug("file getName:" + files[0].getName());
+        boolean result = true;
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 try {
-                    System.out.println("file getOriginalFilename: " + file.getOriginalFilename());
-                    System.out.println("file getContentType: " + file.getContentType());
-                    System.out.println("file getName: " + file.getName());
-                    System.out.println("file getSize: " + file.getSize());
+                    logger.debug("file getOriginalFilename: " + file.getOriginalFilename());
+                    logger.debug("file getContentType: " + file.getContentType());
+                    logger.debug("file getName: " + file.getName());
+                    logger.debug("file getSize: " + file.getSize());
                     File convertedFile = Utils.multipartToFile(file, UPLOAD_PATH);
-                    System.out.println("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
-                    cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName(), parentId);
+                    logger.debug("convertedFile: " + convertedFile.exists() + " " + convertedFile.isFile() + " " + convertedFile.getName() + " " + convertedFile.getPath() + " " + convertedFile.getCanonicalPath());
+                    if (!cloudManager.uploadFile(cloudName, convertedFile, filePath + "/" + convertedFile.getName(), parentId)) {
+                        result = false;
+                    }
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    logger.debug("Exception: " + e.getMessage());
                     e.printStackTrace();
+                    result = false;
                 }
             } else {
-                System.out.println("file is empty ");
+                logger.debug("file is empty ");
+                result = false;
             }
+        }
+        if (!result) {
+            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
         }
         return null;
     }
