@@ -20,11 +20,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,44 +53,83 @@ public class CloudControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    private String oneDrivaCloudName = "OD cloud";
-    private String oneDriveFolderName = "od folder test";
-    private String oneDriveRootId = "3126D7302C73EA98!101";
-
-    private String dropboxCloudName = "Dropbox cloud";
-    private String dropboxFolderName = "dropbox folder test";
-    private String dropboxRootId = "";
-
-    private String googleCloudName = "GOOGLE!!";
-    private String googleFolderName = "google folder test";
-    private String googleRootId = "0AOMJr8Ji_BXuUk9PVA";
+    List<TestParam> paramArr;
 
     @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
     @Before
     public void setup() throws Exception {
         logger.debug("test setup");
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
+        paramArr = new ArrayList<>();
+        paramArr.add(new TestParam("", "Dropbox cloud", "dropbox folder test", "", "folder", "Dropbox"));
+        paramArr.add(new TestParam("", "OD cloud", "od folder test", "3126D7302C73EA98!101", "folder", "OneDrive"));
+        paramArr.add(new TestParam("", "GOOGLE!!", "google folder test", "0AOMJr8Ji_BXuUk9PVA", "folder", "Google Drive"));
     }
 
     @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
     @Test
-    public void listFiles() throws Exception {
-        logger.debug("test listFiles");
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
-        MvcResult result = mockMvc.perform(post("/listfiles")
-                .param("path", "")
-                .param("folderId", "")
-                .param("cloudName", "Dropbox cloud"))
+    public void listFilesOkStatus() throws Exception {
+        logger.debug("listFilesOkStatus");
+        for (TestParam param : paramArr) {
+            MvcResult result = mockMvc.perform(post("/listfiles")
+                    .param("path", "")
+                    .param("folderId", param.rootFolderId)
+                    .param("cloudName", param.cloudName))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            String content = result.getResponse().getContentAsString();
+            logger.debug("content: " + content + ", status: " + result.getResponse().getStatus());
+        }
+    }
+
+    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
+    @Test
+    public void uploadFileTest() throws Exception {
+        logger.debug("uploadFileTest");
+        for (TestParam param : paramArr) {
+            FolderParameters params = new FolderParameters(param.path, param.cloudName, param.folderName, param.rootFolderId);
+            assertTrue(addFolder(params));
+            Map<String, Object> file = filePresents(param.path, param.rootFolderId, param.cloudName, param.folderName, "folder");
+            assertNotNull(file);
+            assertTrue(uploadSampleFile((String) file.get("pathLower"), (String) file.get("id"), param.cloudName));
+            Map<String, Object> uploadedFile = filePresents((String) file.get("pathLower"), (String) file.get("id"), param.cloudName, "test.jpg", "file");
+            assertNotNull(uploadedFile);
+            assertEquals("test.jpg", (String) uploadedFile.get("name"));
+            assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), param.cloudName, param.rootFolderId, param.folderName));
+        }
+    }
+
+    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
+    @Test
+    public void addFolderTest() throws Exception {
+        logger.debug("test addFolder");
+        for (TestParam param : paramArr) {
+            FolderParameters params = new FolderParameters(param.path, param.cloudName, param.folderName, param.rootFolderId);
+            assertTrue(addFolder(params));
+            Map<String, Object> file = filePresents(param.path, param.rootFolderId, param.cloudName, param.folderName, "folder");
+            assertNotNull(file);
+            assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), param.cloudName, param.rootFolderId, param.folderName));
+        }
+    }
+
+    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
+    @Test
+    public void getClouds() throws Exception {
+        logger.debug("test getClouds");
+        ResultActions actions = mockMvc
+                .perform(post("/getclouds"))
                 .andExpect(status().isOk())
-                .andReturn();
-        String content = result.getResponse().getContentAsString();
-        logger.debug("content: " + content + ", status: " + result.getResponse().getStatus());
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.clouds", hasSize(paramArr.size())));
+        for (TestParam param : paramArr) {
+            logger.debug("cloud: " + param.cloudName);
+            actions = actions.andExpect(jsonPath("$.clouds[?(@.accountName == '" + param.cloudName + "')].service").value(param.servise));
+        }
     }
 
     public Map<String, Object> filePresents(String path, String folderId, String cloudName, String fileName, String fileType) throws Exception {
         logger.debug("filePresents, path: " + path + ", folderId: " + folderId +
                 ", cloudName: " + cloudName + ", fileName: " + fileName + ", fileType: " + fileType);
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
         MvcResult result = mockMvc.perform(post("/listfiles")
                 .param("path", path)
                 .param("folderId", folderId)
@@ -96,7 +137,6 @@ public class CloudControllerTest {
                 .andReturn();
         String content = result.getResponse().getContentAsString();
         logger.debug("content: " + content + ", status: " + result.getResponse().getStatus());
-
         List<Map<String, Object>> dataList = JsonPath.parse(content)
                 .read("$.files");
         for (int i = 0; i < dataList.size(); i++) {
@@ -113,7 +153,6 @@ public class CloudControllerTest {
 
     public boolean removeFile(String fileId, String path, String cloudName, String parentId, String fileName) throws Exception {
         logger.debug("removeFile: fileId: " + fileId + ", path: " + path + ", cloudName: " + cloudName + ", parentId: " + parentId);
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
         FileParameters params = new FileParameters(fileName, fileId, cloudName, path, "", parentId);
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(params);
@@ -129,83 +168,12 @@ public class CloudControllerTest {
         return false;
     }
 
-    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
-    @Test
-    public void uploadFileTest() throws Exception {
-
-        ////////-----------------   dropbox
-        logger.debug("uploadFileTest");
-        // params are in request body
-        FolderParameters params = new FolderParameters("", dropboxCloudName, dropboxFolderName, "");
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(params);
-        logger.debug("params: " + json);
-        MvcResult result = mockMvc.perform(post("http://localhost:8080/addfolder")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isOk())
-                .andReturn();
-        String content = result.getResponse().getContentAsString();
-        logger.debug("dropbox content: " + content + ", status: " + result.getResponse().getStatus());
-        Map<String, Object> file = filePresents("", "", dropboxCloudName, dropboxFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(uploadSampleFile((String) file.get("pathLower"), (String) file.get("id"), dropboxCloudName));
-
-        Map<String, Object> uploadedFile = filePresents((String) file.get("pathLower"), (String) file.get("id"), dropboxCloudName, "test.jpg", "file");
-        assertNotNull(uploadedFile);
-        assertEquals("test.jpg", (String) uploadedFile.get("name"));
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), dropboxCloudName, dropboxRootId, "test.jpg"));
-
-        //////------------------  google----------------
-        params = new FolderParameters("", googleCloudName, googleFolderName, googleRootId);
-        ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        json = ow.writeValueAsString(params);
-        logger.debug("params: " + json);
-        result = mockMvc.perform(post("/addfolder")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isOk())
-                .andReturn();
-        content = result.getResponse().getContentAsString();
-        logger.debug("google content: " + content + ", status: " + result.getResponse().getStatus());
-        file = filePresents("", googleRootId, googleCloudName, googleFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(uploadSampleFile((String) file.get("pathLower"), (String) file.get("id"), googleCloudName));
-
-        uploadedFile = filePresents((String) file.get("pathLower"), (String) file.get("id"), googleCloudName, "test.jpg", "file");
-        assertNotNull(uploadedFile);
-        assertEquals("test.jpg", (String) uploadedFile.get("name"));
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), googleCloudName, googleRootId, "test.jpg"));
-
-
-        ////////------------ onedrive-----------
-        params = new FolderParameters("", oneDrivaCloudName, oneDriveFolderName, oneDriveRootId);
-        ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        json = ow.writeValueAsString(params);
-        logger.debug("params: " + json);
-        result = mockMvc.perform(post("/addfolder")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isOk())
-                .andReturn();
-        content = result.getResponse().getContentAsString();
-        logger.debug("oneDriv content: " + content + ", status: " + result.getResponse().getStatus());
-        file = filePresents("", oneDriveRootId, oneDrivaCloudName, oneDriveFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(uploadSampleFile((String) file.get("pathLower"), (String) file.get("id"), oneDrivaCloudName));
-        uploadedFile = filePresents((String) file.get("pathLower"), (String) file.get("id"), oneDrivaCloudName, "test.jpg", "file");
-        assertNotNull(uploadedFile);
-        assertEquals("test.jpg", (String) uploadedFile.get("name"));
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), oneDrivaCloudName, oneDriveRootId, "test.jpg"));
-    }
-
 
     public boolean uploadSampleFile(String filePath, String parentId, String cloudName) throws Exception {
         logger.debug("uploadSampleFile filePath: " + filePath + ", parentId: " + parentId + ", cloudName: " + cloudName);
         if (filePath == null) {
             filePath = "";
         }
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
         FileInputStream fis = new FileInputStream("C:\\pics\\test.jpg");
         // !!! "files" is parameter name for files array
         MockMultipartFile multipartFile = new MockMultipartFile("files", "test.jpg", "image/jpeg", fis);
@@ -230,14 +198,10 @@ public class CloudControllerTest {
         return false;
     }
 
-    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
-    @Test
-    public void addFolder() throws Exception {
 
-        ////////-----------------   dropbox
-        logger.debug("test addFolder");
+    public boolean addFolder(FolderParameters params) throws Exception {
+        logger.debug("addFolder");
         // params are in request body
-        FolderParameters params = new FolderParameters("", dropboxCloudName, dropboxFolderName, "");
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(params);
         logger.debug("params: " + json);
@@ -247,56 +211,32 @@ public class CloudControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String content = result.getResponse().getContentAsString();
-        logger.debug("dropbox content: " + content + ", status: " + result.getResponse().getStatus());
-        Map<String, Object> file = filePresents("", "", dropboxCloudName, dropboxFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), dropboxCloudName, dropboxRootId, dropboxFolderName));
-
-        ////////------------------  google----------------
-        params = new FolderParameters("", googleCloudName, googleFolderName, googleRootId);
-        ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        json = ow.writeValueAsString(params);
-        logger.debug("params: " + json);
-        result = mockMvc.perform(post("/addfolder")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isOk())
-                .andReturn();
-        content = result.getResponse().getContentAsString();
-        logger.debug("google content: " + content + ", status: " + result.getResponse().getStatus());
-        file = filePresents("", googleRootId, googleCloudName, googleFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), googleCloudName, googleRootId, googleFolderName));
-
-        ////////------------ onedrive-----------
-        params = new FolderParameters("", oneDrivaCloudName, oneDriveFolderName, oneDriveRootId);
-        ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        json = ow.writeValueAsString(params);
-        logger.debug("params: " + json);
-        result = mockMvc.perform(post("/addfolder")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isOk())
-                .andReturn();
-        content = result.getResponse().getContentAsString();
-        logger.debug("oneDriv content: " + content + ", status: " + result.getResponse().getStatus());
-        file = filePresents("", oneDriveRootId, oneDrivaCloudName, oneDriveFolderName, "folder");
-        assertNotNull(file);
-        assertTrue(removeFile((String) file.get("id"), (String) file.get("pathLower"), oneDrivaCloudName, oneDriveRootId, googleFolderName));
+        int status = result.getResponse().getStatus();
+        logger.debug(" content: " + content + ", status: " + status);
+        if (status == 200) {
+            return true;
+        }
+        return false;
     }
 
-    @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
-    @Test
-    public void getClouds() throws Exception {
-        logger.debug("test getClouds");
-        mockMvc.perform(post("/getclouds"
-        ))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.clouds", hasSize(3)))
-                .andExpect(jsonPath("$.clouds[0].accountName", is("Dropbox cloud")))
-                .andExpect(jsonPath("$.clouds[0].service", is("Dropbox")));
+    private class TestParam {
+        String path;
+        String cloudName;
+        String folderName;
+        String rootFolderId;
+        String fileType;
+        String servise;
+
+        public TestParam(String path, String cloudName, String folderName, String rootFolderId, String fileType, String servise) {
+            this.path = path;
+            this.cloudName = cloudName;
+            this.folderName = folderName;
+            this.rootFolderId = rootFolderId;
+            this.fileType = fileType;
+            this.servise = servise;
+        }
     }
+
 
     @After
     public void cleanUp() throws Exception {
