@@ -11,6 +11,10 @@ function logoutClick() {
         }
         else {
             console.log("error in XMLHttpRequest, status: " + this.status, ", readyState: " + this.readyState);
+            if (this.status == 401 || this.status == 400) {
+                console.log("go to login");
+                location.href = "login.html";
+            }
         }
     };
     xhttp.open("POST", "/logout/", true);

@@ -236,8 +236,13 @@ function callMethod(url, method, parameters, successCallback) {
             console.log("success");
             successCallback(data);
         })
-        .fail(function (data, status) {
-            console.log('ajax fail');
+        .fail(function (data, status, xhr) {
+            var status = xhr.status;
+            console.log('ajax fail, status: ' + status);
+            if (status == 401 || status == 400) {
+                console.log("go to login");
+                location.href = "login.html";
+            }
         });
 }
 
