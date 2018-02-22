@@ -148,10 +148,15 @@ function handleFile(files) {
             var fileId = files[key].id;
             var fileName = files[key].name;
             console.log("add: " + fileName);
+            var fileStyle = ``;
+            if (files[key].type == "file") {
+                console.log("file ");
+                fileStyle = `style=' pointer-events: none;'`;
+            }
             var row =
                 `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${fileId} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)">
-                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#">${fileName}</a></td>
+                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#" ` + fileStyle + `>${fileName}</a></td>
                         <td>${files[key].type}</td>
                         <td>${getText(files[key].size)}</td>
                         <td>${getText(files[key].modified)}</td>
@@ -166,10 +171,11 @@ function handleFile(files) {
             table.append($(row));
             console.log("id: " + fileId);
             var r = $(document.getElementById(fileId));
-
-            r.on("dblclick", {id: fileId, name: fileName}, dblclickFile);
             r.on("click", {id: fileId}, rowClick);
-            r.find("a.fileName").on("click", {id: fileId, name: fileName}, dblclickFile);
+            if (files[key].type = "folder") {
+                r.on("dblclick", {id: fileId, name: fileName}, dblclickFile);
+                r.find("a.fileName").on("click", {id: fileId, name: fileName}, dblclickFile);
+            }
             var link = r.find('a');
             bindPopover();
             rowId = "";

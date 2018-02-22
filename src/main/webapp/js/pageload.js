@@ -236,10 +236,10 @@ function callMethod(url, method, parameters, successCallback) {
             console.log("success");
             successCallback(data);
         })
-        .fail(function (data, status, xhr) {
-            var status = xhr.status;
-            console.log('ajax fail, status: ' + status);
-            if (status == 401 || status == 400) {
+        .fail(function (data, textStatus, err) {
+            var status = data.status;
+            console.log('ajax fail, status: ' + status + ", textStatus: " + textStatus + ", err: " + err);
+            if (status == 401) {
                 console.log("go to login");
                 location.href = "login.html";
             }
