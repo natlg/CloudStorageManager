@@ -119,9 +119,7 @@ public class CloudControllerTest {
         logger.debug("copyFileSameCloud");
         for (TestParam paramCloudOne : paramArr) {
             logger.debug("Start Cloud ONE: " + paramCloudOne.cloudName);
-            if (!paramCloudOne.cloudName.equals("GOOGLE!!")) {
-                continue;
-            }
+
             // 1) create  folder in 1th cloud
             String folderOneName = paramCloudOne.folderName + 1;
             String folderOnePath = "/" + folderOneName;
@@ -169,43 +167,40 @@ public class CloudControllerTest {
                 // 3) copy file from folder to folder
                 TransitParameters transitParams = new TransitParameters((String) folderOne.get("id"), paramCloudOne.cloudName, fileInFolderPath, (String) uploadedFileInFolder.get("id"), (String) uploadedFileInFolder.get("downloadUrl"),
                         paramCloudTwo.cloudName, folderTwoPath + "/" + fileInFolderName, (String) folderTwo.get("id"), fileInFolderName);
-                copyFile(transitParams);
-                Thread.sleep(5000);
-                Map<String, Object> copiedFileOne = filePresents(folderTwoPath, (String) folderTwo.get("id"), paramCloudTwo.cloudName, "test.jpg", "file");
-                assertNotNull(copiedFileOne);
+                copyAndCheck(transitParams, folderTwoPath);
 
                 // 4) copy file from folder to root
                 transitParams = new TransitParameters((String) folderOne.get("id"), paramCloudOne.cloudName, fileInFolderPath, (String) uploadedFileInFolder.get("id"), (String) uploadedFileInFolder.get("downloadUrl"),
                         paramCloudTwo.cloudName, "/" + fileInFolderName, paramCloudTwo.rootFolderId, fileInFolderName);
-                copyFile(transitParams);
-                Thread.sleep(5000);
-                Map<String, Object> copiedFileTwo = filePresents("", paramCloudTwo.rootFolderId, paramCloudTwo.cloudName, "test.jpg", "file");
-                assertNotNull(copiedFileTwo);
+                Map<String, Object> copiedFromFolder = copyAndCheck(transitParams, "");
 
                 // 5) copy file from root to folder
                 transitParams = new TransitParameters(paramCloudOne.rootFolderId, paramCloudOne.cloudName, fileInRootPath, (String) uploadedTextFileInRoot.get("id"), (String) uploadedTextFileInRoot.get("downloadUrl"),
                         paramCloudTwo.cloudName, folderTwoPath + "/" + fileInRootName, (String) folderTwo.get("id"), fileInRootName);
-                copyFile(transitParams);
-                Thread.sleep(5000);
-                Map<String, Object> copiedFileThree = filePresents(folderTwoPath, (String) folderTwo.get("id"), paramCloudTwo.cloudName, fileInRootName, "file");
-                assertNotNull(copiedFileThree);
+                copyAndCheck(transitParams, folderTwoPath);
 
-                // 5) copy file from root to root
+                // 6) copy file from root to root
                 transitParams = new TransitParameters(paramCloudOne.rootFolderId, paramCloudOne.cloudName, fileInRootPath, (String) uploadedTextFileInRoot.get("id"), (String) uploadedTextFileInRoot.get("downloadUrl"),
                         paramCloudTwo.cloudName, "/" + fileInRootName, paramCloudTwo.rootFolderId, fileInRootName);
-                copyFile(transitParams);
-                Map<String, Object> copiedFileFour = filePresents("", paramCloudTwo.rootFolderId, paramCloudTwo.cloudName, fileInRootName, "file");
-                assertNotNull(copiedFileFour);
+                Map<String, Object> copiedFromRoot = copyAndCheck(transitParams, "");
+
+                // 7) remove created files
+                assertTrue(removeFile((String) folderTwo.get("id"), folderTwoPath, paramCloudTwo.cloudName, paramCloudTwo.rootFolderId, folderTwoName));
+                assertTrue(removeFile((String) copiedFromFolder.get("id"), "/" + copiedFromFolder.get("name"), paramCloudTwo.cloudName, paramCloudTwo.rootFolderId, (String) copiedFromFolder.get("name")));
+                assertTrue(removeFile((String) copiedFromRoot.get("id"), "/" + copiedFromRoot.get("name"), paramCloudTwo.cloudName, paramCloudTwo.rootFolderId, (String) copiedFromRoot.get("name")));
             }
-            // 7) remove all created files
-//            assertTrue(removeFile((String) folderOne.get("id"), (String) folderOne.get("pathLower"), paramCloudOne.cloudName, paramCloudOne.rootFolderId, (String) folderOne.get("name")));
-//            assertTrue(removeFile((String) folderTwo.get("id"), (String) folderTwo.get("pathLower"), paramCloudOne.cloudName, paramCloudOne.rootFolderId, (String) folderTwo.get("name")));
-//            assertTrue(removeFile((String) copiedFile.get("id"), (String) copiedFile.get("pathLower"), paramCloudOne.cloudName, paramCloudOne.rootFolderId, (String) copiedFile.get("name")));
-//            assertTrue(removeFile((String) uploadedTextFileInRoot.get("id"), (String) uploadedTextFileInRoot.get("pathLower"), paramCloudOne.cloudName, paramCloudOne.rootFolderId, (String) uploadedTextFileInRoot.get("name")));
-//        }
+            assertTrue(removeFile((String) folderOne.get("id"), folderOnePath, paramCloudOne.cloudName, paramCloudOne.rootFolderId, folderOneName));
+            assertTrue(removeFile((String) uploadedTextFileInRoot.get("id"), fileInRootPath, paramCloudOne.cloudName, paramCloudOne.rootFolderId, fileInRootName));
         }
     }
 
+    public Map<String, Object> copyAndCheck(TransitParameters transitParams, String folderDestPath) throws Exception {
+        copyFile(transitParams);
+        Thread.sleep(5000);
+        Map<String, Object> copiedFile = filePresents(folderDestPath, transitParams.idDest, transitParams.cloudDest, transitParams.fileName, "file");
+        assertNotNull(copiedFile);
+        return copiedFile;
+    }
 
     @WithMockUser(username = "cltest5@outlook.com", roles = {"ADMIN"})
     @Test
