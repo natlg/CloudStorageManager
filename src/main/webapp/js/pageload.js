@@ -162,14 +162,32 @@ function loadAuthorizedPage() {
     }
 }
 
-function showTempAlert(text) {
-    $(".alert-info").text(text);
-    $('.alert-info').show();
-    window.setTimeout(function () {
-        $(".alert-info").fadeTo(500, 0).slideUp(500, function () {
-            $(this).remove();
-        });
-    }, 3000);
+function showTempAlert(text, type) {
+    console.log("showTempAlert");
+    var alertElement = $("#temp-alert");
+    var alertClass = '';
+    switch (type) {
+        case 'info':
+            alertClass = 'alert-info';
+            break;
+        case 'error':
+            alertClass = 'alert-danger';
+            break;
+        case 'success':
+            alertClass = 'alert-success';
+            break;
+        default:
+            alertClass = 'alert-primary';
+    }
+    alertElement.addClass(alertClass);
+    alertElement.text(text);
+    alertElement.show();
+
+    $("#temp-alert").fadeTo(3000, 500).slideUp(500, function () {
+        $("#temp-alert").slideUp(500);
+        $("#temp-alert").removeClass(alertClass);
+        console.log("TempAlert hide");
+    });
 }
 
 function transfer(action) {
@@ -197,8 +215,8 @@ function transfer(action) {
         idDest: idDest
     };
 
-    showTempAlert("Start " + action);
-    callMethod("/" + action, "POST", params, function (response) {
+    showTempAlert("Start " + action, 'info');
+    callMethod("/" + action, "POST", params, "Failed to " + action, function (response) {
         console.log("Finished " + action);
         if (action === 'move') {
             listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
@@ -217,15 +235,15 @@ function removeCloud() {
     var params = {
         cloudName: cloud
     };
-    showTempAlert("Removing " + currentCloud);
-    callMethod("/removecloud", "DELETE", params, function (response) {
+    showTempAlert("Removing " + currentCloud, 'info');
+    callMethod("/removecloud", "DELETE", params, "Failed to remove cloud", function (response) {
         console.log("removed");
         $("#files_table").hide();
         getClouds();
     });
 }
 
-function callMethod(url, method, parameters, successCallback) {
+function callMethod(url, method, parameters, errorMessage, successCallback) {
     $.ajax({
         type: method,
         url: domainName + url,
@@ -242,6 +260,11 @@ function callMethod(url, method, parameters, successCallback) {
             if (status == 401) {
                 console.log("go to login");
                 location.href = "login.html";
+            }
+            else {
+                if (notEmpty(errorMessage == 1)) {
+                    showTempAlert(errorMessage, "error");
+                }
             }
         });
 }
@@ -410,9 +433,9 @@ function rename() {
         cloudName: currentCloud
     };
 
-    showTempAlert("Start renaming");
+    showTempAlert("Start renaming", 'info');
 
-    callMethod("/renamefile", "POST", params, function (response) {
+    callMethod("/renamefile", "POST", params, "Failed to rename", function (response) {
         console.log("file is renamed");
         listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });
@@ -428,8 +451,8 @@ function deleteFile() {
         parentId: filesProvider.parentId,
         cloudName: currentCloud
     };
-    showTempAlert("Start deleting");
-    callMethod("/deletefile", "DELETE", params, function (response) {
+    showTempAlert("Start deleting", 'info');
+    callMethod("/deletefile", "DELETE", params, "Failed to delete", function (response) {
         console.log("file is deleted");
         listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });
@@ -450,7 +473,7 @@ function download() {
         "&cloudName=" + currentCloud + "&fileId=" + fileIdPopover +
         "&path=" + filesProvider.fullPath;
     console.log("send params: " + params);
-    showTempAlert("Start downloading..");
+    showTempAlert("Start downloading..", 'info');
     // download from browser after getting server response
     window.location = "/downloadFile?" + params;
 }

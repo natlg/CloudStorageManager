@@ -128,14 +128,15 @@ function addFolder() {
     var folderName = $("#folder_name").val();
     $("#folder_name").val("");
     var parentId = filesProvider.parentId;
-    showTempAlert("Adding folder");
+    showTempAlert("Adding folder", 'info');
+
     var params = {
         folderName: folderName,
         parentId: parentId,
         path: filesProvider.fullPath,
         cloudName: currentCloud
     };
-    callMethod("/addfolder", "POST", params, function (response) {
+    callMethod("/addfolder", "POST", params, "Failed to add folder", function (response) {
         console.log("folder is added");
         listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
     });

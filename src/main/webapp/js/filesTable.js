@@ -111,7 +111,7 @@ function getThumbnail(currentCloud, id, pathLower) {
         path: pathLower,
         cloudName: currentCloud
     };
-    callMethod("/getthumbnail", "POST", params, function (response) {
+    callMethod("/getthumbnail", "POST", params, "", function (response) {
         console.log("got thumbnail, response:" + response);
         if (notEmpty(response) === 1) {
             console.log("got thumbnail");
@@ -255,6 +255,6 @@ function uploadFiles(files) {
     };
     // Send the Data.
     console.log("Start uploading");
-    showTempAlert("Start uploading");
+    showTempAlert("Start uploading", 'info');
     xhr.send(formData);
 }
