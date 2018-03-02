@@ -139,4 +139,10 @@ public class OneDriveManager implements CloudManager {
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
         return result;
     }
+
+    @Override
+    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
+        //TODO
+        return null;
+    }
 }

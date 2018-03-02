@@ -469,13 +469,22 @@ function download() {
         return;
     }
 
+    var type = filesProvider.filesObj[fileIdPopover].type;
+    console.log("download, type: " + type);
+    var ajaxpath = "";
+    if (type == 'folder') {
+        ajaxpath = "/downloadFolder?";
+    }
+    else {
+        ajaxpath = "/downloadFile?";
+    }
     var params = "fileName=" + fileNamePopover +
         "&cloudName=" + currentCloud + "&fileId=" + fileIdPopover +
         "&path=" + filesProvider.fullPath;
     console.log("send params: " + params);
     showTempAlert("Start downloading..", 'info');
     // download from browser after getting server response
-    window.location = "/downloadFile?" + params;
+    window.location = ajaxpath + params;
 }
 
 function readfiles(files) {

@@ -6,6 +6,7 @@ import com.nat.cloudman.controllers.params.TransitParameters;
 import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
+import com.nat.cloudman.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -101,5 +102,15 @@ public class CloudManagerFacade {
     public String getThumbnail(FileParameters params) {
         Cloud cloud = userManager.getCloud(params.cloudName);
         return cloudManagers.get(cloud.getCloudService()).getThumbnail(cloud, params.fileId, params.path);
+    }
+
+    public ResponseEntity<InputStreamResource> downloadFolder(String fileName, String cloudName, String fileId, String path) {
+        DownloadedFileContainer fileContainer = downloadFolderFromCloud(fileName, cloudName, fileId, path);
+        return Utils.fromFileContainerToResponseEntity(fileContainer);
+    }
+
+    private DownloadedFileContainer downloadFolderFromCloud(String fileName, String cloudName, String fileId, String path) {
+        Cloud cloud = userManager.getCloud(cloudName);
+        return cloudManagers.get(cloud.getCloudService()).downloadFolder(fileName, fileId, path, cloud);
     }
 }

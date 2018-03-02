@@ -74,6 +74,16 @@ public class CloudController {
         return cloudManager.downloadFile(fileName, cloudName, fileId, path);
     }
 
+    @RequestMapping(value = "/downloadFolder", method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> downloadFolder(@RequestParam(value = "fileName", defaultValue = "") String fileName,
+                                                              @RequestParam(value = "cloudName") String cloudName,
+                                                              @RequestParam(value = "fileId") String fileId,
+                                                              @RequestParam(value = "path") String path,
+                                                              HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println("downloadFolder: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        return cloudManager.downloadFolder(fileName, cloudName, fileId, path);
+    }
+
     @RequestMapping(value = "/deletefile", method = RequestMethod.DELETE)
     public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {

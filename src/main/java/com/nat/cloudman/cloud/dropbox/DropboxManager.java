@@ -435,31 +435,32 @@ public class DropboxManager implements CloudManager {
         return file;
     }
 
+    @Override
+    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
+        File file = downloadFolderLocal(fileName, path, null, null, cloud);
+        return Utils.fileToContainer(file, fileName + ".zip");
+    }
+
+    private File downloadFolderLocal(String fileName, String path, Object o, Object o1, Cloud cloud) {
+        String token = cloud.getAccessToken();
+        DbxClientV2 client = getClient(token);
+        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName + ".zip");
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(file);
+            client.files().downloadZip(path + "/" + fileName).download(outputStream);
+            outputStream.flush();
+            outputStream.close();
+        } catch (DbxException | IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
 
     @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
         File file = downloadLocal(fileName, path, null, null, cloud);
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        System.out.println("downloaded ");
-        try {
-            byte[] arr = IOUtils.toByteArray(is);
-            is.close();
-            if (file.delete()) {
-                System.out.println(file.getName() + " is deleted");
-            } else {
-                System.out.println("Delete operation is failed");
-            }
-            System.out.println("arr size: " + arr.length);
-            return new DownloadedFileContainer(fileName, arr);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return Utils.fileToContainer(file, fileName);
     }
 
     @Override

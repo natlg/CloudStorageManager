@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.dropbox.core</groupId>
             <artifactId>dropbox-core-sdk</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.6</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.json/json -->
         <dependency>
@@ -86,6 +86,13 @@
             <artifactId>google-oauth-client</artifactId>
             <version>1.23.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.zeroturnaround/zt-zip -->
+        <dependency>
+            <groupId>org.zeroturnaround</groupId>
+            <artifactId>zt-zip</artifactId>
+            <version>1.12</version>
+        </dependency>
+
     </dependencies>
 
     <properties>

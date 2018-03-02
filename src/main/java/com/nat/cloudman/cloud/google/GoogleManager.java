@@ -17,11 +17,13 @@ import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
 import com.nat.cloudman.utils.Utils;
-import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.*;
 
@@ -45,6 +47,8 @@ public class GoogleManager implements CloudManager {
 
     @Value("${temp.download.path}")
     private String DOWNLOAD_PATH;
+
+    private static final Logger logger = LoggerFactory.getLogger(GoogleManager.class);
 
     private GoogleClient getClient(Cloud cloud) {
         return new GoogleClient(new GoogleConfig(CLIENT_ID, CLIENT_SECRET, cloud.getAccessToken(), cloud.getRefreshToken()));
@@ -153,11 +157,53 @@ public class GoogleManager implements CloudManager {
         return false;
     }
 
+
+    private File downloadFolderRecursive(String path, String folderId, String pathToDownload, Cloud cloud) {
+        File localFolder = new File(pathToDownload);
+        //create folder
+        logger.debug("downloadFolderRecursive, " + localFolder.mkdir() + localFolder.mkdirs());
+        FilesContainer filesContainer = getFilesList(cloud, folderId, path);
+        logger.debug("downloadFolderRecursive, pathToDownload: " + pathToDownload);
+        for (HashMap<String, String> file : filesContainer.getFiles()) {
+            String fileName = file.get("name");
+            String fileType = file.get("type");
+            String fileId = file.get("id");
+            logger.debug("file: " + fileName + " " + fileType + " " + fileId);
+            if (file.get("type").equalsIgnoreCase("file")) {
+                //download file
+                downloadToLocalPath(fileName, fileId, pathToDownload + "\\", cloud);
+            } else {
+                String newPath = pathToDownload + "\\" + fileName;
+                //repeat
+                downloadFolderRecursive(path, fileId, newPath, cloud);
+            }
+        }
+        return localFolder;
+    }
+
+    private DownloadedFileContainer downloadLocalFolder(String folderName, String path, String folderId, Cloud cloud) {
+        String pathToDownload = DOWNLOAD_PATH + System.currentTimeMillis() + "\\" + folderName;
+        File localFolder = downloadFolderRecursive(path, folderId, pathToDownload, cloud);
+        logger.debug("return from downloadLocalFolder: " + localFolder.getAbsolutePath());
+        File zipFile = new File(pathToDownload + ".zip");
+        ZipUtil.pack(localFolder, zipFile);
+        return Utils.fileToContainer(zipFile, folderName + ".zip");
+    }
+
+    @Override
+    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
+        return downloadLocalFolder(fileName, path, fileId, cloud);
+    }
+
     @Override
     public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+        return downloadToLocalPath(fileName, fileId, DOWNLOAD_PATH + System.currentTimeMillis(), cloud);
+    }
+
+    private File downloadToLocalPath(String fileName, String fileId, String localPath, Cloud cloud) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
         //TODO timeout
-        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
+        File file = new File(localPath + fileName);
         OutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file);
@@ -175,26 +221,7 @@ public class GoogleManager implements CloudManager {
     @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
         File file = downloadLocal(fileName, path, null, fileId, cloud);
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        System.out.println("downloaded ");
-        try {
-            byte[] arr = IOUtils.toByteArray(is);
-            is.close();
-            if (file.delete()) {
-                System.out.println(file.getName() + " is deleted");
-            } else {
-                System.out.println("Delete operation is failed");
-            }
-            return new DownloadedFileContainer(fileName, arr);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return Utils.fileToContainer(file, fileName);
     }
 
     @Override

@@ -29,4 +29,6 @@ public interface CloudManager {
     boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId);
 
     String getThumbnail(Cloud cloud, String fileId, String path);
+
+    DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud);
 }
