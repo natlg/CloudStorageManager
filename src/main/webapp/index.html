@@ -40,9 +40,9 @@
 </head>
 <body>
 
-<div class="container-fluid" style="width:100%">
+<div class="container-fluid max-height" style="width:100%">
 
-    <div class="row">
+    <div class="row max-height">
         <div class="col-sm-3 col-lg-2">
             <nav class="navbar navbar-default navbar-fixed-side">
                 <div class="container">
@@ -65,7 +65,7 @@
                 </div>
             </nav>
         </div>
-        <div class="col-sm-9 col-lg-10 no-padding">
+        <div class="col-sm-9 col-lg-10 no-padding max-height">
 
             <div id="mainPageText" style="display: none" class="well-margin well-lg text-info text-left">
                 <p class="text-info text-left">
@@ -75,7 +75,7 @@
             <div id="aboutPageText" style="display: none" class="well-margin well-lg ">
                 <p class="text-info text-left"> Will be ready soon!
             </div>
-            <div id="files_table" style="display:none;">
+            <div id="files_table" style="display:none;" class="max-height">
 
                 <div id="table-icons-container" class="icons-containe table-header" style="display:none;">
 
@@ -263,8 +263,8 @@
                     </div>
                 </div>
 
-                <div class="col-sm-12 text-left no-padding">
-                    <div class="container file-table-container" style="padding-left:0px; padding-right:0px">
+                <div class="col-sm-12 text-left no-padding max-height">
+                    <div class="container file-table-container max-height" style="padding-left:0px; padding-right:0px">
 
                         <div id="pathContainer" class="table-header"></div>
                         <div class="alert alert-info centered" role="alert" style="display: none">
@@ -272,7 +272,7 @@
                             </button>
                             Working..
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive max-height" id="drop-files-container">
                             <table class="table table-hover ">
                                 <thead>
                                 <tr>

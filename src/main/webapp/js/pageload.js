@@ -228,7 +228,7 @@ function removeCloud() {
 function callMethod(url, method, parameters, successCallback) {
     $.ajax({
         type: method,
-        url: url,
+        url: domainName + url,
         data: JSON.stringify(parameters),
         contentType: 'application/json;',
     })
@@ -316,7 +316,7 @@ function fillTree(tree) {
                 var json = JSON.stringify({cloudName: cloud, path: path, id: fileId});
 
                 data.result = {
-                    url: "/getcloudstree",
+                    url: domainName + "/getcloudstree",
                     cache: false,
                     type: 'POST',
                     data: json,
@@ -455,6 +455,11 @@ function download() {
     window.location = "/downloadFile?" + params;
 }
 
+function readfiles(files) {
+    console.log("!!! readfiles");
+    uploadFiles(files);
+}
+
 $(document).ready(function () {
     console.log("document ready");
     filesProvider = new FilesProvider();
@@ -487,6 +492,27 @@ $(document).ready(function () {
     $(document).on('click', '#move_btn', move);
     $(document).on('click', '#remove_cloud', removeCloud);
     $(document).on('click', '#remove_file', deleteFile);
+
+
+    var holder = document.getElementById('drop-files-container');
+    holder.ondragover = function () {
+        $('#drop-files-container').addClass('hover')
+        return false;
+    };
+    holder.ondragend = function () {
+        $('#drop-files-container').removeClass('hover');
+        return false;
+    };
+    holder.ondragleave = function () {
+        $('#drop-files-container').removeClass('hover');
+        return false;
+    };
+
+    holder.ondrop = function (e) {
+        $('#drop-files-container').removeClass('hover');
+        e.preventDefault();
+        readfiles(e.dataTransfer.files);
+    }
 
 //hide clouds container when some is chosen (on mobile version)
     $(document).on('click', '#cloud_container a', function () {

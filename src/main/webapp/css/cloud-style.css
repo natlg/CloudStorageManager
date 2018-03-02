@@ -138,3 +138,14 @@ html, body, .nav-container {
     color: #5e5e5e;
 }
 
+.table-text {
+    color: #5e5e5e;
+}
+
+.hover {
+    border: 10px dashed #ccc;
+}
+
+.max-height {
+    height: 100%;
+}

@@ -84,7 +84,7 @@ function getClouds() {
             }
         }
     };
-    xhttp.open("POST", "/getclouds", true);
+    xhttp.open("POST", domainName + "/getclouds", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
@@ -166,7 +166,7 @@ function getAuthorizeUrl() {
             }
         }
     };
-    xhttp.open("POST", "/getauthorizeurl", true);
+    xhttp.open("POST", domainName + "/getauthorizeurl", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
@@ -219,7 +219,7 @@ function sendAddCloudRequest(cloud, cloudName, code) {
 
     var params = "cloud=" + cloud +
         "&cloudName=" + cloudName + "&code=" + code;
-    xhttp.open("POST", "/addcloud", true);
+    xhttp.open("POST", domainName + "/addcloud", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send params:");
     console.log(params);

@@ -150,16 +150,15 @@ function handleFile(files) {
             console.log("add: " + fileName);
             var fileStyle = ``;
             if (files[key].type == "file") {
-                console.log("file ");
                 fileStyle = `style=' pointer-events: none;'`;
             }
             var row =
                 `<tr class="context_popup" data-toggle="popover" rel=context-popover id=${fileId} ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true"
                     ondragstart="drag(event)">
-                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName" href="#" ` + fileStyle + `>${fileName}</a></td>
-                        <td>${files[key].type}</td>
-                        <td>${getText(files[key].size)}</td>
-                        <td>${getText(files[key].modified)}</td>
+                        <td  style=" padding-left: 20px"> <img class="icon" src="${files[key].fileType}"><a class="fileName table-text" href="#" ` + fileStyle + `>${fileName}</a></td>
+                        <td class="table-text">${files[key].type}</td>
+                        <td class="table-text">${getText(files[key].size)}</td>
+                        <td class="table-text">${getText(files[key].modified)}</td>
                     <td style=" padding-right: 20px">
                     <a tabindex="0" role="button" href="#!" class="hoverAble details_btn" data-toggle="popover" rel="popover" data-placement="left"
                     data-popover-content="#popoverContent"
@@ -172,7 +171,7 @@ function handleFile(files) {
             console.log("id: " + fileId);
             var r = $(document.getElementById(fileId));
             r.on("click", {id: fileId}, rowClick);
-            if (files[key].type = "folder") {
+            if (files[key].type == "folder") {
                 r.on("dblclick", {id: fileId, name: fileName}, dblclickFile);
                 r.find("a.fileName").on("click", {id: fileId, name: fileName}, dblclickFile);
             }
@@ -225,14 +224,15 @@ function emptyPath() {
 function clickUpload() {
     console.log("upload");
     var input = document.getElementById("uploadFilesInput");
-
     var files = input.files;
-    var formData = new FormData();
+    uploadFiles(files);
+}
 
+function uploadFiles(files) {
+    var formData = new FormData();
 // Loop through each of the selected files.
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
-
         // Add the file to the request.
         formData.append('files', file, file.name);
         console.log("append file: " + file.name);
@@ -242,8 +242,7 @@ function clickUpload() {
     formData.append("parentId", filesProvider.parentId);
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/upload/', true);
-
+    xhr.open('POST', domainName + '/upload/', true);
     // Set up a handler for when the request finishes.
     xhr.onload = function () {
         if (xhr.status === 200) {

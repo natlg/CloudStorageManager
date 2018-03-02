@@ -17,7 +17,7 @@ function logoutClick() {
             }
         }
     };
-    xhttp.open("POST", "/logout/", true);
+    xhttp.open("POST", domainName + "/logout/", true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     console.log("send logout");
     xhttp.send();
@@ -70,7 +70,7 @@ function submitLoginForm() {
 
             var params = "email=" + form.elements["email"].value +
                 "&password=" + form.elements["password"].value;
-            xhttp.open("POST", "/loginform", true);
+            xhttp.open("POST", domainName + "/loginform", true);
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             console.log("send params:");
             console.log(params);
@@ -128,7 +128,7 @@ function submitSignupForm() {
                 "&firstname=" + form.elements["firstname"].value +
                 "&lastname=" + form.elements["lastname"].value +
                 "&password=" + form.elements["password"].value;
-            xhttp.open("POST", "/signup", true);
+            xhttp.open("POST", domainName + "/signup", true);
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             console.log("send params:");
             console.log(params);
