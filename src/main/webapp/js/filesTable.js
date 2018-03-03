@@ -126,24 +126,12 @@ function getThumbnail(currentCloud, id, pathLower) {
     });
 }
 
-// callback function after getting answer from server
-function handleFile(files) {
-    console.log("handleFile ");
-    var table = $("#filesTableBody");
-    $("#files_table").show();
-
-    //remove rows after previous click
-    table.empty();
-    //no thumbnails for Dropbox as no src for it
-    var isDropbox = 0;
-    filesProvider.clouds.forEach(function (cl) {
-        if (cl.accountName === currentCloud && cl.service === 'Dropbox') {
-            isDropbox = 1;
-            return;
-        }
-    });
-
+function addFilesToTable(files, type, table, isShowThumbnails) {
     for (var key in files) {
+        if (files[key].type !== type) {
+            //skip
+            continue;
+        }
         if (files.hasOwnProperty(key)) {
             var fileId = files[key].id;
             var fileName = files[key].name;
@@ -178,11 +166,33 @@ function handleFile(files) {
             var link = r.find('a');
             bindPopover();
             rowId = "";
-            if (!(isDropbox === 1) && (files[key].fileType === FileType.IMAGE)) {
+            if (!(isShowThumbnails === 1) && (files[key].fileType === FileType.IMAGE)) {
                 getThumbnail(currentCloud, files[key].id, files[key].pathLower);
             }
         }
     }
+
+}
+
+// callback function after getting answer from server
+function handleFile(files) {
+    console.log("handleFile ");
+    var table = $("#filesTableBody");
+    $("#files_table").show();
+
+    //remove rows after previous click
+    table.empty();
+    //no thumbnails for Dropbox as no src for it
+    var isDropbox = 0;
+    filesProvider.clouds.forEach(function (cl) {
+        if (cl.accountName === currentCloud && cl.service === 'Dropbox') {
+            isDropbox = 1;
+            return;
+        }
+    });
+    // show folders first, so add them first. then add files
+    addFilesToTable(files, "folder", table, isDropbox);
+    addFilesToTable(files, "file", table, isDropbox);
     var pathContainer = $("#pathContainer");
     emptyPath();
 
