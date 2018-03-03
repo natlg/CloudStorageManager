@@ -10,14 +10,17 @@ import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.service.CloudService;
+import com.nat.cloudman.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
+import java.util.HashMap;
 
 
 @Component
@@ -110,8 +113,12 @@ public class OneDriveManager implements CloudManager {
 
     @Override
     public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+        return downloadToLocalPath(fileName, downloadUrl, DOWNLOAD_PATH, cloud);
+    }
+
+    private File downloadToLocalPath(String fileName, String downloadUrl, String localPath, Cloud cloud) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
-        File result = client.downloadLocal(fileName, path, downloadUrl, DOWNLOAD_PATH);
+        File result = client.downloadLocal(fileName, downloadUrl, localPath);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
         return result;
     }
@@ -142,7 +149,39 @@ public class OneDriveManager implements CloudManager {
 
     @Override
     public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
-        //TODO
-        return null;
+        return downloadLocalFolder(fileName, fileId, path, cloud);
+    }
+
+    private DownloadedFileContainer downloadLocalFolder(String folderName, String folderId, String path, Cloud cloud) {
+        String pathToDownload = DOWNLOAD_PATH + System.currentTimeMillis() + "\\" + folderName;
+        File localFolder = downloadFolderRecursive(folderName, path, folderId, pathToDownload, cloud);
+        logger.debug("return from downloadLocalFolder: " + localFolder.getAbsolutePath());
+        File zipFile = new File(pathToDownload + ".zip");
+        ZipUtil.pack(localFolder, zipFile);
+        return Utils.fileToContainer(zipFile, folderName + ".zip");
+    }
+
+    private File downloadFolderRecursive(String folderName, String path, String folderId, String pathToDownload, Cloud cloud) {
+        File localFolder = new File(pathToDownload);
+        //create folder
+        logger.debug("downloadFolderRecursive, " + localFolder.mkdir() + localFolder.mkdirs());
+        logger.debug("downloadFolderRecursive, pathToDownload: " + pathToDownload + ", folderName: " + folderName + ", path: " + path);
+        FilesContainer filesContainer = getFilesList(cloud, folderId, path + "/" + folderName);
+        for (HashMap<String, String> file : filesContainer.getFiles()) {
+            String fileName = file.get("name");
+            String fileType = file.get("type");
+            String fileId = file.get("id");
+            String downloadPath = file.get("downloadUrl");
+            logger.debug("file: " + fileName + " " + fileType + " " + fileId);
+            if (file.get("type").equalsIgnoreCase("file")) {
+                downloadToLocalPath(fileName, downloadPath, pathToDownload + "\\", cloud);
+            } else {
+                String newLocalPath = pathToDownload + "\\" + fileName;
+                String newFolderPath = path + "/" + folderName;
+                //repeat
+                downloadFolderRecursive(fileName, newFolderPath, fileId, newLocalPath, cloud);
+            }
+        }
+        return localFolder;
     }
 }

@@ -562,7 +562,7 @@ public class OneDriveClient {
         return value;
     }
 
-    public File downloadLocal(String fileName, String path, String downloadUrl, String downloadPath) {
+    public File downloadLocal(String fileName, String downloadUrl, String downloadPath) {
         File file = new File(downloadPath + System.currentTimeMillis() + fileName);
         try {
             FileUtils.copyURLToFile(new URL(downloadUrl), file);

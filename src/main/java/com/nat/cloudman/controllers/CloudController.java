@@ -70,7 +70,7 @@ public class CloudController {
                                                             @RequestParam(value = "fileId") String fileId,
                                                             @RequestParam(value = "path") String path,
                                                             HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("download: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        logger.debug("download: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
         return cloudManager.downloadFile(fileName, cloudName, fileId, path);
     }
 
@@ -80,7 +80,7 @@ public class CloudController {
                                                               @RequestParam(value = "fileId") String fileId,
                                                               @RequestParam(value = "path") String path,
                                                               HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("downloadFolder: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
+        logger.debug("downloadFolder: fileName: " + fileName + ", fileId: " + fileId + ", cloudName: " + cloudName + ", path: " + path);
         return cloudManager.downloadFolder(fileName, cloudName, fileId, path);
     }
 
