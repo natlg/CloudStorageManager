@@ -140,6 +140,11 @@ html, body, .nav-container {
 
 .table-text {
     color: #5e5e5e;
+
+}
+
+table tbody tr td.middle-text {
+    vertical-align: middle;
 }
 
 .hover {
