@@ -487,16 +487,56 @@ function download() {
     window.location = ajaxpath + params;
 }
 
-function readfiles(files) {
-    console.log("!!! readfiles");
-    uploadFiles(files);
+function read(items) {
+    return Promise.all(items.map(item => {
+        if (item.isFile) {
+            return [item];
+        }
+        return new Promise(resolve => item.createReader().readEntries(resolve))
+            .then(entries => {
+                entries.forEach(it => it.path = item.path + '/' + it.name);
+                return read(entries)
+            })
+    })).then(entries => entries.reduce((a, b) => a.concat(b)))
+}
+
+function handleResult(blob) {
+    readfiles(blob);
+}
+
+function handleItems(items) {
+    console.log("handleItems, tems.length: " + items.length);
+    items.forEach(item => item.path = item.name);
+    const initZip = new Promise(resolve =>
+        zip.createWriter(new zip.BlobWriter, resolve)
+    );
+    const getFiles = read(items).then(entries => {
+        return Promise.all(entries.map(entry =>
+            new Promise(resolve =>
+                entry.file(file => {
+                    file.path = entry.path;
+                    resolve(file)
+                })
+            )
+        ))
+    });
+    return Promise.all([getFiles, initZip]).then(([files, writer]) =>
+        files.reduce((current, next) =>
+                current.then(() =>
+                    new Promise(resolve => {
+                        console.log("next.path: " + next.path);
+                        writer.add(next.path, new zip.BlobReader(next), resolve)
+                    })
+                )
+            , Promise.resolve())
+            .then(() => writer.close(handleResult))
+    )
 }
 
 $(document).ready(function () {
     console.log("document ready");
     filesProvider = new FilesProvider();
     getClouds();
-
 
     $(document).on('click', '#login', function () {
         location.href = "login.html";
@@ -525,6 +565,7 @@ $(document).ready(function () {
     $(document).on('click', '#remove_cloud', removeCloud);
     $(document).on('click', '#remove_file', deleteFile);
 
+    zip.useWebWorkers = false;
 
     var holder = document.getElementById('drop-files-container');
     holder.ondragover = function () {
@@ -543,8 +584,24 @@ $(document).ready(function () {
     holder.ondrop = function (e) {
         $('#drop-files-container').removeClass('hover');
         e.preventDefault();
-        readfiles(e.dataTransfer.files);
-    }
+        console.log("on drop");
+        var folderItesmLen = e.dataTransfer.items.length;
+
+        //check if there is any folder
+        for (var i = 0; i < folderItesmLen; i++) {
+            var entry = e.dataTransfer.items[i].webkitGetAsEntry();
+            if (entry.isDirectory) {
+                //zip folder and send
+                console.log("folder is dropped ");
+                const items = [].slice.call(e.dataTransfer.items)
+                    .map(item => item.webkitGetAsEntry());
+                return handleItems(items);
+            }
+        }
+        //if no folder is found
+        //files are dropped, no need to zip
+        uploadFiles(e.dataTransfer.files);
+    };
 
 //hide clouds container when some is chosen (on mobile version)
     $(document).on('click', '#cloud_container a', function () {
