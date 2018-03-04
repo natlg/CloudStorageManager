@@ -487,6 +487,39 @@ function download() {
     window.location = ajaxpath + params;
 }
 
+function uploadZip(files) {
+    console.log("!!! readfiles and send");
+
+    var formData = new FormData();
+    var zipName = "uploadedfolder" + Date.now() + ".zip";
+
+    console.log(" zipName: " + zipName);
+    // Add the file to the request.
+    formData.append('files', files, zipName);
+    console.log("append zip ");
+
+    formData.append("filePath", filesProvider.fullPath);
+    formData.append("cloudName", currentCloud);
+    formData.append("parentId", filesProvider.parentId);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', domainName + '/upload/', true);
+    // Set up a handler for when the request finishes.
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            // File(s) uploaded.
+            console.log("UPLOADED! ");
+            listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
+        } else {
+            console.log("error on upload request");
+        }
+    };
+    // Send the Data.
+    console.log("Start uploading");
+    showTempAlert("Start uploading", 'info');
+    xhr.send(formData);
+}
+
 function read(items) {
     return Promise.all(items.map(item => {
         if (item.isFile) {
@@ -501,7 +534,7 @@ function read(items) {
 }
 
 function handleResult(blob) {
-    readfiles(blob);
+    uploadZip(blob);
 }
 
 function handleItems(items) {
