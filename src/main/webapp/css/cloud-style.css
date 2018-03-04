@@ -154,3 +154,10 @@ table tbody tr td.middle-text {
 .max-height {
     height: 100%;
 }
+
+.thumb-size {
+    width: auto;
+    height: 50px;
+    object-fit: cover;
+    max-width: 75px;
+}

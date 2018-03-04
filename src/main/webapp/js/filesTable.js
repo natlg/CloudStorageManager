@@ -117,8 +117,7 @@ function getThumbnail(currentCloud, id, pathLower) {
             console.log("got thumbnail");
             var imgThumb = document.getElementById(id).getElementsByTagName('img')[0];
             imgThumb.src = response;
-            $(imgThumb).css('width', 'auto');
-            $(imgThumb).css('height', '50px');
+            $(imgThumb).addClass('thumb-size');
         }
         else {
             console.log("didn't get thumbnail");

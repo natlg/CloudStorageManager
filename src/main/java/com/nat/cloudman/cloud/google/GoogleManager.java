@@ -51,7 +51,10 @@ public class GoogleManager implements CloudManager {
     private static final Logger logger = LoggerFactory.getLogger(GoogleManager.class);
 
     private GoogleClient getClient(Cloud cloud) {
-        return new GoogleClient(new GoogleConfig(CLIENT_ID, CLIENT_SECRET, cloud.getAccessToken(), cloud.getRefreshToken()));
+        if (cloud != null) {
+            return new GoogleClient(new GoogleConfig(CLIENT_ID, CLIENT_SECRET, cloud.getAccessToken(), cloud.getRefreshToken()));
+        }
+        return new GoogleClient(new GoogleConfig(CLIENT_ID, CLIENT_SECRET, null, null));
     }
 
     private void checkAndSaveAccessToken(String accessToken, Cloud cloud) {
