@@ -195,7 +195,12 @@ function transfer(action) {
     var cloudSource = currentCloud;
     var pathSource = filesProvider.fullPath + "/" + nameSource;
     var idSource = filesProvider.filesObj[fileIdPopover].id;
-    console.log(action + " nameSource: " + nameSource + ", cloudSource: " + cloudSource + ", idSource: " + idSource + ", pathSource: " + pathSource);
+    var fileType = filesProvider.filesObj[fileIdPopover].type;
+    if (fileType == "folder") {
+        action += "folder";
+    }
+    console.log(action + " nameSource: " + nameSource + ", cloudSource: " + cloudSource + ", idSource: " + idSource
+        + ", pathSource: " + pathSource + ", fileType: " + fileType);
 
     var pathDest = getPathFromNode(selectedNode) + "/" + nameSource;
     var cloudDest = getCloudFromNode(selectedNode);
@@ -212,13 +217,20 @@ function transfer(action) {
         downloadUrl: downloadUrl,
         cloudDest: cloudDest,
         pathDest: pathDest,
+        fileName: nameSource,
         idDest: idDest
     };
-
-    showTempAlert("Start " + action, 'info');
-    callMethod("/" + action, "POST", params, "Failed to " + action, function (response) {
+    var message = '';
+    if (action.startsWith('copy')) {
+        message = 'copy';
+    }
+    else if (action.startsWith('move')) {
+        message = 'move';
+    }
+    showTempAlert("Start " + message, 'info');
+    callMethod("/" + action, "POST", params, "Failed to " + message, function (response) {
         console.log("Finished " + action);
-        if (action === 'move') {
+        if (action.startsWith('move')) {
             listFolder(currentCloud, filesProvider.fullPath, filesProvider.parentId);
         }
     });

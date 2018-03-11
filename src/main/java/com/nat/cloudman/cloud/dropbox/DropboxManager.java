@@ -13,6 +13,7 @@ import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,8 @@ public class DropboxManager implements CloudManager {
 
     @Value("${temp.download.path}")
     private String DOWNLOAD_PATH;
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(DropboxManager.class);
 
     // Adjust the chunk size based on your network speed and reliability. Larger chunk sizes will
     // result in fewer network requests, which will be faster. But if an error occurs, the entire
@@ -162,6 +165,27 @@ public class DropboxManager implements CloudManager {
             return chunkedUploadFile(client, localFile, dropboxPath);
         }
 
+    }
+
+    private void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload) {
+        logger.debug("db uploadFolderRecursive, pathToUpload: " + pathToUpload + ", folder: " + folder.getAbsolutePath());
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                logger.debug("folder: " + fileEntry.getAbsolutePath());
+                addFolder(fileEntry.getName(), cloud, pathToUpload, "");
+                uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName());
+            } else {
+                logger.debug("file: " + fileEntry.getAbsolutePath());
+                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), "");
+            }
+        }
+    }
+
+    @Override
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
+        logger.debug("db uploadFolder");
+        uploadFolderRecursive(localFolder, cloud, pathToUpload);
+        return false;
     }
 
     /**
@@ -419,10 +443,10 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+    public File downloadFileLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
-        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName);
+        File file = new File(DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + fileName);
         OutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file);
@@ -436,19 +460,20 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
-        File file = downloadFolderLocal(fileName, path, null, null, cloud);
-        return Utils.fileToContainer(file, fileName + ".zip");
+    public DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud) {
+        File file = downloadFolderLocal(folderName, path, null, null, cloud);
+        return Utils.fileToContainer(file, folderName + ".zip");
     }
 
-    private File downloadFolderLocal(String fileName, String path, Object o, Object o1, Cloud cloud) {
+    @Override
+    public File downloadFolderLocal(String folderName, String path, String downloadUrl, String folderId, Cloud cloud) {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
-        File file = new File(DOWNLOAD_PATH + System.currentTimeMillis() + fileName + ".zip");
+        File file = new File(DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + folderName + ".zip");
         OutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file);
-            client.files().downloadZip(path + "/" + fileName).download(outputStream);
+            client.files().downloadZip(path).download(outputStream);
             outputStream.flush();
             outputStream.close();
         } catch (DbxException | IOException e) {
@@ -459,7 +484,7 @@ public class DropboxManager implements CloudManager {
 
     @Override
     public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
-        File file = downloadLocal(fileName, path, null, null, cloud);
+        File file = downloadFileLocal(fileName, path, null, null, cloud);
         return Utils.fileToContainer(file, fileName);
     }
 

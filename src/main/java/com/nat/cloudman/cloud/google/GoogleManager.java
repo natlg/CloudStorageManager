@@ -141,6 +141,34 @@ public class GoogleManager implements CloudManager {
         return false;
     }
 
+    public void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                logger.debug("folder: " + fileEntry.getAbsolutePath());
+                com.google.api.services.drive.model.File addedFolder = addFolderAndGet(fileEntry.getName(), cloud, pathToUpload, parentId);
+                if (addedFolder != null) {
+                    logger.debug("added folder: " + addedFolder.getTitle() + ", id: " + addedFolder.getId());
+                    uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + addedFolder.getTitle(), addedFolder.getId());
+                }
+            } else {
+                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId);
+                logger.debug("file: " + fileEntry.getAbsolutePath());
+            }
+        }
+    }
+
+    @Override
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
+        logger.debug("google uploadFolder");
+        // add folder first
+        com.google.api.services.drive.model.File addedFolder = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, parentId);
+        if (addedFolder != null) {
+            logger.debug("added folder: " + addedFolder.getTitle() + ", id: " + addedFolder.getId());
+            uploadFolderRecursive(localFolder, cloud, pathToUpload, addedFolder.getId());
+        }
+        return false;
+    }
+
     @Override
     public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
@@ -152,14 +180,61 @@ public class GoogleManager implements CloudManager {
                     Arrays.asList(new ParentReference().setId(parentId)));
         }
         try {
-            driveService.files().insert(body).setFields("id").execute();
-            return true;
+            com.google.api.services.drive.model.File file =
+                    driveService.files().insert(body).setFields("id").execute();
+            if (file != null) {
+                return true;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
     }
 
+
+    private com.google.api.services.drive.model.File addFolderAndGet(String folderName, Cloud cloud, String path, String parentId) {
+        Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
+        com.google.api.services.drive.model.File body = new com.google.api.services.drive.model.File();
+        body.setTitle(folderName);
+        body.setMimeType("application/vnd.google-apps.folder");
+        if (parentId != null && parentId.length() > 0) {
+            body.setParents(
+                    Arrays.asList(new ParentReference().setId(parentId)));
+        }
+        try {
+            com.google.api.services.drive.model.File addedFolder =
+                    driveService.files().insert(body).setFields("id").execute();
+            return addedFolder;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud) {
+        String pathToDownload = DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + "\\" + folderName;
+        File localFolder = downloadFolderToLocalPath(folderName, path, "", folderId, cloud, pathToDownload);
+        logger.debug("pathToDownload: " + pathToDownload);
+        File zipFile = new File(pathToDownload + ".zip");
+        ZipUtil.pack(localFolder, zipFile, true);
+        return Utils.fileToContainer(zipFile, folderName + ".zip");
+    }
+
+    @Override
+    public File downloadFolderLocal(String folderName, String path, String downloadUrl, String folderId, Cloud cloud) {
+        logger.debug("downloadFolderLocal, folderName: " + folderName);
+        String pathToDownload = DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + "\\" + folderName;
+        logger.debug("pathToDownload: " + pathToDownload);
+        return downloadFolderToLocalPath(folderName, path, downloadUrl, folderId, cloud, pathToDownload);
+    }
+
+
+    private File downloadFolderToLocalPath(String folderName, String path, String downloadUrl, String folderId, Cloud cloud, String pathToDownload) {
+        File localFolder = downloadFolderRecursive(path, folderId, pathToDownload, cloud);
+        logger.debug("return from downloadLocalFolder: " + localFolder.getAbsolutePath());
+        return localFolder;
+    }
 
     private File downloadFolderRecursive(String path, String folderId, String pathToDownload, Cloud cloud) {
         File localFolder = new File(pathToDownload);
@@ -184,23 +259,15 @@ public class GoogleManager implements CloudManager {
         return localFolder;
     }
 
-    private DownloadedFileContainer downloadLocalFolder(String folderName, String path, String folderId, Cloud cloud) {
-        String pathToDownload = DOWNLOAD_PATH + System.currentTimeMillis() + "\\" + folderName;
-        File localFolder = downloadFolderRecursive(path, folderId, pathToDownload, cloud);
-        logger.debug("return from downloadLocalFolder: " + localFolder.getAbsolutePath());
-        File zipFile = new File(pathToDownload + ".zip");
-        ZipUtil.pack(localFolder, zipFile);
-        return Utils.fileToContainer(zipFile, folderName + ".zip");
+    @Override
+    public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
+        File file = downloadFileLocal(fileName, path, null, fileId, cloud);
+        return Utils.fileToContainer(file, fileName);
     }
 
     @Override
-    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
-        return downloadLocalFolder(fileName, path, fileId, cloud);
-    }
-
-    @Override
-    public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
-        return downloadToLocalPath(fileName, fileId, DOWNLOAD_PATH + System.currentTimeMillis(), cloud);
+    public File downloadFileLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+        return downloadToLocalPath(fileName, fileId, DOWNLOAD_PATH + "\\" + System.currentTimeMillis(), cloud);
     }
 
     private File downloadToLocalPath(String fileName, String fileId, String localPath, Cloud cloud) {
@@ -219,12 +286,6 @@ public class GoogleManager implements CloudManager {
             return null;
         }
         return file;
-    }
-
-    @Override
-    public DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud) {
-        File file = downloadLocal(fileName, path, null, fileId, cloud);
-        return Utils.fileToContainer(file, fileName);
     }
 
     @Override

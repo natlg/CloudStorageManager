@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 
@@ -78,6 +79,29 @@ public class OneDriveManager implements CloudManager {
         return result;
     }
 
+
+    public void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
+        logger.debug("uploadFolderRecursive, folder: " + folder.getAbsolutePath() + ", pathToUpload: " + pathToUpload);
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                logger.debug("folder: " + fileEntry.getAbsolutePath());
+                addFolder(fileEntry.getName(), cloud, pathToUpload, "");
+                uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName(), "");
+            } else {
+                logger.debug("file: " + fileEntry.getAbsolutePath());
+                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId);
+            }
+        }
+    }
+
+    @Override
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
+        logger.debug("OneDrive uploadFolder, pathToUpload: " + pathToUpload + ", parentId: " + parentId);
+        addFolder(localFolder.getName(), cloud, pathToUpload, parentId);
+        uploadFolderRecursive(localFolder, cloud, pathToUpload, parentId);
+        return false;
+    }
+
     @Override
     public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
@@ -112,8 +136,8 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
-        return downloadToLocalPath(fileName, downloadUrl, DOWNLOAD_PATH, cloud);
+    public File downloadFileLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud) {
+        return downloadToLocalPath(fileName, downloadUrl, DOWNLOAD_PATH + "\\" + System.currentTimeMillis(), cloud);
     }
 
     private File downloadToLocalPath(String fileName, String downloadUrl, String localPath, Cloud cloud) {
@@ -148,17 +172,28 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud) {
-        return downloadLocalFolder(fileName, fileId, path, cloud);
+    public DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud) {
+        File localFolder = downloadFolderLocal(folderName, path, "", folderId, cloud);
+        String zipPath = null;
+        try {
+            zipPath = localFolder.getCanonicalPath() + ".zip";
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        logger.debug("zipPath: " + zipPath);
+        File zipFile = new File(zipPath);
+        // unzip including root folder
+        ZipUtil.pack(localFolder, zipFile, true);
+        return Utils.fileToContainer(zipFile, folderName + ".zip");
     }
 
-    private DownloadedFileContainer downloadLocalFolder(String folderName, String folderId, String path, Cloud cloud) {
-        String pathToDownload = DOWNLOAD_PATH + System.currentTimeMillis() + "\\" + folderName;
+    @Override
+    public File downloadFolderLocal(String folderName, String path, String downloadUrl, String folderId, Cloud cloud) {
+        String pathToDownload = DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + "\\" + folderName + "\\";
+        logger.debug("downloadFolderLocal, pathToDownload: " + pathToDownload);
         File localFolder = downloadFolderRecursive(folderName, path, folderId, pathToDownload, cloud);
-        logger.debug("return from downloadLocalFolder: " + localFolder.getAbsolutePath());
-        File zipFile = new File(pathToDownload + ".zip");
-        ZipUtil.pack(localFolder, zipFile);
-        return Utils.fileToContainer(zipFile, folderName + ".zip");
+        logger.debug("return from downloadFolderLocal: " + localFolder.getAbsolutePath());
+        return localFolder;
     }
 
     private File downloadFolderRecursive(String folderName, String path, String folderId, String pathToDownload, Cloud cloud) {
@@ -166,7 +201,7 @@ public class OneDriveManager implements CloudManager {
         //create folder
         logger.debug("downloadFolderRecursive, " + localFolder.mkdir() + localFolder.mkdirs());
         logger.debug("downloadFolderRecursive, pathToDownload: " + pathToDownload + ", folderName: " + folderName + ", path: " + path);
-        FilesContainer filesContainer = getFilesList(cloud, folderId, path + "/" + folderName);
+        FilesContainer filesContainer = getFilesList(cloud, folderId, path);
         for (HashMap<String, String> file : filesContainer.getFiles()) {
             String fileName = file.get("name");
             String fileType = file.get("type");
@@ -174,10 +209,10 @@ public class OneDriveManager implements CloudManager {
             String downloadPath = file.get("downloadUrl");
             logger.debug("file: " + fileName + " " + fileType + " " + fileId);
             if (file.get("type").equalsIgnoreCase("file")) {
-                downloadToLocalPath(fileName, downloadPath, pathToDownload + "\\", cloud);
+                downloadToLocalPath(fileName, downloadPath, pathToDownload, cloud);
             } else {
-                String newLocalPath = pathToDownload + "\\" + fileName;
-                String newFolderPath = path + "/" + folderName;
+                String newLocalPath = pathToDownload + fileName + "\\";
+                String newFolderPath = path + "/" + fileName;
                 //repeat
                 downloadFolderRecursive(fileName, newFolderPath, fileId, newLocalPath, cloud);
             }

@@ -289,7 +289,7 @@ public class OneDriveClient {
     }
 
     public boolean uploadFile(File localFile, String filePath) {
-        System.out.println("uploadFile" + "filePath: " + filePath);
+        System.out.println("uploadFile, filePath: " + filePath + ", localfile: " + localFile.getAbsolutePath());
         try {
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
                 return uploadSmallFile(localFile, filePath);
@@ -563,7 +563,7 @@ public class OneDriveClient {
     }
 
     public File downloadLocal(String fileName, String downloadUrl, String downloadPath) {
-        File file = new File(downloadPath + System.currentTimeMillis() + fileName);
+        File file = new File(downloadPath + fileName);
         try {
             FileUtils.copyURLToFile(new URL(downloadUrl), file);
         } catch (IOException e) {

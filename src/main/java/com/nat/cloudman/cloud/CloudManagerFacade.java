@@ -7,13 +7,17 @@ import com.nat.cloudman.model.Cloud;
 import com.nat.cloudman.response.DownloadedFileContainer;
 import com.nat.cloudman.response.FilesContainer;
 import com.nat.cloudman.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,7 +36,12 @@ public class CloudManagerFacade {
     @Autowired
     private UserManager userManager;
 
+    @Value("${temp.download.path}")
+    private String DOWNLOAD_PATH;
+
     private Map<String, CloudManager> cloudManagers = new HashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(CloudManagerFacade.class);
 
     @Autowired
     public void setCloudManagers(List<CloudManager> cloudManagers) {
@@ -112,5 +121,34 @@ public class CloudManagerFacade {
     private DownloadedFileContainer downloadFolderFromCloud(String fileName, String cloudName, String fileId, String path) {
         Cloud cloud = userManager.getCloud(cloudName);
         return cloudManagers.get(cloud.getCloudService()).downloadFolder(fileName, fileId, path, cloud);
+    }
+
+    public void copyFolder(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String folderName, String parentId) {
+        logger.debug("copyFolder");
+        Cloud cloudSource = userManager.getCloud(cloudSourceName);
+        if (!cloudSourceName.equalsIgnoreCase(cloudDestName)) {
+            File downloadedFolder = cloudManagers.get(cloudSource.getCloudService()).downloadFolderLocal(folderName, pathSource, "", idSource, cloudSource);
+            logger.debug("downloadedFolder: " + downloadedFolder.getAbsolutePath());
+            if (cloudSource.getCloudService().equalsIgnoreCase("Dropbox")) {
+                //Dropbox downloads folder as zip
+                String zipPath = downloadedFolder.getAbsolutePath();
+                //remove .zip ext
+                File unzippedFolder = new File(zipPath.substring(0, zipPath.length() - 4));
+                logger.debug("unzippedFolder: " + unzippedFolder.getAbsolutePath());
+                ZipUtil.unpack(downloadedFolder, unzippedFolder);
+                File[] files = unzippedFolder.listFiles();
+                logger.debug("files.length: " + files.length);
+                if (files.length == 1) {
+                    // root folder is random, contains one downloaded folder
+                    downloadedFolder = files[0];
+                }
+                logger.debug("downloadedFolder from zip: " + downloadedFolder.getAbsolutePath());
+            }
+            Cloud cloudDest = userManager.getCloud(cloudDestName);
+            boolean result = cloudManagers.get(cloudDest.getCloudService()).uploadFolder(cloudDest, downloadedFolder, pathDest, idDest);
+        } else {
+            //TODO
+        }
+        //todo return
     }
 }

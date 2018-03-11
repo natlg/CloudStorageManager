@@ -203,6 +203,14 @@ public class CloudController {
         return null;
     }
 
+    @RequestMapping(value = "/copyfolder", method = RequestMethod.POST)
+    public void copyFolder(
+            @RequestBody TransitParameters params,
+            HttpServletRequest request, HttpServletResponse response) {
+        logger.debug("copyfolder, " + params);
+        cloudManager.copyFolder(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId);
+    }
+
     @RequestMapping(value = "/copy", method = RequestMethod.POST)
     public void copyFile(
             @RequestBody TransitParameters params,

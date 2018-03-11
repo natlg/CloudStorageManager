@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +18,6 @@ public class TransferTask {
 
     @Autowired
     private UserManager userManager;
-
-    @Value("${temp.download.path}")
-    private String DOWNLOAD_PATH;
 
     private Map<String, CloudManager> cloudManagers = new HashMap<>();
 
@@ -42,7 +38,7 @@ public class TransferTask {
             Cloud cloudSource = userManager.getCloud(cloudSourceName);
             pathSource = Utils.getParentFromPath(pathSource);
             System.out.println(fileName + " is fileName, " + pathSource + " is a pathSource on copyFile");
-            File file = cloudManagers.get(cloudSource.getCloudService()).downloadLocal(fileName, pathSource, downloadUrl, idSource, cloudSource);
+            File file = cloudManagers.get(cloudSource.getCloudService()).downloadFileLocal(fileName, pathSource, downloadUrl, idSource, cloudSource);
             return cloudManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest, idDest);
 
         } else {

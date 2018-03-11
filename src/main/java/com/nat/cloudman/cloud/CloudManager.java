@@ -14,6 +14,8 @@ public interface CloudManager {
 
     boolean uploadFile(Cloud cloud, File localFile, String pathToUpload, String parentId);
 
+    boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId);
+
     boolean addFolder(String folderName, Cloud cloud, String path, String parentId);
 
     DownloadedFileContainer download(String fileName, String fileId, String path, Cloud cloud);
@@ -22,7 +24,11 @@ public interface CloudManager {
 
     boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud);
 
-    File downloadLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud);
+    File downloadFileLocal(String fileName, String path, String downloadUrl, String fileId, Cloud cloud);
+
+    File downloadFolderLocal(String folderName, String path, String downloadUrl, String folderId, Cloud cloud);
+
+    DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud);
 
     boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId);
 
@@ -30,5 +36,5 @@ public interface CloudManager {
 
     String getThumbnail(Cloud cloud, String fileId, String path);
 
-    DownloadedFileContainer downloadFolder(String fileName, String fileId, String path, Cloud cloud);
+
 }
