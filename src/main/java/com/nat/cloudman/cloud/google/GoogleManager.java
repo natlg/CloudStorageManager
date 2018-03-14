@@ -141,20 +141,29 @@ public class GoogleManager implements CloudManager {
         return false;
     }
 
-    public void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
+    public boolean uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
+        boolean result = true;
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
                 logger.debug("folder: " + fileEntry.getAbsolutePath());
                 com.google.api.services.drive.model.File addedFolder = addFolderAndGet(fileEntry.getName(), cloud, pathToUpload, parentId);
                 if (addedFolder != null) {
                     logger.debug("added folder: " + addedFolder.getTitle() + ", id: " + addedFolder.getId());
-                    uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + addedFolder.getTitle(), addedFolder.getId());
+                    if (!uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + addedFolder.getTitle(), addedFolder.getId())) {
+                        result = false;
+                    }
+                } else {
+                    result = false;
                 }
             } else {
-                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId);
+                if (!uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId)) {
+                    result = false;
+                }
                 logger.debug("file: " + fileEntry.getAbsolutePath());
             }
         }
+        logger.debug("return from google uploadFolderRecursive: " + result);
+        return result;
     }
 
     @Override
@@ -164,7 +173,7 @@ public class GoogleManager implements CloudManager {
         com.google.api.services.drive.model.File addedFolder = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, parentId);
         if (addedFolder != null) {
             logger.debug("added folder: " + addedFolder.getTitle() + ", id: " + addedFolder.getId());
-            uploadFolderRecursive(localFolder, cloud, pathToUpload, addedFolder.getId());
+            return uploadFolderRecursive(localFolder, cloud, pathToUpload, addedFolder.getId());
         }
         return false;
     }

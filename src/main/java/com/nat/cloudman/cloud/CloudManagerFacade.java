@@ -123,10 +123,14 @@ public class CloudManagerFacade {
         return cloudManagers.get(cloud.getCloudService()).downloadFolder(fileName, fileId, path, cloud);
     }
 
-    public void copyFolder(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String folderName, String parentId) {
+    public boolean copyFolder(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String folderName, String parentId) {
         logger.debug("copyFolder");
         Cloud cloudSource = userManager.getCloud(cloudSourceName);
-        if (!cloudSourceName.equalsIgnoreCase(cloudDestName)) {
+        Cloud cloudDest = userManager.getCloud(cloudDestName);
+        String servSource = cloudSource.getCloudService();
+        // Google Drive doesn't allow copy folders
+        if (!cloudSourceName.equalsIgnoreCase(cloudDestName) ||
+                (servSource.equalsIgnoreCase(cloudDest.getCloudService()) && servSource.equalsIgnoreCase("Google Drive"))) {
             File downloadedFolder = cloudManagers.get(cloudSource.getCloudService()).downloadFolderLocal(folderName, pathSource, "", idSource, cloudSource);
             logger.debug("downloadedFolder: " + downloadedFolder.getAbsolutePath());
             if (cloudSource.getCloudService().equalsIgnoreCase("Dropbox")) {
@@ -144,11 +148,9 @@ public class CloudManagerFacade {
                 }
                 logger.debug("downloadedFolder from zip: " + downloadedFolder.getAbsolutePath());
             }
-            Cloud cloudDest = userManager.getCloud(cloudDestName);
-            boolean result = cloudManagers.get(cloudDest.getCloudService()).uploadFolder(cloudDest, downloadedFolder, pathDest, idDest);
+            return cloudManagers.get(cloudDest.getCloudService()).uploadFolder(cloudDest, downloadedFolder, pathDest, idDest);
         } else {
-            //TODO
+            return copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest, folderName, parentId);
         }
-        //todo return
     }
 }

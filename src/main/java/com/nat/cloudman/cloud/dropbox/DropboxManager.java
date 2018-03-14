@@ -167,25 +167,30 @@ public class DropboxManager implements CloudManager {
 
     }
 
-    private void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload) {
+    private boolean uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload) {
         logger.debug("db uploadFolderRecursive, pathToUpload: " + pathToUpload + ", folder: " + folder.getAbsolutePath());
+        boolean result = true;
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
                 logger.debug("folder: " + fileEntry.getAbsolutePath());
-                addFolder(fileEntry.getName(), cloud, pathToUpload, "");
-                uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName());
+                if (!addFolder(fileEntry.getName(), cloud, pathToUpload, "")
+                        || !uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName()))
+                    result = false;
+
             } else {
                 logger.debug("file: " + fileEntry.getAbsolutePath());
-                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), "");
+                if (!uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), ""))
+                    result = false;
             }
         }
+        logger.debug("return result from uploadFolderRecursive: " + result);
+        return result;
     }
 
     @Override
     public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
         logger.debug("db uploadFolder");
-        uploadFolderRecursive(localFolder, cloud, pathToUpload);
-        return false;
+        return uploadFolderRecursive(localFolder, cloud, pathToUpload);
     }
 
     /**

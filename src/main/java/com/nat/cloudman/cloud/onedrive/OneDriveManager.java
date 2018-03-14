@@ -80,32 +80,48 @@ public class OneDriveManager implements CloudManager {
     }
 
 
-    public void uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
+    public boolean uploadFolderRecursive(final File folder, Cloud cloud, String pathToUpload, String parentId) {
         logger.debug("uploadFolderRecursive, folder: " + folder.getAbsolutePath() + ", pathToUpload: " + pathToUpload);
+        boolean result = true;
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
                 logger.debug("folder: " + fileEntry.getAbsolutePath());
-                addFolder(fileEntry.getName(), cloud, pathToUpload, "");
-                uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName(), "");
+                String folderId = addFolderAndGet(fileEntry.getName(), cloud, pathToUpload, parentId);
+                if (folderId == null) {
+                    result = false;
+                }
+                if (!uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName(), folderId)) {
+                    result = false;
+                }
             } else {
                 logger.debug("file: " + fileEntry.getAbsolutePath());
-                uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId);
+                if (!uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId)) {
+                    result = false;
+                }
             }
         }
+        logger.debug("return from od uploadFolderRecursive: " + result);
+        return result;
     }
 
     @Override
     public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
         logger.debug("OneDrive uploadFolder, pathToUpload: " + pathToUpload + ", parentId: " + parentId);
-        addFolder(localFolder.getName(), cloud, pathToUpload, parentId);
-        uploadFolderRecursive(localFolder, cloud, pathToUpload, parentId);
-        return false;
+        String folderId = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, parentId);
+        return uploadFolderRecursive(localFolder, cloud, pathToUpload, folderId);
     }
 
     @Override
     public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
+        if (addFolderAndGet(folderName, cloud, path, parentId) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    private String addFolderAndGet(String folderName, Cloud cloud, String path, String parentId) {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
-        boolean result = client.addFolder(folderName, path, parentId);
+        String result = client.addFolder(folderName, path, parentId);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
         logger.debug("addFolder return: " + result);
         return result;

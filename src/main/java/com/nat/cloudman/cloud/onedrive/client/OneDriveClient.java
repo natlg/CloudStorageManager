@@ -430,7 +430,7 @@ public class OneDriveClient {
         return false;
     }
 
-    private boolean addFolderRequest(String folderName, String path, String parentId) {
+    private String addFolderRequest(String folderName, String path, String parentId) {
         logger.debug("addFolderRequest, folderName: " + folderName + ", path: " + path + " parentId: " + parentId);
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + parentId + "/children";
         logger.debug("url: " + url);
@@ -461,12 +461,14 @@ public class OneDriveClient {
         logger.debug("Result - status (" + status + ") ");
         logger.debug("getBody: " + response.getBody());
         if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
-            return true;
+            String folderId = getResponseProperty(response, "id");
+            logger.debug("foldr id: " + folderId);
+            return folderId;
         }
-        return false;
+        return null;
     }
 
-    public boolean addFolder(String folderName, String path, String parentId) {
+    public String addFolder(String folderName, String path, String parentId) {
         try {
             return addFolderRequest(folderName, path, parentId);
         } catch (HttpClientErrorException e) {
@@ -478,7 +480,7 @@ public class OneDriveClient {
             try {
                 return addFolderRequest(folderName, path, parentId);
             } catch (Exception ex) {
-                return false;
+                return null;
             }
         }
     }
