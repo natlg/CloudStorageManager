@@ -167,10 +167,10 @@ public class GoogleManager implements CloudManager {
     }
 
     @Override
-    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId, String idDest) {
         logger.debug("google uploadFolder");
         // add folder first
-        com.google.api.services.drive.model.File addedFolder = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, parentId);
+        com.google.api.services.drive.model.File addedFolder = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, idDest);
         if (addedFolder != null) {
             logger.debug("added folder: " + addedFolder.getTitle() + ", id: " + addedFolder.getId());
             return uploadFolderRecursive(localFolder, cloud, pathToUpload, addedFolder.getId());

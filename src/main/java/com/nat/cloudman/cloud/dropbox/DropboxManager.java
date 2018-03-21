@@ -188,7 +188,7 @@ public class DropboxManager implements CloudManager {
     }
 
     @Override
-    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId, String idDest) {
         logger.debug("db uploadFolder");
         return uploadFolderRecursive(localFolder, cloud, pathToUpload);
     }

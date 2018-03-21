@@ -214,6 +214,20 @@ public class CloudController {
         }
     }
 
+    @RequestMapping(value = "/movefolder", method = RequestMethod.POST)
+    public void moveFolder(
+            @RequestBody TransitParameters params,
+            HttpServletRequest request, HttpServletResponse response) {
+        logger.debug("movefolder, " + params);
+        if (!cloudManager.copyFolder(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
+            logger.debug("failed to copy folder");
+            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
+            return;
+        }
+        // delete if copied
+        cloudManager.deleteFile(params.cloudSource, params.idSource, params.pathSource, params.parentId);
+    }
+
     @RequestMapping(value = "/copy", method = RequestMethod.POST)
     public void copyFile(
             @RequestBody TransitParameters params,

@@ -148,7 +148,7 @@ public class CloudManagerFacade {
                 }
                 logger.debug("downloadedFolder from zip: " + downloadedFolder.getAbsolutePath());
             }
-            return cloudManagers.get(cloudDest.getCloudService()).uploadFolder(cloudDest, downloadedFolder, pathDest, idDest);
+            return cloudManagers.get(cloudDest.getCloudService()).uploadFolder(cloudDest, downloadedFolder, pathDest, parentId, idDest);
         } else {
             return copyFile(cloudSourceName, pathSource, idSource, downloadUrl, cloudDestName, pathDest, idDest, folderName, parentId);
         }

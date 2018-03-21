@@ -14,7 +14,7 @@ public interface CloudManager {
 
     boolean uploadFile(Cloud cloud, File localFile, String pathToUpload, String parentId);
 
-    boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId);
+    boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId, String idDest);
 
     boolean addFolder(String folderName, Cloud cloud, String path, String parentId);
 

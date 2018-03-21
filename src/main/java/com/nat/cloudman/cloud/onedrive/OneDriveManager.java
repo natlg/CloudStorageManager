@@ -76,6 +76,7 @@ public class OneDriveManager implements CloudManager {
         OneDriveClient client = getClient(cloud.getAccessToken(), cloud.getRefreshToken());
         boolean result = client.uploadFile(localFile, filePath);
         checkAndSaveAccessToken(client.getAccessToken(), cloud);
+        logger.debug("uploadFile, resulet: " + result);
         return result;
     }
 
@@ -88,6 +89,7 @@ public class OneDriveManager implements CloudManager {
                 logger.debug("folder: " + fileEntry.getAbsolutePath());
                 String folderId = addFolderAndGet(fileEntry.getName(), cloud, pathToUpload, parentId);
                 if (folderId == null) {
+                    logger.debug("because failed to create folder");
                     result = false;
                 }
                 if (!uploadFolderRecursive(fileEntry, cloud, pathToUpload + "/" + fileEntry.getName(), folderId)) {
@@ -96,6 +98,7 @@ public class OneDriveManager implements CloudManager {
             } else {
                 logger.debug("file: " + fileEntry.getAbsolutePath());
                 if (!uploadFile(cloud, fileEntry, pathToUpload + "/" + fileEntry.getName(), parentId)) {
+                    logger.debug("because failed to upload file");
                     result = false;
                 }
             }
@@ -105,9 +108,9 @@ public class OneDriveManager implements CloudManager {
     }
 
     @Override
-    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId) {
-        logger.debug("OneDrive uploadFolder, pathToUpload: " + pathToUpload + ", parentId: " + parentId);
-        String folderId = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, parentId);
+    public boolean uploadFolder(Cloud cloud, File localFolder, String pathToUpload, String parentId, String idDest) {
+        logger.debug("OneDrive uploadFolder, pathToUpload: " + pathToUpload + ", idDest: " + idDest);
+        String folderId = addFolderAndGet(localFolder.getName(), cloud, pathToUpload, idDest);
         return uploadFolderRecursive(localFolder, cloud, pathToUpload, folderId);
     }
 

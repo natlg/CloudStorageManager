@@ -311,7 +311,7 @@ public class OneDriveClient {
 
     private boolean uploadSmallFile(File localFile, String filePath) {
         String url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/content";
-        System.out.println("url: " + url);
+        System.out.println("uploadSmallFile url: " + url);
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -339,6 +339,7 @@ public class OneDriveClient {
         if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
             return true;
         }
+        logger.debug("failed, status: " + status);
         return false;
     }
 
@@ -432,7 +433,12 @@ public class OneDriveClient {
 
     private String addFolderRequest(String folderName, String path, String parentId) {
         logger.debug("addFolderRequest, folderName: " + folderName + ", path: " + path + " parentId: " + parentId);
-        String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + parentId + "/children";
+        String url;
+        if (parentId == null || parentId.isEmpty()) {
+            url = "https://graph.microsoft.com/v1.0/me/drive/root/children";
+        } else {
+            url = "https://graph.microsoft.com/v1.0/me/drive/items/" + parentId + "/children";
+        }
         logger.debug("url: " + url);
 
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
@@ -458,11 +464,11 @@ public class OneDriveClient {
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
 
         HttpStatus status = response.getStatusCode();
-        logger.debug("Result - status (" + status + ") ");
+        logger.debug(" addFolderRequest Result - status (" + status + ") ");
         logger.debug("getBody: " + response.getBody());
         if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
             String folderId = getResponseProperty(response, "id");
-            logger.debug("foldr id: " + folderId);
+            logger.debug("folder id: " + folderId);
             return folderId;
         }
         return null;
@@ -472,7 +478,7 @@ public class OneDriveClient {
         try {
             return addFolderRequest(folderName, path, parentId);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
@@ -480,6 +486,8 @@ public class OneDriveClient {
             try {
                 return addFolderRequest(folderName, path, parentId);
             } catch (Exception ex) {
+                logger.debug("Exception: " + ex.getMessage());
+                ex.printStackTrace();
                 return null;
             }
         }
