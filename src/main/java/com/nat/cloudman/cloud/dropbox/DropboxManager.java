@@ -466,7 +466,7 @@ public class DropboxManager implements CloudManager {
 
     @Override
     public DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud) {
-        File file = downloadFolderLocal(folderName, path, null, null, cloud);
+        File file = downloadFolderLocal(folderName, path + "/" + folderName, null, null, cloud);
         return Utils.fileToContainer(file, folderName + ".zip");
     }
 

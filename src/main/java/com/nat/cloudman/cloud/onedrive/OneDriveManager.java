@@ -192,7 +192,7 @@ public class OneDriveManager implements CloudManager {
 
     @Override
     public DownloadedFileContainer downloadFolder(String folderName, String folderId, String path, Cloud cloud) {
-        File localFolder = downloadFolderLocal(folderName, path, "", folderId, cloud);
+        File localFolder = downloadFolderLocal(folderName, path + "/" + folderName, "", folderId, cloud);
         String zipPath = null;
         try {
             zipPath = localFolder.getCanonicalPath() + ".zip";
@@ -208,6 +208,7 @@ public class OneDriveManager implements CloudManager {
 
     @Override
     public File downloadFolderLocal(String folderName, String path, String downloadUrl, String folderId, Cloud cloud) {
+        logger.debug("downloadFolderLocal, folderName: " + folderName + ", path: " + path + ", downloadUrl: " + downloadUrl + ", folderId: " + folderId);
         String pathToDownload = DOWNLOAD_PATH + "\\" + System.currentTimeMillis() + "\\" + folderName + "\\";
         logger.debug("downloadFolderLocal, pathToDownload: " + pathToDownload);
         File localFolder = downloadFolderRecursive(folderName, path, folderId, pathToDownload, cloud);
