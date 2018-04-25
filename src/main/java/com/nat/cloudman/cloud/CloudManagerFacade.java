@@ -123,6 +123,10 @@ public class CloudManagerFacade {
         return cloudManagers.get(cloud.getCloudService()).downloadFolder(fileName, fileId, path, cloud);
     }
 
+    public boolean isNeedLocalFolderCopy(TransitParameters params) {
+        return false;
+    }
+
     public boolean copyFolder(String cloudSourceName, String pathSource, String idSource, String downloadUrl, String cloudDestName, String pathDest, String idDest, String folderName, String parentId) {
         logger.debug("copyFolder");
         Cloud cloudSource = userManager.getCloud(cloudSourceName);

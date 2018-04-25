@@ -219,6 +219,11 @@ public class CloudController {
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
         logger.debug("movefolder, " + params);
+
+//     todo   if (!cloudSourceName.equalsIgnoreCase(cloudDestName) ||
+//                (servSource.equalsIgnoreCase(cloudDest.getCloudService()) && servSource.equalsIgnoreCase("Google Drive"))) {
+//
+//        }
         if (!cloudManager.copyFolder(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
             logger.debug("failed to copy folder");
             response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
