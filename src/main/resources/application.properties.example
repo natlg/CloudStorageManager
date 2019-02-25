@@ -1,0 +1,43 @@
+spring.http.multipart.max-file-size=10000MB
+spring.http.multipart.max-request-size=10000MB
+temp.download.path=./temp
+temp.upload.path=./temp/upload
+# ===============================
+# DATA SOURCE
+# ===============================
+spring.datasource.url=jdbc:mysql://localhost:3306/fileman?createDatabaseIfNotExist=true
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.testWhileIdle=true
+spring.datasource.validationQuery=SELECT 1
+# ===============================
+# JPA / HIBERNATE
+# ===============================
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+# to delete old database:
+#spring.jpa.hibernate.ddl-auto = create-drop
+# to create database if doesn't exist:
+#hibernate.hbm2ddl.auto=create
+spring.jpa.hibernate.naming-strategy=org.hibernate.cfg.ImprovedNamingStrategy
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+# ==============================================================
+# Spring Security / Queries for AuthenticationManagerBuilder
+# ==============================================================
+spring.queries.users-query=select email, password, active from user where email=?
+spring.queries.roles-query=select u.email, r.role from user u inner join user_role ur on(u.user_id=ur.user_id) inner join role r on(ur.role_id=r.role_id) where u.email=?
+# ==============================================================
+# Clouds keys
+# ==============================================================
+dropbox.app.key=
+dropbox.app.secret=
+onedrive.app.key=
+onedrive.app.secret=
+google.app.key=
+google.app.secret=
+
+
+cloudman.domain=http://localhost:8080
+logging.level.root=ERROR
+logging.level.com.nat.cloudman=DEBUG
+logging.file=cloudmanapp.log

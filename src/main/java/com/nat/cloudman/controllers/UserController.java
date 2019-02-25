@@ -40,10 +40,7 @@ public class UserController {
 
     ) {
         System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
-        if (password.startsWith("testCl$")) {
-            return userService.createAndSaveUser(email, firstName, lastName, password);
-        }
-        return null;
+        return userService.createAndSaveUser(email, firstName, lastName, password);
     }
 
     @RequestMapping(value = "/loginform", method = RequestMethod.POST)
