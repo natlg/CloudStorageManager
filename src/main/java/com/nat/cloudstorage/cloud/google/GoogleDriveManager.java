@@ -69,7 +69,7 @@ public class GoogleDriveManager implements CloudDriveManager {
         try {
             return getClient(cloud).getFilesListRequest(folderId);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText());
             e.printStackTrace();
             String newAccessToken = getClient(cloud).requestNewAccessToken(cloud.getRefreshToken());
@@ -105,7 +105,7 @@ public class GoogleDriveManager implements CloudDriveManager {
             com.google.api.services.drive.model.File file = service.files().insert(body, mediaContent).execute();
             return file;
         } catch (IOException e) {
-            System.out.println("An error occurred: " + e);
+            logger.debug("An error occurred: " + e);
             return null;
         }
     }
@@ -132,7 +132,7 @@ public class GoogleDriveManager implements CloudDriveManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("upload file: " + localFile.getName() + ", mime type: " + mimeType);
+        logger.debug("upload file: " + localFile.getName() + ", mime type: " + mimeType);
         if (insertFile(getDrive(cloud.getAccessToken(), cloud.getRefreshToken()),
                 fileName, "", parentId, mimeType, localFile.getPath()) != null) {
             return true;
@@ -300,7 +300,7 @@ public class GoogleDriveManager implements CloudDriveManager {
     @Override
     public boolean deleteFile(String fileId, String path, Cloud cloud, String parentId) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
-        System.out.println("google deleteFile, parentId: " + parentId);
+        logger.debug("google deleteFile, parentId: " + parentId);
         if (parentId == null || parentId.trim().isEmpty()) {
             parentId = getRootId(cloud);
         }
@@ -318,7 +318,7 @@ public class GoogleDriveManager implements CloudDriveManager {
 
     @Override
     public boolean renameFile(String fileName, String fileId, String newName, String path, Cloud cloud) {
-        System.out.println("google renameFile");
+        logger.debug("google renameFile");
         Drive service = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
         try {
             com.google.api.services.drive.model.File file = new com.google.api.services.drive.model.File();
@@ -329,7 +329,7 @@ public class GoogleDriveManager implements CloudDriveManager {
             patchRequest.execute();
             return true;
         } catch (IOException e) {
-            System.out.println("An error occurred: " + e);
+            logger.debug("An error occurred: " + e);
             return false;
         }
     }
@@ -353,7 +353,7 @@ public class GoogleDriveManager implements CloudDriveManager {
     @Override
     public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
-        System.out.println("google copyFile, idDest: " + idDest);
+        logger.debug("google copyFile, idDest: " + idDest);
         com.google.api.services.drive.model.File file = null;
         if (idDest == null || idDest.trim().isEmpty()) {
             idDest = getRootId(cloud);
@@ -373,7 +373,7 @@ public class GoogleDriveManager implements CloudDriveManager {
                     .execute();
             return true;
         } catch (IOException e) {
-            System.out.println("An error occurred: " + e);
+            logger.debug("An error occurred: " + e);
             return false;
         }
     }
@@ -381,7 +381,7 @@ public class GoogleDriveManager implements CloudDriveManager {
     @Override
     public boolean moveFile(String pathSourse, String pathDest, String idSource, String idDest, Cloud cloud, String fileName, String parentId) {
         Drive driveService = getDrive(cloud.getAccessToken(), cloud.getRefreshToken());
-        System.out.println("google moveFile, idDest: " + idDest);
+        logger.debug("google moveFile, idDest: " + idDest);
         if (idDest == null || idDest.trim().isEmpty()) {
             idDest = getRootId(cloud);
         }
@@ -396,7 +396,7 @@ public class GoogleDriveManager implements CloudDriveManager {
                     .execute();
             return true;
         } catch (IOException e) {
-            System.out.println("An error occurred: " + e);
+            logger.debug("An error occurred: " + e);
             return false;
         }
     }
@@ -409,7 +409,7 @@ public class GoogleDriveManager implements CloudDriveManager {
             file = driveService.files().get(fileId)
                     .execute();
             String thumb = file.getThumbnailLink();
-            System.out.println("Thumbnail: " + thumb);
+            logger.debug("Thumbnail: " + thumb);
             return thumb;
         } catch (IOException e) {
             e.printStackTrace();

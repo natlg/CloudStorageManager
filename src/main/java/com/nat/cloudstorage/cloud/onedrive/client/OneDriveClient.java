@@ -42,7 +42,7 @@ public class OneDriveClient {
         this.config = config;
         this.refreshToken = refreshToken;
         this.accessToken = accessToken;
-        System.out.println("OneDriveClient refreshToken: " + refreshToken + ", APP_KEY: " + config.APP_KEY
+        logger.debug("OneDriveClient refreshToken: " + refreshToken + ", APP_KEY: " + config.APP_KEY
                 + ", APP_SECRET: " + config.APP_SECRET + ", accessToken: " + accessToken);
     }
 
@@ -65,8 +65,8 @@ public class OneDriveClient {
         map.add("client_secret", config.APP_SECRET);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
+        logger.debug("request.getBody: " + request.getBody());
+        logger.debug("request.getHeaders: " + request.getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -74,11 +74,11 @@ public class OneDriveClient {
             String refreshToken = getResponseProperty(response, "refresh_token");
             String accessToken = getResponseProperty(response, "access_token");
             String expiresIn = getResponseProperty(response, "expires_in");
-            System.out.println("got refreshToken: " + refreshToken);
-            System.out.println("got access_oken: " + accessToken + ", expires_in: " + expiresIn);
+            logger.debug("got refreshToken: " + refreshToken);
+            logger.debug("got access_oken: " + accessToken + ", expires_in: " + expiresIn);
             return response;
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
         }
@@ -87,7 +87,7 @@ public class OneDriveClient {
 
     public String requestNewAccessToken(String refreshToken) {
 
-        System.out.println("requestNewAccessToken config.APP_KEY: " + config.APP_KEY + ", config.APP_SECRET: " + config.APP_SECRET + ", refreshToken: " + refreshToken);
+        logger.debug("requestNewAccessToken config.APP_KEY: " + config.APP_KEY + ", config.APP_SECRET: " + config.APP_SECRET + ", refreshToken: " + refreshToken);
         String url = "https://login.microsoftonline.com/common/oauth2/v2.0/token ";
 
         HttpHeaders headers = new HttpHeaders();
@@ -102,8 +102,8 @@ public class OneDriveClient {
         map.add("client_secret", config.APP_SECRET);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-        System.out.println("request.getBody: " + request.getBody());
-        System.out.println("request.getHeaders: " + request.getHeaders());
+        logger.debug("request.getBody: " + request.getBody());
+        logger.debug("request.getHeaders: " + request.getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -113,11 +113,11 @@ public class OneDriveClient {
             String expiresIn = getResponseProperty(response, "expires_in");
 
 
-            System.out.println("gotRefreshToken: " + gotRefreshToken);
-            System.out.println("access_oken: " + accessToken + ", expires_in: " + expiresIn);
+            logger.debug("gotRefreshToken: " + gotRefreshToken);
+            logger.debug("access_oken: " + accessToken + ", expires_in: " + expiresIn);
             return accessToken;
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText());
             e.printStackTrace();
         }
@@ -126,14 +126,14 @@ public class OneDriveClient {
 
     public FilesContainer getFilesList(String folderPath, String folderId) {
 
-        System.out.println("oneDriveUtils. getFilesList");
-        System.out.println("refreshToken: " + refreshToken);
-        System.out.println("accessToken: " + accessToken);
+        logger.debug("oneDriveUtils. getFilesList");
+        logger.debug("refreshToken: " + refreshToken);
+        logger.debug("accessToken: " + accessToken);
         try {
             return getItemExpandChildrensRequest(folderPath, folderId);
 
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
@@ -143,7 +143,7 @@ public class OneDriveClient {
     }
 
     public String dateConvert(String inDate) {
-        System.out.println("dateConvert: " + inDate);
+        logger.debug("dateConvert: " + inDate);
         try {
             DateFormat formatter;
             Date date;
@@ -152,26 +152,26 @@ public class OneDriveClient {
             date = (Date) formatter.parse(inDate);
             formatter = new SimpleDateFormat("dd-MM-yyyy");
             String outDate = formatter.format(date);
-            System.out.println("outDate: " + outDate);
+            logger.debug("outDate: " + outDate);
             return outDate;
         } catch (ParseException e) {
-            System.out.println("ParseException  :" + e);
+            logger.debug("ParseException  :" + e);
         }
         return null;
     }
 
 
     public FilesContainer getItemExpandChildrensRequest(String folderPath, String folderId) {
-        System.out.println("oneDriveUtils. getItemExpandChildrensRequest");
-        System.out.println("folderPath: " + folderPath);
+        logger.debug("oneDriveUtils. getItemExpandChildrensRequest");
+        logger.debug("folderPath: " + folderPath);
         String url;
         if (folderPath.isEmpty()) {
             url = "https://graph.microsoft.com/v1.0/me/drive/root?$expand=children";
         } else {
             url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + folderPath + "?$expand=children";
         }
-        System.out.println("GET url: " + url);
-        System.out.println("accessToken: " + accessToken);
+        logger.debug("GET url: " + url);
+        logger.debug("accessToken: " + accessToken);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + accessToken);
@@ -180,38 +180,38 @@ public class OneDriveClient {
 
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
-        System.out.println("children get: " + getResponseProperty(response, "children"));
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
+        logger.debug("children get: " + getResponseProperty(response, "children"));
         String parentId = getResponseProperty(response, "id");
-        System.out.println("id get: " + getResponseProperty(response, "id"));
+        logger.debug("id get: " + getResponseProperty(response, "id"));
 
         JsonNode valueNode = response.getBody().path("children");
         Iterator<JsonNode> iterator = valueNode.iterator();
-        System.out.println("children:");
+        logger.debug("children:");
 
         ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
 
         while (iterator.hasNext()) {
             JsonNode file = iterator.next();
-            System.out.println("name: " + file.get("name").asText());
+            logger.debug("name: " + file.get("name").asText());
 
             HashMap<String, String> resultFile = new HashMap<String, String>();
 
             if (file.has("folder")) {
                 resultFile.put("type", "folder");
-                System.out.println("+ " + file.get("folder").asText());
-                System.out.println(")))folder: " + file.get("name").asText());
+                logger.debug("+ " + file.get("folder").asText());
+                logger.debug(")))folder: " + file.get("name").asText());
             }
             if (file.has("file")) {
                 resultFile.put("type", "file");
-                System.out.println("++ " + file.get("file").asText());
-                System.out.println(")))file: " + file.get("name").asText());
+                logger.debug("++ " + file.get("file").asText());
+                logger.debug(")))file: " + file.get("name").asText());
                 String downloadUrl = file.get("@microsoft.graph.downloadUrl").asText();
-                System.out.println("@microsoft.graph.downloadUrl: " + downloadUrl);
+                logger.debug("@microsoft.graph.downloadUrl: " + downloadUrl);
                 resultFile.put("downloadUrl", downloadUrl);
             }
-            System.out.println("node end");
+            logger.debug("node end");
             resultFile.put("id", file.get("id").asText());
             resultFile.put("name", file.get("name").asText());
             resultFile.put("pathLower", file.get("name").asText());
@@ -221,7 +221,7 @@ public class OneDriveClient {
             resultFile.put("parentId", file.get("parentReference").get("id").asText());
             files.add(resultFile);
         }
-        System.out.println("listChildrenRequest return len: " + files.size());
+        logger.debug("listChildrenRequest return len: " + files.size());
 
         FilesContainer filesContainer = new FilesContainer(files, folderId);
         filesContainer.setParentId(parentId);
@@ -229,16 +229,16 @@ public class OneDriveClient {
     }
 
     public FilesContainer listChildrenRequest(String folderPath, String folderId) {
-        System.out.println(" listChildrenRequest");
+        logger.debug(" listChildrenRequest");
 
-        System.out.println("folderPath: " + folderPath);
+        logger.debug("folderPath: " + folderPath);
         String url;
         if (folderPath.isEmpty()) {
             url = "https://graph.microsoft.com/v1.0/me/drive/root/children";
         } else {
             url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + folderPath + ":/children";
         }
-        System.out.println("GET url: " + url);
+        logger.debug("GET url: " + url);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + accessToken);
@@ -247,34 +247,34 @@ public class OneDriveClient {
 
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
-        System.out.println("value get: " + getResponseProperty(response, "value"));
-        System.out.println("value path: " + getResponseProperty(response, "path"));
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
+        logger.debug("value get: " + getResponseProperty(response, "value"));
+        logger.debug("value path: " + getResponseProperty(response, "path"));
 
         JsonNode valueNode = response.getBody().path("value");
         Iterator<JsonNode> iterator = valueNode.iterator();
-        System.out.println("value:");
+        logger.debug("value:");
 
         ArrayList<HashMap<String, String>> files = new ArrayList<HashMap<String, String>>();
 
         while (iterator.hasNext()) {
             JsonNode file = iterator.next();
-            System.out.println("name: " + file.get("name").asText());
+            logger.debug("name: " + file.get("name").asText());
 
             HashMap<String, String> resultFile = new HashMap<String, String>();
 
             if (file.has("folder")) {
                 resultFile.put("type", "folder");
-                System.out.println("+ " + file.get("folder").asText());
-                System.out.println(")))folder: " + file.get("name").asText());
+                logger.debug("+ " + file.get("folder").asText());
+                logger.debug(")))folder: " + file.get("name").asText());
             }
             if (file.has("file")) {
                 resultFile.put("type", "file");
-                System.out.println("++ " + file.get("file").asText());
-                System.out.println(")))file: " + file.get("name").asText());
+                logger.debug("++ " + file.get("file").asText());
+                logger.debug(")))file: " + file.get("name").asText());
             }
-            System.out.println("node end");
+            logger.debug("node end");
             resultFile.put("id", file.get("id").asText());
             resultFile.put("pathLower", file.get("name").asText());
             resultFile.put("modified", file.get("lastModifiedDateTime").asText());
@@ -283,13 +283,13 @@ public class OneDriveClient {
             resultFile.put("parentId", file.get("parentReference").get("id").asText());
             files.add(resultFile);
         }
-        System.out.println("listChildrenRequest return len: " + files.size());
+        logger.debug("listChildrenRequest return len: " + files.size());
         FilesContainer filesContainer = new FilesContainer(files, folderId);
         return filesContainer;
     }
 
     public boolean uploadFile(File localFile, String filePath) {
-        System.out.println("uploadFile, filePath: " + filePath + ", localfile: " + localFile.getAbsolutePath());
+        logger.debug("uploadFile, filePath: " + filePath + ", localfile: " + localFile.getAbsolutePath());
         try {
             if (localFile.length() <= CHUNKED_UPLOAD_CHUNK_SIZE) {
                 return uploadSmallFile(localFile, filePath);
@@ -297,7 +297,7 @@ public class OneDriveClient {
                 return chunkedUploadFile(localFile, filePath);
             }
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
@@ -311,7 +311,7 @@ public class OneDriveClient {
 
     private boolean uploadSmallFile(File localFile, String filePath) {
         String url = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/content";
-        System.out.println("uploadSmallFile url: " + url);
+        logger.debug("uploadSmallFile url: " + url);
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -332,10 +332,10 @@ public class OneDriveClient {
         }
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PUT, entity, JsonNode.class);
         HttpStatus status = response.getStatusCode();
-        System.out.println("Result - status (" + status + ") ");
-        System.out.println("getBody: " + response.getBody());
-        System.out.println("value get: " + getResponseProperty(response, "value"));
-        System.out.println("value path: " + getResponseProperty(response, "path"));
+        logger.debug("Result - status (" + status + ") ");
+        logger.debug("getBody: " + response.getBody());
+        logger.debug("value get: " + getResponseProperty(response, "value"));
+        logger.debug("value path: " + getResponseProperty(response, "path"));
         if (status == HttpStatus.CREATED || status == HttpStatus.OK) {
             return true;
         }
@@ -345,15 +345,15 @@ public class OneDriveClient {
 
     // TODO pause, resume, check status
     private boolean chunkedUploadFile(File localFile, String filePath) {
-        System.out.println("CHUNKED_UPLOAD_CHUNK_SIZE: " + CHUNKED_UPLOAD_CHUNK_SIZE);
+        logger.debug("CHUNKED_UPLOAD_CHUNK_SIZE: " + CHUNKED_UPLOAD_CHUNK_SIZE);
         Long fragmentSize = 4L << 20;
-        System.out.println("fragmentSize: " + fragmentSize);
+        logger.debug("fragmentSize: " + fragmentSize);
         Long fileSize = localFile.length();
-        System.out.println("fileSize: " + fileSize);
+        logger.debug("fileSize: " + fileSize);
         Long sentLen = 0L;
 
         String createSessionUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/" + filePath + ":/createUploadSession";
-        System.out.println("url: " + createSessionUrl);
+        logger.debug("url: " + createSessionUrl);
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -364,14 +364,14 @@ public class OneDriveClient {
         HttpEntity<byte[]> entity = new HttpEntity<byte[]>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(createSessionUrl, HttpMethod.POST, entity, JsonNode.class);
 
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
         String uploadUrl = getResponseProperty(response, "uploadUrl");
         String nextExpectedRanges = getResponseProperty(response, "nextExpectedRanges");
         String expirationDateTime = getResponseProperty(response, "expirationDateTime");
-        System.out.println("value uploadUrl: " + uploadUrl);
-        System.out.println("value nextExpectedRanges: " + nextExpectedRanges);
-        System.out.println("value expirationDateTime: " + expirationDateTime);
+        logger.debug("value uploadUrl: " + uploadUrl);
+        logger.debug("value nextExpectedRanges: " + nextExpectedRanges);
+        logger.debug("value expirationDateTime: " + expirationDateTime);
 
 
         //////////////////////////////////////////// upload
@@ -389,14 +389,14 @@ public class OneDriveClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("fileBytes Len: " + fileBytes.length);
+        logger.debug("fileBytes Len: " + fileBytes.length);
         entity = null;
         while (sentLen < fileSize) {
-            System.out.println("upload part, sentLen: " + sentLen);
+            logger.debug("upload part, sentLen: " + sentLen);
             Long fileRest = fileSize - sentLen;
             Long nextPartSize = fileRest > fragmentSize ? fragmentSize : fileRest;
-            System.out.println("fileRest: " + fileRest);
-            System.out.println("nextPartSize: " + nextPartSize);
+            logger.debug("fileRest: " + fileRest);
+            logger.debug("nextPartSize: " + nextPartSize);
 
             restTemplate = new RestTemplate();
             headers = new HttpHeaders();
@@ -405,22 +405,22 @@ public class OneDriveClient {
             headers.set("Content-Range", "bytes " + sentLen + "-" + (sentLen + nextPartSize - 1) + "/" + fileSize);
 
             entity = new HttpEntity<byte[]>(Arrays.copyOfRange(fileBytes, sentLen.intValue(), (int) (sentLen + nextPartSize)), headers);
-            System.out.println("entity: " + entity.toString());
-            System.out.println("entity length: " + entity.getBody().length);
+            logger.debug("entity: " + entity.toString());
+            logger.debug("entity length: " + entity.getBody().length);
             try {
                 response = restTemplate.exchange(uploadUrl, HttpMethod.PUT, entity, JsonNode.class);
             } catch (Exception e) {
-                System.out.println("Exception: " + e.getMessage());
+                logger.debug("Exception: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
-            System.out.println("upload next: Result - status (" + response.getStatusCode() + ") ");
-            System.out.println("getBody: " + response.getBody());
+            logger.debug("upload next: Result - status (" + response.getStatusCode() + ") ");
+            logger.debug("getBody: " + response.getBody());
             nextExpectedRanges = getResponseProperty(response, "nextExpectedRanges");
             expirationDateTime = getResponseProperty(response, "expirationDateTime");
-            System.out.println("value uploadUrl: " + uploadUrl);
-            System.out.println("value nextExpectedRanges: " + nextExpectedRanges);
-            System.out.println("value expirationDateTime: " + expirationDateTime);
+            logger.debug("value uploadUrl: " + uploadUrl);
+            logger.debug("value nextExpectedRanges: " + nextExpectedRanges);
+            logger.debug("value expirationDateTime: " + expirationDateTime);
 
             sentLen += nextPartSize;
         }
@@ -498,7 +498,7 @@ public class OneDriveClient {
         try {
             downloadRequest(fileName, fileId);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
 
@@ -514,17 +514,17 @@ public class OneDriveClient {
     }
 
     public void deleteRequest(String filePath, String fileId) {
-        System.out.println("deleteRequest, fileName: " + filePath + ", fileId: " + fileId);
+        logger.debug("deleteRequest, fileName: " + filePath + ", fileId: " + fileId);
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
-        System.out.println("url: " + url);
+        logger.debug("url: " + url);
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Content-Type", "application/json");
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
     }
 
     public boolean deleteFile(String fileId, String path) {
@@ -532,7 +532,7 @@ public class OneDriveClient {
             deleteRequest(path, fileId);
             return true;
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
@@ -550,7 +550,7 @@ public class OneDriveClient {
             renameRequest(newName, fileId);
             return true;
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
@@ -584,9 +584,9 @@ public class OneDriveClient {
     }
 
     private void renameRequest(String newName, String fileId) {
-        System.out.println("renameRequest");
+        logger.debug("renameRequest");
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId;
-        System.out.println("url: " + url);
+        logger.debug("url: " + url);
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode node = nodeFactory.objectNode();
         node.put("name", newName);
@@ -594,7 +594,7 @@ public class OneDriveClient {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Content-Type", "application/json");
-        System.out.println("node.toString(): " + node.toString());
+        logger.debug("node.toString(): " + node.toString());
         HttpEntity<String> entity = new HttpEntity<String>(node.toString(), headers);
 
         //PATCH is not working for RestTemplate
@@ -604,8 +604,8 @@ public class OneDriveClient {
         restTemplate.setRequestFactory(requestFactory);
 
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
     }
 
     public boolean copyFile(String pathSourse, String pathDest, String idSource, String idDest) {
@@ -613,7 +613,7 @@ public class OneDriveClient {
         try {
             copyRequest(pathSourse, pathDest, idSource, idDest);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
@@ -628,7 +628,7 @@ public class OneDriveClient {
 
     private void copyRequest(String pathSourse, String pathDest, String idSource, String idDest) {
         //TODO make boolean, check status
-        System.out.println("copyRequest");
+        logger.debug("copyRequest");
         //need to get driveId for copying
         String url = "https://graph.microsoft.com/v1.0/me/drive";
         HttpHeaders headers = new HttpHeaders();
@@ -637,13 +637,13 @@ public class OneDriveClient {
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
+        logger.debug("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
         String driveId = getResponseProperty(response, "id");
-        System.out.println("driveId : " + driveId);
+        logger.debug("driveId : " + driveId);
 
         //copy request
         url = "https://graph.microsoft.com/v1.0/me/drive/items/" + idSource + "/copy";
-        System.out.println("copy url: " + url);
+        logger.debug("copy url: " + url);
         //destination information
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode node = nodeFactory.objectNode();
@@ -658,15 +658,15 @@ public class OneDriveClient {
         headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Content-Type", "application/json");
-        System.out.println("node.toString(): " + node.toString());
+        logger.debug("node.toString(): " + node.toString());
         entity = new HttpEntity<String>(node.toString(), headers);
 
         response = restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
-        System.out.println(" Result - status :" + response.getStatusCode() + " getBody: " + response.getBody());
+        logger.debug(" Result - status :" + response.getStatusCode() + " getBody: " + response.getBody());
     }
 
     private String getThumbnailRequest(String fileId) {
-        System.out.println("getThumbnailRequest");
+        logger.debug("getThumbnailRequest");
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + fileId + "/thumbnails?select=medium";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -674,14 +674,14 @@ public class OneDriveClient {
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
+        logger.debug("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
         JsonNode valueNode = response.getBody().path("value");
         Iterator<JsonNode> iterator = valueNode.iterator();
         while (iterator.hasNext()) {
             JsonNode thumbnailData = iterator.next();
             if (thumbnailData.has("medium")) {
                 String thumbUrl = thumbnailData.path("medium").get("url").asText();
-                System.out.println("url: " + url);
+                logger.debug("url: " + url);
                 //we need only one size
                 return thumbUrl;
             }
@@ -693,14 +693,14 @@ public class OneDriveClient {
         try {
             return getThumbnailRequest(fileId);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
             try {
                 return getThumbnailRequest(fileId);
             } catch (HttpClientErrorException exc) {
-                System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+                logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                         + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                         + " getStackTrace: " + e.getStackTrace());
                 return null;
@@ -712,7 +712,7 @@ public class OneDriveClient {
         try {
             moveRequest(pathSourse, pathDest, idSource, idDest);
         } catch (HttpClientErrorException e) {
-            System.out.println("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
+            logger.debug("HttpClientErrorException: " + e.getMessage() + " getResponseBodyAsString: "
                     + e.getResponseBodyAsString() + " getStatusText: " + e.getStatusText()
                     + " getStackTrace: " + e.getStackTrace());
             accessToken = requestNewAccessToken(refreshToken);
@@ -726,7 +726,7 @@ public class OneDriveClient {
     }
 
     private String getRootFolderId() {
-        System.out.println("getRootFolderId");
+        logger.debug("getRootFolderId");
         String url = "https://graph.microsoft.com/v1.0/me/drive/root";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -734,16 +734,16 @@ public class OneDriveClient {
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-        System.out.println("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
+        logger.debug("Result - status: " + response.getStatusCode() + "getBody: " + response.getBody());
         String rootId = getResponseProperty(response, "id");
-        System.out.println("driveId : " + rootId);
+        logger.debug("driveId : " + rootId);
         return rootId;
     }
 
     private void moveRequest(String pathSourse, String pathDest, String idSource, String idDest) {
-        System.out.println("moveRequest");
+        logger.debug("moveRequest");
         String url = "https://graph.microsoft.com/v1.0/me/drive/items/" + idSource;
-        System.out.println("move url: " + url);
+        logger.debug("move url: " + url);
         //destination information
         final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode node = nodeFactory.objectNode();
@@ -757,7 +757,7 @@ public class OneDriveClient {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Content-Type", "application/json");
-        System.out.println("node.toString(): " + node.toString());
+        logger.debug("node.toString(): " + node.toString());
         HttpEntity<String> entity = new HttpEntity<String>(node.toString(), headers);
 
         //PATCH is not working for RestTemplate
@@ -766,7 +766,7 @@ public class OneDriveClient {
         requestFactory.setReadTimeout(10000);
         restTemplate.setRequestFactory(requestFactory);
         ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
-        System.out.println("Result - status (" + response.getStatusCode() + ") ");
-        System.out.println("getBody: " + response.getBody());
+        logger.debug("Result - status (" + response.getStatusCode() + ") ");
+        logger.debug("getBody: " + response.getBody());
     }
 }

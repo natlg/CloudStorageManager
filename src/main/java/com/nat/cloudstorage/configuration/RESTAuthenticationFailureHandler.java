@@ -16,7 +16,7 @@ public class RESTAuthenticationFailureHandler extends SimpleUrlAuthenticationFai
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
 
-        System.out.println("RESTAuthenticationFailureHandler");
+        logger.debug("RESTAuthenticationFailureHandler");
         super.onAuthenticationFailure(request, response, exception);
     }
 }

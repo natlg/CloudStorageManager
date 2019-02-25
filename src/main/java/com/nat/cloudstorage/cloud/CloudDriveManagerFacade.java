@@ -56,7 +56,7 @@ public class CloudDriveManagerFacade {
     }
 
     public boolean uploadFile(String cloudName, File localFile, String pathToUpload, String parentId) throws Exception {
-        System.out.println("uploadFile(),");
+        logger.debug("uploadFile(),");
         Cloud cloud = userManager.getCloud(cloudName);
         return cloudDriveManagers.get(cloud.getCloudService()).uploadFile(cloud, localFile, pathToUpload, parentId);
     }
@@ -99,7 +99,7 @@ public class CloudDriveManagerFacade {
     public void moveFile(TransitParameters params) {
         if (!params.cloudSource.equals(params.cloudDest)) {
             if (copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId)) {
-                System.out.println("finished copy, start deleting");
+                logger.debug("finished copy, start deleting");
                 deleteFile(params.cloudSource, params.idSource, params.pathSource, params.parentId);
             }
         } else {

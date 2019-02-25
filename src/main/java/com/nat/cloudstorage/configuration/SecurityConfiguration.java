@@ -1,5 +1,7 @@
 package com.nat.cloudstorage.configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfiguration.class);
+
     @Autowired
     private RESTAuthenticationEntryPoint authenticationEntryPoint;
     @Autowired
@@ -39,7 +43,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        System.out.println("configure");
+        logger.debug("configure");
         // http.authorizeRequests().antMatchers("/login").permitAll();
         http.authorizeRequests().antMatchers("/loginform").authenticated();
         http.authorizeRequests().antMatchers("/signup").permitAll();

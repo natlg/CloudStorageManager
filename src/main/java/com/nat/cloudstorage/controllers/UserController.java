@@ -1,7 +1,10 @@
 package com.nat.cloudstorage.controllers;
 
+import com.nat.cloudstorage.cloud.transfer.TransferTask;
 import com.nat.cloudstorage.response.FilesContainer;
 import com.nat.cloudstorage.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,10 +19,11 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public FilesContainer logout(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("logout ");
+        logger.debug("logout ");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
@@ -37,7 +41,7 @@ public class UserController {
             HttpServletRequest request, HttpServletResponse response
 
     ) {
-        System.out.println("params. email: " + email + ", firstName: " + firstName + ", lastName: " + lastName + ", password: " + password);
+        logger.debug("signUp");
         return userService.createAndSaveUser(email, firstName, lastName, password);
     }
 
@@ -49,7 +53,7 @@ public class UserController {
             HttpServletRequest request, HttpServletResponse response
 
     ) {
-        System.out.println("loginform params: email: " + email + ", password: " + password);
+        logger.debug("login");
     }
 
 }

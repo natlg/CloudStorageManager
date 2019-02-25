@@ -7,6 +7,8 @@ import com.nat.cloudstorage.cloud.google.GoogleDriveManager;
 import com.nat.cloudstorage.model.Cloud;
 import com.nat.cloudstorage.model.User;
 import com.nat.cloudstorage.repository.CloudRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +31,11 @@ public class CloudServiceImpl implements CloudService {
     @Autowired
     private GoogleDriveManager googleManager;
 
+    private static final Logger logger = LoggerFactory.getLogger(CloudServiceImpl.class);
+
     @Override
     public void saveCloud(Cloud cloud) {
-        System.out.println("saveCloud");
+        logger.debug("saveCloud");
         cloudRepository.save(cloud);
     }
 
@@ -49,10 +53,10 @@ public class CloudServiceImpl implements CloudService {
                 cloudCredentials = googleManager.sendAuthorizationCodeRequest(code);
                 break;
             default:
-                System.out.println(cloudDrive + " is not supported yet");
+                logger.debug(cloudDrive + " is not supported yet");
                 return;
         }
-        System.out.println("cloudDrive: " + cloudDrive + ", " + cloudCredentials);
+        logger.debug("cloudDrive: " + cloudDrive + ", " + cloudCredentials);
         Cloud cloud = new Cloud();
         cloud.setCloudService(cloudDrive);
         cloud.setAccountName(cloudName);

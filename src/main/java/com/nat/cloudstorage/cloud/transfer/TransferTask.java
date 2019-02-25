@@ -2,8 +2,11 @@ package com.nat.cloudstorage.cloud.transfer;
 
 import com.nat.cloudstorage.cloud.CloudDriveManager;
 import com.nat.cloudstorage.cloud.UserManager;
+import com.nat.cloudstorage.configuration.SecurityConfiguration;
 import com.nat.cloudstorage.model.Cloud;
 import com.nat.cloudstorage.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +17,8 @@ import java.util.Map;
 
 @Component
 public class TransferTask {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransferTask.class);
 
     @Autowired
     private UserManager userManager;
@@ -36,7 +41,7 @@ public class TransferTask {
             //need to download local and then upload to dest cloud
             Cloud cloudSource = userManager.getCloud(cloudSourceName);
             pathSource = Utils.getParentFromPath(pathSource);
-            System.out.println(fileName + " is fileName, " + pathSource + " is a pathSource on copyFile");
+            logger.debug(fileName + " is fileName, " + pathSource + " is a pathSource on copyFile");
             File file = cloudDriveManagers.get(cloudSource.getCloudService()).downloadFileLocal(fileName, pathSource, downloadUrl, idSource, cloudSource);
             return cloudDriveManagers.get(cloudDest.getCloudService()).uploadFile(cloudDest, file, pathDest, idDest);
 

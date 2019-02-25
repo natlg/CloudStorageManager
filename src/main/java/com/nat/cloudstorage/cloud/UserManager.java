@@ -1,8 +1,11 @@
 package com.nat.cloudstorage.cloud;
 
+import com.nat.cloudstorage.controllers.UserController;
 import com.nat.cloudstorage.model.Cloud;
 import com.nat.cloudstorage.model.User;
 import com.nat.cloudstorage.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,15 +18,16 @@ public class UserManager {
 
     @Autowired
     private UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(UserManager.class);
 
     public User getUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
-            System.out.println("user name: " + auth.getName() + " isAuthenticated: " + auth.isAuthenticated());
+            logger.debug("user name: " + auth.getName() + " isAuthenticated: " + auth.isAuthenticated());
             User user = userService.findUserByEmail(auth.getName());
             return user;
         }
-        System.out.println("auth is null");
+        logger.debug("auth is null");
         return null;
     }
 
@@ -38,14 +42,14 @@ public class UserManager {
     }
 
     public void showAuth(String path) {
-        System.out.println("auth in path: " + path);
+        logger.debug("auth in path: " + path);
         User user = getUser();
         if (user != null) {
-            System.out.println("User name: " + user.getName());
-            System.out.println("User email: " + user.getEmail());
-            System.out.println("User id: " + user.getId());
+            logger.debug("User name: " + user.getName());
+            logger.debug("User email: " + user.getEmail());
+            logger.debug("User id: " + user.getId());
         } else {
-            System.out.println("User is null ");
+            logger.debug("User is null ");
         }
     }
 }

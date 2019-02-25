@@ -58,7 +58,7 @@ public class CloudController {
     @RequestMapping(value = "/addfolder", method = RequestMethod.POST)
     public void addFolder(@RequestBody FolderParameters params,
                           HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("addFolder: " + params);
+        logger.debug("addFolder: " + params);
         if (!cloudStorageManager.addFolder(params.folderName, params.cloudName, params.path, params.parentId)) {
             response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
         }
@@ -87,14 +87,14 @@ public class CloudController {
     @RequestMapping(value = "/deletefile", method = RequestMethod.DELETE)
     public void deleteFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("deleteFile " + params);
+        logger.debug("deleteFile " + params);
         cloudStorageManager.deleteFile(params.cloudName, params.fileId, params.path, params.parentId);
     }
 
     @RequestMapping(value = "/renamefile", method = RequestMethod.POST)
     public void renameFile(@RequestBody FileParameters params,
                            HttpServletRequest request, HttpServletResponse response) throws Exception {
-        System.out.println("renameFile: " + params);
+        logger.debug("renameFile: " + params);
         cloudStorageManager.renameFile(params.fileName, params.newName, params.cloudName, params.fileId, params.path);
     }
 
@@ -102,7 +102,7 @@ public class CloudController {
     @RequestMapping(value = "/getauthorizeurl", method = RequestMethod.POST)
     public String getAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
         //TODO
-        System.out.println("getauthorizeurl ");
+        logger.debug("getauthorizeurl ");
         return null;
         //return dropboxManager.getAuthorizeUrl();
     }
@@ -112,23 +112,23 @@ public class CloudController {
                          @RequestParam(value = "cloudName", defaultValue = "") String cloudName,
                          @RequestParam(value = "code", defaultValue = "") String code,
                          HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", code: " + code);
+        logger.debug("got cloud: " + cloudDrive + ", cloudName: " + cloudName + ", code: " + code);
         cloudService.addCloudToCurrentUser(cloudDrive, cloudName, code);
     }
 
     @RequestMapping(value = "/getclouds", method = RequestMethod.POST)
     public CloudContainer getClouds(
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("getclouds");
+        logger.debug("getclouds");
         User user = userManager.getUser();
         CloudContainer cloudContainer = new CloudContainer(user.getEmail(), user.getName(), user.getLastName());
         if (user != null) {
             Set<Cloud> clouds = user.getClouds();
             for (Cloud cl : clouds) {
-                System.out.println("have cloud getAccountName: " + cl.getAccountName() + ",  getCloudService: " + cl.getCloudService());
+                logger.debug("have cloud getAccountName: " + cl.getAccountName() + ",  getCloudService: " + cl.getCloudService());
                 cloudContainer.addCloud(cl.getAccountName(), cl.getCloudService());
             }
-            System.out.println("getClouds().size(): " + cloudContainer.getClouds().size());
+            logger.debug("getClouds().size(): " + cloudContainer.getClouds().size());
             return cloudContainer;
         }
         return null;
@@ -189,13 +189,13 @@ public class CloudController {
         String cloudName = params.cloudName;
         String path = params.path;
         String id = params.id;
-        System.out.println("getcloudstree, cloudName: " + cloudName + ", path: " + path + ", id: " + id);
+        logger.debug("getcloudstree, cloudName: " + cloudName + ", path: " + path + ", id: " + id);
         User user = userManager.getUser();
         Set<Cloud> clouds = user.getClouds();
         for (Cloud cl : clouds) {
             if (cl.getAccountName().equals(cloudName)) {
-                System.out.println("have cloud getAccountName: " + cl.getAccountName());
-                System.out.println("have cloud getCloudService: " + cl.getCloudService());
+                logger.debug("have cloud getAccountName: " + cl.getAccountName());
+                logger.debug("have cloud getCloudService: " + cl.getCloudService());
                 FilesContainer f = cloudStorageManager.getFilesList(cl.getAccountName(), id, path);
                 return f;
             }
@@ -237,7 +237,7 @@ public class CloudController {
     public void copyFile(
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("copy, " + params);
+        logger.debug("copy, " + params);
         cloudStorageManager.copyFile(params.cloudSource, params.pathSource, params.idSource, params.downloadUrl, params.cloudDest, params.pathDest, params.idDest, params.fileName, params.parentId);
     }
 
@@ -245,7 +245,7 @@ public class CloudController {
     public void moveFile(
             @RequestBody TransitParameters params,
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("move, " + params);
+        logger.debug("move, " + params);
         cloudStorageManager.moveFile(params);
     }
 
@@ -253,13 +253,13 @@ public class CloudController {
     public String getThumbnail(
             @RequestBody FileParameters params,
             HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("getthumbnail, " + params);
+        logger.debug("getthumbnail, " + params);
         return cloudStorageManager.getThumbnail(params);
     }
 
     @RequestMapping(value = "/removecloud", method = RequestMethod.DELETE)
     public void removeCloud(@RequestBody CloudParameters paramRemoveCloud) {
-        System.out.println("remove cloud: " + paramRemoveCloud.cloudName);
+        logger.debug("remove cloud: " + paramRemoveCloud.cloudName);
         cloudService.removeCloud(paramRemoveCloud.cloudName);
     }
 

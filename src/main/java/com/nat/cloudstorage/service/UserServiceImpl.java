@@ -1,6 +1,9 @@
 package com.nat.cloudstorage.service;
 
+import com.nat.cloudstorage.cloud.UserManager;
 import com.nat.cloudstorage.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.nat.cloudstorage.repository.UserRepository;
@@ -10,6 +13,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public User findUserByEmail(String email) {
@@ -18,7 +22,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void saveUser(User user) {
-        System.out.println("saveUser");
+        logger.debug("saveUser");
         user.setActive(1);
         userRepository.save(user);
     }
@@ -38,7 +42,7 @@ public class UserServiceImpl implements UserService {
             saveUser(user);
             result = "User was saved";
         }
-        System.out.println("result: " + result);
+        logger.debug("result: " + result);
         return result;
     }
 }

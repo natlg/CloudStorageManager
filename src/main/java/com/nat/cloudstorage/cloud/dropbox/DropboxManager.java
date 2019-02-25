@@ -60,10 +60,10 @@ public class DropboxManager implements CloudDriveManager {
 
     public void showUserInformation(String token) {
         FullAccount account = null;
-        System.out.println("showUserInformation, token: " + token);
+        logger.debug("showUserInformation, token: " + token);
         DbxClientV2 client = getClient(token);
         if (client == null) {
-            System.out.println("client == null");
+            logger.debug("client == null");
         }
         try {
 
@@ -71,13 +71,13 @@ public class DropboxManager implements CloudDriveManager {
         } catch (DbxException e) {
             e.printStackTrace();
         }
-        System.out.println("dropbox account.getName: " + account.getName().getDisplayName());
+        logger.debug("dropbox account.getName: " + account.getName().getDisplayName());
     }
 
     @Override
     public FilesContainer getFilesList(Cloud cloud, String folderId, String folderPath) {
         String token = cloud.getAccessToken();
-        System.out.println("token: " + token);
+        logger.debug("token: " + token);
         DbxClientV2 client = getClient(token);
         //Get files and folder metadata from Dropbox root directory
         ListFolderResult result = null;
@@ -96,25 +96,25 @@ public class DropboxManager implements CloudDriveManager {
                     file.put("displayPath", metadata.getPathDisplay());
                     file.put("name", metadata.getName());
                     if (metadata instanceof FolderMetadata) {
-                        System.out.println(" FolderMetadata ");
+                        logger.debug(" FolderMetadata ");
                         metadata = (FolderMetadata) metadata;
                         file.put("type", "folder");
                         String id = ((FolderMetadata) metadata).getId();
                         if (id.startsWith("id:")) {
                             id = id.substring(3, id.length());
                         }
-                        System.out.println(" path: " + ((FolderMetadata) metadata).getPathLower());
+                        logger.debug(" path: " + ((FolderMetadata) metadata).getPathLower());
                         file.put("id", id);
                         file.put("pathLower", ((FolderMetadata) metadata).getPathLower());
                     } else if (metadata instanceof FileMetadata) {
-                        System.out.println(" FileMetadata ");
+                        logger.debug(" FileMetadata ");
                         metadata = (FileMetadata) metadata;
                         file.put("type", "file");
                         String id = ((FileMetadata) metadata).getId();
                         if (id.startsWith("id:")) {
                             id = id.substring(3, id.length());
                         }
-                        System.out.println(" path: " + ((FileMetadata) metadata).getPathLower());
+                        logger.debug(" path: " + ((FileMetadata) metadata).getPathLower());
                         file.put("id", id);
                         file.put("modified", DateFormat.getDateInstance().format(((FileMetadata) metadata).getClientModified()));
                         file.put("size", Long.toString(((FileMetadata) metadata).getSize()));
@@ -126,23 +126,23 @@ public class DropboxManager implements CloudDriveManager {
                 }
 
             } catch (JSONException jse) {
-                System.out.println("JSONException: " + jse.getMessage());
+                logger.debug("JSONException: " + jse.getMessage());
             }
             if (!result.getHasMore()) {
                 break;
             }
         }
-        System.out.println("size: " + files.size());
+        logger.debug("size: " + files.size());
         return new FilesContainer(files, folderId);
     }
 
     public File multipartToFile(MultipartFile multipart, String pathToSave) throws IllegalStateException, IOException {
         File convertedFile = new File(pathToSave + multipart.getOriginalFilename());
         multipart.transferTo(convertedFile);
-        System.out.println("converted, exists " + convertedFile.exists());
-        System.out.println("converted, getPath " + convertedFile.getPath());
-        System.out.println("converted, getName " + convertedFile.getName());
-        System.out.println("converted, length " + convertedFile.length());
+        logger.debug("converted, exists " + convertedFile.exists());
+        logger.debug("converted, getPath " + convertedFile.getPath());
+        logger.debug("converted, getName " + convertedFile.getName());
+        logger.debug("converted, length " + convertedFile.length());
         return convertedFile;
     }
 
@@ -203,7 +203,7 @@ public class DropboxManager implements CloudDriveManager {
                     .withMode(WriteMode.ADD)
                     .withClientModified(new Date(localFile.lastModified()))
                     .uploadAndFinish(in);
-            System.out.println("File is uploaded, metadata: " + metadata.toStringMultiline());
+            logger.debug("File is uploaded, metadata: " + metadata.toStringMultiline());
             return true;
         } catch (UploadErrorException ex) {
             System.err.println("UploadErrorException Error uploading to Dropbox: " + ex.getMessage());
@@ -284,7 +284,7 @@ public class DropboxManager implements CloudDriveManager {
                 FileMetadata metadata = dbxClient.files().uploadSessionFinish(cursor, commitInfo)
                         .uploadAndFinish(in, remaining);
 
-                System.out.println(metadata.toStringMultiline());
+                logger.debug(metadata.toStringMultiline());
                 return true;
             } catch (RetryException ex) {
                 thrown = ex;
@@ -355,7 +355,7 @@ public class DropboxManager implements CloudDriveManager {
     @Override
     public boolean addFolder(String folderName, Cloud cloud, String path, String parentId) {
         String token = cloud.getAccessToken();
-        System.out.println("token: " + token);
+        logger.debug("token: " + token);
         DbxClientV2 client = getClient(token);
         try {
             client.files().createFolder(path + "/" + folderName);
@@ -471,7 +471,7 @@ public class DropboxManager implements CloudDriveManager {
         String token = cloud.getAccessToken();
         DbxClientV2 client = getClient(token);
         try {
-            System.out.println(" file getThumbnail ");
+            logger.debug(" file getThumbnail ");
             InputStream dis = client.files().getThumbnail(path).getInputStream();
             OutputStream os = null;
             try {

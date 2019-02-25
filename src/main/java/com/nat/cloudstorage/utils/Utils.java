@@ -1,7 +1,10 @@
 package com.nat.cloudstorage.utils;
 
 import com.nat.cloudstorage.response.DownloadedFileContainer;
+import com.nat.cloudstorage.service.UserServiceImpl;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,6 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 
 public class Utils {
+
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
     public static String getNameFromPath(String path) {
         if (path != null && !path.trim().isEmpty()) {
             int index = path.lastIndexOf("/");
@@ -29,11 +35,11 @@ public class Utils {
         File convertedFile = new File(pathToSave + multipart.getOriginalFilename());
         if (!convertedFile.exists()) {
             convertedFile.createNewFile();
-            System.out.println("start creating new file: " + convertedFile.getPath());
+            logger.debug("start creating new file: " + convertedFile.getPath());
         }
 
         multipart.transferTo(convertedFile);
-        System.out.println("converted, exists " + convertedFile.exists() + ", getPath " + convertedFile.getPath()
+        logger.debug("converted, exists " + convertedFile.exists() + ", getPath " + convertedFile.getPath()
                 + ", getName " + convertedFile.getName() + ", length: " + convertedFile.length());
         return convertedFile;
     }
@@ -45,14 +51,14 @@ public class Utils {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        System.out.println("downloaded ");
+        logger.debug("downloaded ");
         try {
             byte[] arr = IOUtils.toByteArray(is);
             is.close();
             if (file.delete()) {
-                System.out.println(file.getName() + " is deleted");
+                logger.debug(file.getName() + " is deleted");
             } else {
-                System.out.println("Delete operation is failed");
+                logger.debug("Delete operation is failed");
             }
             return new DownloadedFileContainer(fileName, arr);
         } catch (IOException e) {
