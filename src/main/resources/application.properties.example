@@ -31,13 +31,15 @@ spring.queries.roles-query=select email, 'ROLE_USER' from user where email=?
 # ==============================================================
 dropbox.app.key=
 dropbox.app.secret=
+dropbox.app.id=
 onedrive.app.key=
 onedrive.app.secret=
 google.app.key=
 google.app.secret=
 
 
-cloudman.domain=http://localhost:8080
+
+app.domain=http://localhost:8080
 logging.level.root=ERROR
-logging.level.com.nat.cloudman=DEBUG
-logging.file=cloudmanapp.log
+logging.level.com.nat.cloudstorage=DEBUG
+logging.file=app.log
