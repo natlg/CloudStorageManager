@@ -24,10 +24,14 @@ Supports Dropbox, Google Drive and Microsoft OneDrive
 2. Install MySql
   - `sudo apt install mysql-server`
   - Set user and password: 
-  ```
- sudo mysql
-
- GRANT ALL PRIVILEGES ON *.* TO 'userName'@'localhost' IDENTIFIED BY 'password';
+ ```
+ $ sudo mysql
+  
+ /*! CREATE USER/ROLE and a password */
+ mysql> CREATE USER 'userName'@'localhost' IDENTIFIED BY 'password';
+ 
+ /*! GRANT ALL PRIVILEGED to the user */.
+ mysql> GRANT ALL PRIVILEGES ON *.* TO 'userName'@'localhost';
   ```
   3. Install Maven:
   `sudo apt install maven`
