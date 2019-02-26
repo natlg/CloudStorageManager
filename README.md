@@ -54,6 +54,8 @@ Supports Dropbox, Google Drive and Microsoft OneDrive
    
    7. Run <br>
       `mvn spring-boot:run  `
+     
+   8. Visit [http://localhost:8080/index.html](http://localhost:8080/index.html)
    
    
    
