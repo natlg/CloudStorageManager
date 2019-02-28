@@ -47,6 +47,7 @@ Supports Dropbox, Google Drive and Microsoft OneDrive
   cp ./src/main/resources/application.properties.example ./src/main/resources/application.properties
   ```
    Specify parameters: <br>
+   `temp.download.path` and `temp.upload.path` - should be full paths
    `spring.datasource.url` - Url to DataBase (or use default) <br>
    `spring.datasource.username` - Name of MySQL user created on step 2 <br>
    `spring.datasource.password` - User password <br>

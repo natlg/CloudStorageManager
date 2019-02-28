@@ -1,7 +1,7 @@
 spring.http.multipart.max-file-size=10000MB
 spring.http.multipart.max-request-size=10000MB
-temp.download.path=./temp
-temp.upload.path=./temp/upload
+temp.download.path=
+temp.upload.path=
 # ===============================
 # DATA SOURCE
 # ===============================
@@ -36,8 +36,6 @@ onedrive.app.key=
 onedrive.app.secret=
 google.app.key=
 google.app.secret=
-
-
 
 app.domain=http://localhost:8080
 logging.level.root=ERROR
