@@ -24,11 +24,11 @@ public class User {
     @NotEmpty(message = "*Please provide an email")
     private String email;
 
-    @Column(name = "password")
-    @Length(min = 5, message = "*Your password must have at least 5 characters")
-    @NotEmpty(message = "*Please provide your password")
+    @Column(name = "password_hash")
+    @Length(min = 5, message = "*Your password_hash must have at least 5 characters")
+    @NotEmpty(message = "*Please provide your password_hash")
     @Transient
-    private String password;
+    private String passwordHash;
 
     @Column(name = "name")
     @NotEmpty(message = "*Please provide your name")
@@ -53,12 +53,8 @@ public class User {
         this.id = id;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public String getName() {

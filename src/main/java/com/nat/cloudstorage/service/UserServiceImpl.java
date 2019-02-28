@@ -1,10 +1,10 @@
 package com.nat.cloudstorage.service;
 
-import com.nat.cloudstorage.cloud.UserManager;
 import com.nat.cloudstorage.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.nat.cloudstorage.repository.UserRepository;
 
@@ -13,6 +13,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
@@ -38,7 +42,7 @@ public class UserServiceImpl implements UserService {
             user.setEmail(email);
             user.setName(firstName);
             user.setLastName(lastName);
-            user.setPassword(password);
+            user.setPasswordHash(passwordEncoder.encode(password));
             saveUser(user);
             result = "User was saved";
         }
