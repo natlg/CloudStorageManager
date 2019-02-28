@@ -47,21 +47,14 @@ Supports Dropbox, Google Drive and Microsoft OneDrive
   cp ./src/main/resources/application.properties.example ./src/main/resources/application.properties
   ```
    Specify parameters: <br>
-   `temp.download.path` and `temp.upload.path` - should be full paths
-   `spring.datasource.url` - Url to DataBase (or use default) <br>
-   `spring.datasource.username` - Name of MySQL user created on step 2 <br>
-   `spring.datasource.password` - User password <br>
-   `Clouds keys` - Insert keys and secrets from step 4 
+   `temp.download.path` and `temp.upload.path` - should be full paths <br>
+   `spring.datasource.url` - url to DataBase (or use default) <br>
+   `spring.datasource.username` - name of MySQL user created on step 2 <br>
+   `spring.datasource.password` - user password <br>
+   `Clouds keys` - insert keys and secrets from step 4 
    
    7. Run <br>
       `mvn spring-boot:run  `
      
    8. Visit [http://localhost:8080/index.html](http://localhost:8080/index.html)
    
-   
-   
-   
-   
-  
-  
-  
